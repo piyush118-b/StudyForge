@@ -26,7 +26,7 @@ export function Step7Review({ onBack }: { onBack: () => void }) {
       const res = await fetch("/api/gemini", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(userData),
+        body: JSON.stringify({ userData }), // Correctly wrap in key expected by API
       });
 
       if (!res.ok) {
@@ -34,13 +34,14 @@ export function Step7Review({ onBack }: { onBack: () => void }) {
       }
 
       const data = await res.json();
-      localStorage.setItem("studyforge_timetable", JSON.stringify(data));
-      router.push("/timetable/draft");
+      // Extract the 'timetable' object from the response wrapper
+      localStorage.setItem("studyforge_timetable", JSON.stringify(data.timetable));
+      router.push("/create/timetable"); // Actual route that displays the timetable
     } catch (err) {
       console.error(err);
       alert("Uh oh! Generation failed yaar. Please try again.");
     } finally {
-      if (!router) setLoading(false);
+      setLoading(false);
     }
   };
 

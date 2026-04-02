@@ -1,15 +1,31 @@
 import { UserData } from "./types";
 
+export const COMMON_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+export const COMMON_TIME_SLOTS = [
+  "07:00-08:00", "08:00-09:00", "09:00-10:00", "10:00-11:00", "11:00-12:00",
+  "12:00-13:00", "13:00-14:00", "14:00-15:00", "15:00-16:00", "16:00-17:00",
+  "17:00-18:00", "18:00-19:00", "19:00-20:00", "20:00-21:00", "21:00-22:00",
+  "22:00-23:00", "23:00-07:00"
+];
+
+export const generateEmptyTimetable = () => {
+  const grid: any = {};
+  COMMON_DAYS.forEach(day => {
+    grid[day] = {};
+  });
+  return {
+    title: "Draft Timetable",
+    days: COMMON_DAYS,
+    timeSlots: COMMON_TIME_SLOTS,
+    grid
+  };
+};
+
 export const generateMockTimetable = (userData: UserData) => {
   return {
     title: "My CSE 3rd Semester Timetable",
-    days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-    timeSlots: [
-      "07:00-08:00", "08:00-09:00", "09:00-10:00", "10:00-11:00", "11:00-12:00",
-      "12:00-13:00", "13:00-14:00", "14:00-15:00", "15:00-16:00", "16:00-17:00",
-      "17:00-18:00", "18:00-19:00", "19:00-20:00", "20:00-21:00", "21:00-22:00",
-      "22:00-23:00", "23:00-07:00"
-    ],
+    days: COMMON_DAYS,
+    timeSlots: COMMON_TIME_SLOTS,
     grid: {
       Monday: {
         "08:00-09:00": { subject: "Maths", type: "Lecture", color: "#3b82f6", notes: "Formula revisions", priority: "High", sticker: "🔥" },

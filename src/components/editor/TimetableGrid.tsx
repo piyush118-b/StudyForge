@@ -9,7 +9,7 @@ const TIME_LABEL_WIDTH = 72;
 const DAY_HEADER_HEIGHT = 56;
 
 export function TimetableGrid() {
-  const { gridStartTime, gridEndTime, pxPerHour, dayColumns, blocks, addDayColumn, currentSnapInterval, openBlockModal, zoom } = useGridStore();
+  const { gridStartTime, gridEndTime, pxPerHour, dayColumns, blocks, currentSnapInterval, openBlockModal, zoom, activeTool } = useGridStore();
   const gridRef = useRef<HTMLDivElement>(null);
 
   const totalMinutes = timeDiffMinutes(gridStartTime, gridEndTime);
@@ -41,33 +41,41 @@ export function TimetableGrid() {
   // Generate exact hour and half-hour visual guide points mathematically
   const gridLines: { y: number; isMajor: boolean | 'micro' }[] = [];
   const labels: { y: number; isHour: boolean; label: string; time: string }[] = [];
-  const startH = parseInt(gridStartTime.split(":")[0]);
-  const endH = parseInt(gridEndTime.split(":")[0]);
   
-  for (let h = startH; h <= endH; h++) {
-    const timeFull = `${h.toString().padStart(2, '0')}:00`;
+  const startH = parseInt(gridStartTime.split(":")[0]);
+  const durationMinutes = timeDiffMinutes(gridStartTime, gridEndTime);
+  const totalHours = Math.ceil(durationMinutes / 60);
+
+  for (let hOffset = 0; hOffset <= totalHours; hOffset++) {
+    const currentH = (startH + hOffset) % 24;
+    const timeFull = `${currentH.toString().padStart(2, '0')}:00`;
     const yFull = timeToPixel(timeFull, gridStartTime, pxPerHour);
     
+    // Check if we already added this hour (could happen at exact end boundary)
     if (yFull >= 0 && yFull <= totalGridHeight) {
       gridLines.push({ y: yFull, isMajor: true });
       labels.push({ y: yFull, isHour: true, label: to12HourShort(timeFull), time: timeFull });
     }
     
-    const timeHalf = `${h.toString().padStart(2, '0')}:30`;
-    const yHalf = timeToPixel(timeHalf, gridStartTime, pxPerHour);
-    if (yHalf > 0 && yHalf < totalGridHeight) {
-      gridLines.push({ y: yHalf, isMajor: false });
-      labels.push({ y: yHalf, isHour: false, label: ':30', time: timeHalf });
-    }
-    // Faint 15min marks at deep zoom
-    if (zoom > 1.3) {
-       ['15', '45'].forEach(m => {
-          const tQuart = `${h.toString().padStart(2, '0')}:${m}`;
-          const yQ = timeToPixel(tQuart, gridStartTime, pxPerHour);
-          if (yQ > 0 && yQ < totalGridHeight) {
-             gridLines.push({ y: yQ, isMajor: 'micro' });
-          }
-       });
+    // Half-hour markers
+    if (hOffset < totalHours) {
+      const timeHalf = `${currentH.toString().padStart(2, '0')}:30`;
+      const yHalf = timeToPixel(timeHalf, gridStartTime, pxPerHour);
+      if (yHalf > 0 && yHalf < totalGridHeight) {
+        gridLines.push({ y: yHalf, isMajor: false });
+        labels.push({ y: yHalf, isHour: false, label: ':30', time: timeHalf });
+      }
+      
+      // Faint 15min marks at deep zoom
+      if (zoom > 1.3) {
+         ['15', '45'].forEach(m => {
+            const tQuart = `${currentH.toString().padStart(2, '0')}:${m}`;
+            const yQ = timeToPixel(tQuart, gridStartTime, pxPerHour);
+            if (yQ > 0 && yQ < totalGridHeight) {
+               gridLines.push({ y: yQ, isMajor: 'micro' });
+            }
+         });
+      }
     }
   }
 
@@ -183,13 +191,6 @@ export function TimetableGrid() {
           {col.label}
         </div>
       ))}
-      <button 
-        onClick={addDayColumn}
-        className="absolute flex items-center justify-center font-bold text-[#E8EAED] hover:text-white transition-colors cursor-pointer text-sm z-30 bg-[#292A2D]/80 border border-white/10 rounded-full hover:bg-[#323639] backdrop-blur-md shadow-lg"
-        style={{ left: totalWidth + 12, top: 10, width: 100, height: 36 }}
-      >
-        + Add Day
-      </button>
 
       {/* Axis Headers - Times / Left Rail (Y) */}
       <div className="absolute z-20" style={{ left: 0, top: DAY_HEADER_HEIGHT, width: TIME_LABEL_WIDTH, height: totalGridHeight }} />
@@ -222,7 +223,7 @@ export function TimetableGrid() {
       {dayColumns.map((col, cIdx) => (
         <div 
           key={`zone-${col.id}`}
-          className="absolute z-10 hover:bg-white/[0.02] cursor-crosshair transition-colors"
+          className={`absolute z-10 hover:bg-white/[0.02] transition-colors ${activeTool === 'select' ? 'cursor-crosshair' : 'cursor-inherit'}`}
           style={{ 
              left: columnLefts[cIdx],
              top: DAY_HEADER_HEIGHT,
@@ -230,7 +231,7 @@ export function TimetableGrid() {
              height: totalGridHeight
           }}
           onMouseDown={(e) => {
-            if (e.button !== 0) return;
+            if (e.button !== 0 || activeTool === 'pan') return;
             const y = (e.clientY - gridRef.current!.getBoundingClientRect().top - DAY_HEADER_HEIGHT * zoom) / zoom;
             const rawTime = pixelToTime(y, gridStartTime, pxPerHour);
             const snappedTime = currentSnapInterval ? snapTime(rawTime, currentSnapInterval) : rawTime;

@@ -57,11 +57,11 @@ export function CategorizedCombobox({
           role="combobox"
           aria-expanded={open}
           className="w-full justify-between bg-slate-900 border-white/20 text-white font-normal hover:bg-slate-800"
-        />
-      }>
-        <span className="truncate">{selectedDisplay ? selectedDisplay : placeholder}</span>
-        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-      </PopoverTrigger>
+        >
+          <span className="truncate">{selectedDisplay ? selectedDisplay : placeholder}</span>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      } />
       <PopoverContent className="w-full sm:w-[500px] p-0 bg-slate-900 border-white/20">
         <Command className="bg-slate-900 text-white">
           <CommandInput placeholder={placeholder} className="text-white" />

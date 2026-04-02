@@ -3,7 +3,7 @@
 import { useGridStore } from "@/store/grid-store";
 import { TimeBlock } from "@/lib/grid-engine";
 import { GripHorizontal, CheckCircle2, ChevronRight, FileText } from "lucide-react";
-import { useState, MouseEvent as ReactMouseEvent } from "react";
+import { useState, useRef, MouseEvent as ReactMouseEvent } from "react";
 import { pixelToTime, snapTime, timeToPixel, to12HourShort, timeDiffMinutes } from "@/lib/time-utils";
 
 interface TimeBlockComponentProps {
@@ -23,7 +23,8 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
     gridStartTime, 
     pxPerHour, 
     currentSnapInterval,
-    zoom 
+    zoom,
+    activeTool 
   } = useGridStore();
   
   const [isResizingTop, setIsResizingTop] = useState(false);
@@ -32,6 +33,9 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
   // Transient drag math bounds overriding render statically dynamically
   const [previewY, setPreviewY] = useState<number | null>(null);
   const [previewH, setPreviewH] = useState<number | null>(null);
+  
+  // Use a ref to track absolute transient value securely inside event listener closures
+  const activeDragRef = useRef<{y: number | null, h: number | null}>({ y: null, h: null });
 
   const displayY = previewY !== null ? previewY : 0;
   const displayHeight = previewH !== null ? previewH : h;
@@ -42,6 +46,8 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
 
   // --- TOP Resize Mechanics (Feature 9) ---
   const handleTopResizeStart = (e: ReactMouseEvent) => {
+    if (activeTool === 'pan') return;
+    
     e.stopPropagation();
     e.preventDefault();
     setIsResizingTop(true);
@@ -66,6 +72,7 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
       if (finalH >= (15 / 60) * pxPerHour) { 
         setPreviewY(finalYDiff);
         setPreviewH(finalH);
+        activeDragRef.current.y = finalYDiff;
       }
     };
 
@@ -74,15 +81,17 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
       document.removeEventListener("mouseup", handleMouseUp);
       
       setIsResizingTop(false);
-      setPreviewY(prevY => {
-        if (prevY !== null && prevY !== 0) {
-           const newRawTime = pixelToTime(baseY + prevY, gridStartTime, pxPerHour);
-           const newSnapped = currentSnapInterval ? snapTime(newRawTime, currentSnapInterval) : newRawTime;
-           updateBlock(block.id, { startTime: newSnapped });
-        }
-        return null;
-      });
+      
+      const prevY = activeDragRef.current.y;
+      if (prevY !== null && prevY !== 0) {
+         const newRawTime = pixelToTime(baseY + prevY, gridStartTime, pxPerHour);
+         const newSnapped = currentSnapInterval ? snapTime(newRawTime, currentSnapInterval) : newRawTime;
+         updateBlock(block.id, { startTime: newSnapped });
+      }
+      
+      setPreviewY(null);
       setPreviewH(null);
+      activeDragRef.current = { y: null, h: null };
     };
 
     document.addEventListener("mousemove", handleMouseMove);
@@ -91,6 +100,8 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
 
   // --- BOTTOM Resize Mechanics ---
   const handleBottomResizeStart = (e: ReactMouseEvent) => {
+    if (activeTool === 'pan') return;
+    
     e.stopPropagation();
     e.preventDefault();
     setIsResizingBottom(true);
@@ -112,6 +123,7 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
       const finalH = newEndY - baseY;
       if (finalH >= (15 / 60) * pxPerHour) {
         setPreviewH(finalH);
+        activeDragRef.current.h = finalH;
       }
     };
 
@@ -120,14 +132,16 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
       document.removeEventListener("mouseup", handleMouseUp);
       
       setIsResizingBottom(false);
-      setPreviewH(prevH => {
-         if (prevH !== null && prevH !== baseH) {
-            const rawTime = pixelToTime(baseY + prevH, gridStartTime, pxPerHour);
-            const snappedTime = currentSnapInterval ? snapTime(rawTime, currentSnapInterval) : rawTime;
-            updateBlock(block.id, { endTime: snappedTime });
-         }
-         return null;
-      });
+      const prevH = activeDragRef.current.h;
+      
+      if (prevH !== null && prevH !== baseH) {
+          const rawTime = pixelToTime(baseY + prevH, gridStartTime, pxPerHour);
+          const snappedTime = currentSnapInterval ? snapTime(rawTime, currentSnapInterval) : rawTime;
+          updateBlock(block.id, { endTime: snappedTime });
+      }
+      
+      setPreviewH(null);
+      activeDragRef.current = { y: null, h: null };
     };
 
     document.addEventListener("mousemove", handleMouseMove);
@@ -135,6 +149,8 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
   };
 
   const handleToggleComplete = (e: ReactMouseEvent) => {
+    if (activeTool === 'pan') return;
+    
     e.stopPropagation();
     updateBlock(block.id, { 
       status: isCompleted ? 'pending' : 'completed',
@@ -156,14 +172,20 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
 
   return (
     <div 
-      className={`absolute transition-transform duration-75 flex flex-col cursor-pointer group rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.4)] border border-white/5
+      style={{ left: 2, top: displayY + 2, width: w - 4, height: displayHeight - 4, backgroundColor: block.color, color: block.textColor }}
+      onClick={(e) => { 
+        if (activeTool === 'pan') return; // let it bubble up to pan handlers if applicable, or just ignore
+        e.stopPropagation(); 
+        openBlockModal(block.dayId, block.startTime, block.endTime, block.id); 
+      }}
+      // Use pointer-events-none conditionally to let Pan grab the wrapper underneath
+      className={`absolute transition-transform duration-75 flex flex-col group rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.4)] border border-white/5
+        ${activeTool === 'pan' ? 'cursor-inherit' : 'cursor-pointer pointer-events-auto'}
         ${isCompleted ? 'brightness-90 ring-1 ring-green-500 shadow-green-900/40' : ''}
         ${isSkipped ? 'grayscale-[0.6] opacity-70 bg-[repeating-linear-gradient(45deg,transparent,transparent_8px,rgba(0,0,0,0.2)_8px,rgba(0,0,0,0.2)_10px)]' : ''}
         ${isPartial ? 'ring-1 ring-yellow-500' : ''}
         ${isResizingTop || isResizingBottom ? 'z-50 pointer-events-none' : 'z-20 hover:z-40'}
       `}
-      style={{ left: 2, top: displayY + 2, width: w - 4, height: displayHeight - 4, backgroundColor: block.color, color: block.textColor }}
-      onClick={(e) => { e.stopPropagation(); openBlockModal(block.dayId, block.startTime, block.endTime, block.id); }}
       onContextMenu={handleContextMenu}
       data-block-id={block.id}
     >

@@ -5,10 +5,11 @@ import { useGridStore } from "@/store/grid-store";
 import { ZoomIn, ZoomOut, Maximize2 } from "lucide-react";
 
 export function CanvasWrapper({ children }: { children: React.ReactNode }) {
-  const { zoom, panX, panY, setZoom, setPan } = useGridStore();
+  const { zoom, panX, panY, setZoom, setPan, activeTool } = useGridStore();
   const containerRef = useRef<HTMLDivElement>(null);
   
-  const [isPanning, setIsPanning] = useState(false);
+  const [isSpacePanning, setIsSpacePanning] = useState(false);
+  const isPanning = isSpacePanning || activeTool === 'pan';
   
   const handleWheel = useCallback((e: WheelEvent) => {
     e.preventDefault();
@@ -34,15 +35,15 @@ export function CanvasWrapper({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === 'Space' && !isPanning && e.target === document.body) {
+      if (e.code === 'Space' && !isSpacePanning && e.target === document.body) {
         e.preventDefault();
-        setIsPanning(true);
+        setIsSpacePanning(true);
       }
     };
     
     const handleKeyUp = (e: KeyboardEvent) => {
       if (e.code === 'Space') {
-        setIsPanning(false);
+        setIsSpacePanning(false);
       }
     };
     
@@ -52,7 +53,7 @@ export function CanvasWrapper({ children }: { children: React.ReactNode }) {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [isPanning]);
+  }, [isSpacePanning]);
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (isPanning && e.buttons === 1) { // Left click held
@@ -65,9 +66,9 @@ export function CanvasWrapper({ children }: { children: React.ReactNode }) {
       ref={containerRef}
       className={`w-full flex-1 overflow-hidden relative select-none ${isPanning ? 'cursor-grabbing' : 'cursor-auto'}`}
       onMouseMove={handleMouseMove}
-      onMouseDown={() => { if(isPanning) document.body.style.userSelect = 'none'; }}
-      onMouseUp={() => { document.body.style.userSelect = ''; }}
-      onMouseLeave={() => { document.body.style.userSelect = ''; }}
+      onMouseDown={() => { if(isPanning) document.body.style.cursor = 'grabbing'; }}
+      onMouseUp={() => { document.body.style.cursor = ''; }}
+      onMouseLeave={() => { document.body.style.cursor = ''; }}
     >
       <div 
         className="absolute origin-top-left transition-transform duration-75"

@@ -358,7 +358,7 @@ function TimeInput({ value, onChange, label, snapTo }: { value: string, onChange
 
   // Sync display formatting exactly when modal is mounted or value prop pushes external changes natively
   useEffect(() => {
-    setInputValue(to12Hour(value));
+    setInputValue(to12Hour(value).split(' ')[0]);
   }, [value]);
 
   useEffect(() => {
@@ -371,33 +371,84 @@ function TimeInput({ value, onChange, label, snapTo }: { value: string, onChange
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [dropdownRef]);
 
+  const isPM = parseInt(value.split(':')[0]) >= 12;
+
   return (
     <div className="relative flex-1" ref={dropdownRef}>
       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">{label}</label>
-      <input
-        className="w-full bg-slate-950/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-indigo-500/50 cursor-text tracking-wide shadow-inner"
-        value={inputValue}
-        onChange={(e) => {
-          setInputValue(e.target.value);
-          const parsed = parseTimeInput(e.target.value);
-          if (parsed) onChange(parsed);
-        }}
-        onFocus={() => setIsOpen(true)}
-        onBlur={() => {
-          const parsed = parseTimeInput(inputValue);
-          if (parsed) {
-            const snapped = snapTo ? snapTime(parsed, snapTo as any) : parsed;
-            setInputValue(to12Hour(snapped));
-            onChange(snapped);
-          } else {
-            setInputValue(to12Hour(value));
-          }
-          // Delay closing so dropdown clicks register
-          setTimeout(() => setIsOpen(false), 200);
-        }}
-        placeholder="e.g. 9:30 AM"
-        style={{ fontVariantNumeric: 'tabular-nums' }}
-      />
+      
+      {/* 2-Part Container for Smart Toggle */}
+      <div className="flex bg-slate-950/50 border border-white/10 rounded-lg overflow-hidden focus-within:border-indigo-500/50 focus-within:ring-1 focus-within:ring-indigo-500/50 transition-all shadow-inner">
+        <input
+          className="w-full bg-transparent pl-3 pr-1 py-2 text-sm text-slate-100 focus:outline-none cursor-text tracking-wide tabular-nums"
+          value={inputValue}
+          onChange={(e) => {
+            setInputValue(e.target.value);
+            const typedHasAMPM = e.target.value.toLowerCase().includes('m');
+            const strToParse = typedHasAMPM ? e.target.value : `${e.target.value} ${isPM ? 'PM' : 'AM'}`;
+            const parsed = parseTimeInput(strToParse);
+            if (parsed) onChange(parsed);
+          }}
+          onFocus={() => setIsOpen(true)}
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+              e.preventDefault();
+              const typedHasAMPM = inputValue.toLowerCase().includes('m');
+              const strToParse = typedHasAMPM ? inputValue : `${inputValue} ${isPM ? 'PM' : 'AM'}`;
+              const currentParsed = parseTimeInput(strToParse) || value;
+              
+              const dir = e.key === 'ArrowUp' ? 1 : -1;
+              const step = snapTo || 15;
+              
+              const [h, m] = currentParsed.split(':').map(Number);
+              let total = h * 60 + m + (dir * step);
+              if (total < 0) total += 24 * 60;
+              
+              const newH = Math.floor(total / 60) % 24;
+              const newM = total % 60;
+              const newTime = `${newH.toString().padStart(2, '0')}:${newM.toString().padStart(2, '0')}`;
+              
+              const snapped = snapTime(newTime, step as any);
+              setInputValue(to12Hour(snapped).split(' ')[0]);
+              onChange(snapped);
+            }
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              setIsOpen(false);
+              (e.target as HTMLInputElement).blur();
+            }
+          }}
+          onBlur={() => {
+            const typedHasAMPM = inputValue.toLowerCase().includes('m');
+            const strToParse = typedHasAMPM ? inputValue : `${inputValue} ${isPM ? 'PM' : 'AM'}`;
+            const parsed = parseTimeInput(strToParse);
+            if (parsed) {
+              const snapped = snapTo ? snapTime(parsed, snapTo as any) : parsed;
+              setInputValue(to12Hour(snapped).split(' ')[0]);
+              onChange(snapped);
+            } else {
+              setInputValue(to12Hour(value).split(' ')[0]);
+            }
+            setTimeout(() => setIsOpen(false), 200);
+          }}
+          placeholder="9:30"
+        />
+        
+        <button
+          type="button"
+          tabIndex={-1}
+          onClick={(e) => {
+            e.preventDefault();
+            // Toggle AM/PM exactly 12 hours from current resolved store Value
+            const [h, m] = value.split(':').map(Number);
+            const newH = (h + 12) % 24;
+            onChange(`${newH.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
+          }}
+          className="px-2.5 py-2 text-[11px] font-bold bg-white/5 hover:bg-white/10 text-indigo-300 hover:text-indigo-200 border-l border-white/10 transition-colors uppercase tracking-widest shrink-0"
+        >
+          {isPM ? 'PM' : 'AM'}
+        </button>
+      </div>
       
       {isOpen && (
         <div className="absolute top-100 mt-1 left-0 right-0 z-[100] bg-slate-800 border border-slate-700 rounded-lg max-h-[160px] overflow-y-auto shadow-xl py-1">
@@ -408,7 +459,7 @@ function TimeInput({ value, onChange, label, snapTo }: { value: string, onChange
               onClick={() => {
                 const finalTarget = time;
                 onChange(finalTarget);
-                setInputValue(to12Hour(finalTarget));
+                setInputValue(to12Hour(finalTarget).split(' ')[0]);
                 setIsOpen(false);
               }}
               className={`block w-full text-left px-3 py-1.5 text-xs font-mono transition-colors border-l-2

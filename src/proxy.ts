@@ -2,11 +2,9 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export async function middleware(request: NextRequest) {
-  // Create an unmodified response
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
+// Next.js 16: "proxy" replaces "middleware" — export must be named "proxy"
+export async function proxy(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,9 +16,7 @@ export async function middleware(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          supabaseResponse = NextResponse.next({
-            request,
-          });
+          supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           );
@@ -29,21 +25,26 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Refresh session if expired
-  const { data: { session } } = await supabase.auth.getSession();
+  // Refresh session — required for Server Components to read auth state
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  const isAuthRoute = request.nextUrl.pathname.startsWith('/auth');
-  const isProtectedRoute = request.nextUrl.pathname.startsWith('/dashboard') || request.nextUrl.pathname.startsWith('/timetable');
-  const isShared = request.nextUrl.pathname.startsWith('/shared') || request.nextUrl.pathname === '/timetable/draft';
+  const { pathname } = request.nextUrl;
 
-  // Redirect authenticated users away from auth routes (login/signup)
+  const isAuthRoute = pathname.startsWith('/auth');
+  const isProtectedRoute =
+    pathname.startsWith('/dashboard') || pathname.startsWith('/timetable');
+  const isGuestAllowed =
+    pathname.startsWith('/shared') || pathname === '/timetable/draft';
+
+  // Redirect logged-in users away from /auth pages → send to dashboard
   if (isAuthRoute && session) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   // Redirect unauthenticated users away from protected routes
-  // Accept /timetable/draft as a valid semi-protected route for guests
-  if (isProtectedRoute && !session && !isShared) {
+  if (isProtectedRoute && !session && !isGuestAllowed) {
     return NextResponse.redirect(new URL('/auth/login', request.url));
   }
 

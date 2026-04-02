@@ -14,6 +14,8 @@ interface AuthContextType {
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
+  updateProfile: (fields: Partial<Profile>) => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -23,6 +25,8 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   signInWithGoogle: async () => {},
   signOut: async () => {},
+  updateProfile: async () => {},
+  refreshProfile: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -88,8 +92,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await supabase.auth.signOut();
   };
 
+  const updateProfile = async (fields: { full_name?: string | null; college?: string | null; branch?: string | null; semester?: string | null; avatar_url?: string | null }) => {
+    if (!user) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase.from('profiles') as any)
+      .update(fields)
+      .eq('id', user.id)
+      .select()
+      .single();
+    if (error) throw error;
+    setProfile(data as Profile);
+    const p = data as Profile;
+    const cached = { name: p.full_name, college: p.college, semester: p.semester, branch: p.branch };
+    if (typeof window !== 'undefined') localStorage.setItem('sf_guest_profile', JSON.stringify(cached));
+  };
+
+  const refreshProfile = async () => {
+    if (user) await fetchProfile(user.id);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, profile, session, loading, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, profile, session, loading, signInWithGoogle, signOut, updateProfile, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

@@ -12,11 +12,16 @@ import { INDIAN_COLLEGES, BRANCHES, SEMESTERS } from "@/lib/constants";
 import { X, ArrowRight } from "lucide-react";
 
 export function Step0BasicProfile({ onNext }: { onNext: () => void }) {
-  const { userData, updateField } = useCreateTimetable();
+  const { userData, updateField, saveProfile } = useCreateTimetable();
   const [showCustomCollege, setShowCustomCollege] = useState(false);
   const [showCustomBranch, setShowCustomBranch] = useState(false);
 
   const isValid = Boolean(userData.name && userData.college && userData.semester && userData.branch);
+
+  function handleNext() {
+    saveProfile();
+    onNext();
+  }
 
   return (
     <StepCard title="Let's get to know you 👋" description="Help us tweak the AI to match your academic level.">
@@ -111,7 +116,7 @@ export function Step0BasicProfile({ onNext }: { onNext: () => void }) {
       </div>
 
       <div className="mt-8 flex justify-end">
-        <Button onClick={onNext} disabled={!isValid} className="bg-white text-black hover:bg-slate-200 px-8">
+        <Button onClick={handleNext} disabled={!isValid} className="bg-white text-black hover:bg-slate-200 px-8">
           Next <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
       </div>

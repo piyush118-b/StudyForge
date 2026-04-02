@@ -17,7 +17,14 @@ export function timeToPixel(time: string, gridStartTime: string, pxPerHour: numb
   if (!time || !gridStartTime) return 0;
   const [h, m] = time.split(':').map(Number);
   const [sh, sm] = gridStartTime.split(':').map(Number);
-  const diffMinutes = (h * 60 + m) - (sh * 60 + sm);
+  
+  let diffMinutes = (h * 60 + m) - (sh * 60 + sm);
+  
+  // If time is before grid start (e.g. 2am vs 7am start), assume it's the next day
+  if (diffMinutes < 0) {
+    diffMinutes += 24 * 60;
+  }
+  
   return (diffMinutes / 60) * pxPerHour;
 }
 
@@ -25,7 +32,29 @@ export function timeToPixel(time: string, gridStartTime: string, pxPerHour: numb
 export function timeDiffMinutes(startTime: string, endTime: string): number {
   const [h1, m1] = startTime.split(':').map(Number);
   const [h2, m2] = endTime.split(':').map(Number);
-  return (h2 * 60 + m2) - (h1 * 60 + m1);
+  
+  let diff = (h2 * 60 + m2) - (h1 * 60 + m1);
+  
+  // Handle cross-day (e.g. 11pm to 2am)
+  if (diff < 0) {
+    diff += 24 * 60;
+  }
+  
+  return diff;
+}
+
+/** Offset a time by X minutes, wrapping 24h naturally */
+export function addMinutesWrapped(time: string, minutesDelta: number): string {
+  if (!time) return "00:00";
+  const [h, m] = time.split(':').map(Number);
+  let totalMinutes = h * 60 + m + minutesDelta;
+  
+  // Wrap around negative or > 24h
+  totalMinutes = ((totalMinutes % (24 * 60)) + (24 * 60)) % (24 * 60);
+  
+  const newH = Math.floor(totalMinutes / 60);
+  const newM = totalMinutes % 60;
+  return `${newH.toString().padStart(2, '0')}:${newM.toString().padStart(2, '0')}`;
 }
 
 /** Snap a time strictly to a designated interval logic */
@@ -54,31 +83,54 @@ export function to12HourShort(time24: string): string {
   return m === 0 ? `${h12} ${ampm}` : `${h12}:${m.toString().padStart(2,'0')} ${ampm}`;
 }
 
-/** Build flexible time input from user string typing */
+/** Build flexible time input from user string typing (Highly Smart) */
 export function parseTimeInput(input: string): string | null {
-  const cleaned = input.trim().toLowerCase();
-  
-  // Try 12-hour formats
-  const match12 = cleaned.match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)$/);
-  if (match12) {
-    let h = parseInt(match12[1]);
-    const m = parseInt(match12[2] || '0');
-    const period = match12[3];
-    if (period === 'pm' && h !== 12) h += 12;
-    if (period === 'am' && h === 12) h = 0;
-    if (h >= 0 && h < 24 && m >= 0 && m < 60) {
-      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+  const cleaned = input.trim().toLowerCase().replace(/\s+/g, '');
+  if (!cleaned) return null;
+
+  const matchColon = cleaned.match(/^(\d{1,2}):(\d{2})([ap]m?)?$/);
+  const matchNoColon = cleaned.match(/^(\d{1,4})([ap]m?)?$/);
+
+  let h: number, m: number, period: string | undefined;
+
+  if (matchColon) {
+    h = parseInt(matchColon[1]);
+    m = parseInt(matchColon[2]);
+    period = matchColon[3];
+  } else if (matchNoColon) {
+    const digits = matchNoColon[1];
+    period = matchNoColon[2];
+    
+    if (digits.length <= 2) {
+      h = parseInt(digits);
+      m = 0;
+    } else if (digits.length === 3) {
+      h = parseInt(digits.slice(0, 1));
+      m = parseInt(digits.slice(1));
+    } else {
+      h = parseInt(digits.slice(0, 2));
+      m = parseInt(digits.slice(2));
+    }
+  } else {
+    return null;
+  }
+
+  if (period) {
+    const isPM = period.startsWith('p');
+    if (isPM && h < 12) h += 12;
+    if (!isPM && h === 12) h = 0;
+  } else {
+    // Smart Defaults if no AM/PM provided:
+    // 1 to 6 defaults to PM (1 PM to 6 PM)
+    // 7 to 11 defaults to AM (7 AM to 11 AM)
+    // 12 defaults to PM (12 Noon)
+    if (h >= 1 && h <= 6) {
+       h += 12;
     }
   }
-  
-  // Try 24-hour formats
-  const match24 = cleaned.match(/^(\d{1,2}):(\d{2})$/);
-  if (match24) {
-    const h = parseInt(match24[1]);
-    const m = parseInt(match24[2]);
-    if (h >= 0 && h < 24 && m >= 0 && m < 60) {
-      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-    }
+
+  if (h >= 0 && h < 24 && m >= 0 && m < 60) {
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
   }
   
   return null;
