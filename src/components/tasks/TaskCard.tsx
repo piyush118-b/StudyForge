@@ -3,7 +3,7 @@
 import { type Task } from '@/types/task.types';
 import { useTaskStore } from '@/store/task-store';
 import { useAuth } from '@/lib/auth-context';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { format, isToday, isTomorrow, isPast, parseISO } from 'date-fns';
 import {
   CheckCircle2, Circle, ChevronRight, Clock, BookOpen,
@@ -34,18 +34,24 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
 
   const pc = priorityConfig[task.priority];
 
+  const [now, setNow] = useState<number | null>(null);
+
+  useEffect(() => {
+    setNow(Date.now());
+  }, []);
+
   const dueDateLabel = useMemo(() => {
-    if (!task.dueDate) return null;
+    if (!task.dueDate || now === null) return null;
     const date = parseISO(task.dueDate);
     const overdue = isPast(date) && !isToday(date) && task.status !== 'completed';
     if (overdue) {
-      const days = Math.floor((Date.now() - date.getTime()) / 86400000);
-      return { text: `⚠️ Overdue by ${days} day${days !== 1 ? 's' : ''}`, color: 'text-red-400' };
+      const days = Math.floor((now - date.getTime()) / 86400000);
+      return { text: `⚠️ Overdue by ${days} day${days !== 1 ? '&apos;s' : ''}`, color: 'text-red-400' };
     }
     if (isToday(date)) return { text: '📅 Due today', color: 'text-orange-400' };
     if (isTomorrow(date)) return { text: '📅 Tomorrow', color: 'text-amber-400' };
     return { text: `📅 ${format(date, 'EEE, MMM d')}`, color: 'text-slate-400' };
-  }, [task.dueDate, task.status]);
+  }, [task.dueDate, task.status, now]);
 
   const statusIcon = () => {
     if (task.status === 'completed') return <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />;

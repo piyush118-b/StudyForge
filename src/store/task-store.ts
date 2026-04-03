@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/lib/supabase';
 import type { Task, TaskFormData, TaskStatus, GuestTaskStore } from '@/types/task.types';
+import { getLocalDateStr } from '@/lib/time-utils';
 
 const GUEST_KEY = 'sf_guest_tasks';
 
@@ -223,7 +224,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     get().tasks.filter((t) => t.subject === subject && t.status !== 'cancelled'),
 
   getTodayTasks: () => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateStr();
     return get().tasks.filter(
       (t) => t.dueDate === today && t.status !== 'cancelled' && t.status !== 'completed'
     );

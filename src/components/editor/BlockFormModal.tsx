@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useGridStore } from "@/store/grid-store";
+import { type TimeBlock } from "@/lib/grid-engine";
 import { X, Search, ChevronDown, Trash2 } from "lucide-react";
 import { parseTimeInput, to12Hour, generateQuickTimes, snapTime, timeDiffMinutes } from "@/lib/time-utils";
 
@@ -30,36 +31,37 @@ export function BlockFormModal() {
   const existingBlock = isEditing ? blocks[blockModalData.blockId!] : null;
 
   const [subject, setSubject] = useState("");
-  const [subjectType, setSubjectType] = useState<any>("Self Study");
+  const [subjectType, setSubjectType] = useState<TimeBlock['subjectType']>('Lecture');
   const [color, setColor] = useState("#3b82f6");
   const [notes, setNotes] = useState("");
-  const [priority, setPriority] = useState<any>("");
+  const [priority, setPriority] = useState<TimeBlock['priority']>(null);
   const [sticker, setSticker] = useState("");
   
   // Time state bounds
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
 
-  const [recentSubjects, setRecentSubjects] = useState<string[]>([]);
+  const [recentSubjects, setRecentSubjects] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const stored = localStorage.getItem('studyforge_recent_subjects');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
   const [isNotesExpanded, setIsNotesExpanded] = useState(false);
   const [isStickerExpanded, setIsStickerExpanded] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('studyforge_recent_subjects');
-      if (stored) setRecentSubjects(JSON.parse(stored));
-    } catch(e) {}
-  }, []);
-
-  useEffect(() => {
     if (isBlockModalOpen && blockModalData) {
       if (isEditing && existingBlock) {
         setSubject(existingBlock.subject);
-        setSubjectType(existingBlock.subjectType || "Lecture");
+        setSubjectType(existingBlock.subjectType);
         setColor(existingBlock.color);
         setNotes(existingBlock.notes || "");
-        setPriority(existingBlock.priority || "");
+        setPriority(existingBlock.priority);
         setSticker(existingBlock.sticker || "");
         setStartTime(existingBlock.startTime);
         setEndTime(existingBlock.endTime);
@@ -67,10 +69,10 @@ export function BlockFormModal() {
         setIsStickerExpanded(!!existingBlock.sticker);
       } else {
         setSubject("");
-        setSubjectType("Self Study");
+        setSubjectType("Other");
         setColor("#3b82f6");
         setNotes("");
-        setPriority("");
+        setPriority(null);
         setSticker("");
         setStartTime(blockModalData.startTime);
         setEndTime(blockModalData.endTime);
@@ -85,11 +87,11 @@ export function BlockFormModal() {
   // (effect not needed — it resets naturally since the component re-renders with fresh state when modal opens)
 
   const currentDuration = timeDiffMinutes(startTime, endTime);
-  const dayName = dayColumns.find(d => d.id === blockModalData.dayId)?.label || "Day";
+  const dayName = dayColumns.find(d => d.id === blockModalData.day)?.label || "Day";
 
   // Conflict Detection logic structurally analyzing mathematical bounds
   const collidingBlock = Object.values(blocks).find(b => {
-    if (b.dayId !== blockModalData.dayId) return false;
+    if (b.day !== blockModalData.day) return false;
     if (isEditing && b.id === existingBlock?.id) return false;
     // Check intersection: start1 < end2 && end1 > start2
     const s1 = timeDiffMinutes("00:00", b.startTime);
@@ -123,7 +125,7 @@ export function BlockFormModal() {
     if (isEditing) {
        updateBlock(existingBlock!.id, payload);
     } else {
-       addBlock({ dayId: blockModalData.dayId, ...payload });
+       addBlock({ day: blockModalData.day, ...payload });
     }
     closeBlockModal();
   };
@@ -236,7 +238,7 @@ export function BlockFormModal() {
                 <select 
                   className="w-full bg-slate-950/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none appearance-none cursor-pointer"
                   value={subjectType}
-                  onChange={e => setSubjectType(e.target.value)}
+                  onChange={e => setSubjectType(e.target.value as TimeBlock['subjectType'])}
                 >
                   {SUBJECT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
@@ -249,8 +251,8 @@ export function BlockFormModal() {
               <div className="relative">
                 <select 
                   className="w-full bg-slate-950/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none appearance-none cursor-pointer"
-                  value={priority}
-                  onChange={e => setPriority(e.target.value)}
+                  value={priority || ""}
+                  onChange={e => setPriority((e.target.value as TimeBlock['priority']) || null)}
                 >
                   <option value="">Normal</option>
                   <option value="High">🔥 High</option>

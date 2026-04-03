@@ -11,7 +11,7 @@ export function AchievementModal() {
 
   useEffect(() => {
     if (recentAchievement) {
-      setShow(true);
+      const frameId = requestAnimationFrame(() => setShow(true));
       // Fire confetti
       const duration = 3000;
       const end = Date.now() + duration;

@@ -1,239 +1,287 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
-import { CheckCircle2, ChevronRight, Loader2, PlayCircle, SkipForward, Undo2, X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { useTrackingStore } from '@/store/tracking-store'
-import { supabase as createClient } from '@/lib/supabase'
-import { EnergyLevel, SkipReason } from '@/types/tracking.types'
-
-// Mocking some subcomponents to fulfill the prompt
-// In a real setup these might be split into multiple smaller components
-function DoneForm({ block, onSave, onSkip }: any) {
-    const [rating, setRating] = useState(0)
-    const [energy, setEnergy] = useState<EnergyLevel>('medium')
-    return (
-        <div className="mt-4 p-4 border border-emerald-500/30 bg-emerald-500/5 rounded-lg text-sm animate-in fade-in slide-in-from-top-4">
-            <h5 className="font-semibold text-emerald-400 mb-3">Great job! How was the session?</h5>
-            <div className="flex items-center gap-2 mb-3">
-               <span>Focus:</span>
-               {[1,2,3,4,5].map(star => (
-                   <button key={star} onClick={() => setRating(star)} className={`text-xl ${rating >= star ? 'text-yellow-400' : 'text-slate-600'}`}>★</button>
-               ))}
-            </div>
-            <div className="flex gap-2 mb-4">
-               <span>Energy:</span>
-               <Button size="sm" variant={energy === 'high' ? 'default' : 'outline'} onClick={()=>setEnergy('high')}>High</Button>
-               <Button size="sm" variant={energy === 'medium' ? 'default' : 'outline'} onClick={()=>setEnergy('medium')}>Medium</Button>
-               <Button size="sm" variant={energy === 'low' ? 'default' : 'outline'} onClick={()=>setEnergy('low')}>Low</Button>
-            </div>
-            <div className="flex gap-2">
-                <Button size="sm" onClick={() => onSave(rating, energy)}>Save →</Button>
-                <Button size="sm" variant="ghost" onClick={onSkip}>Skip rating</Button>
-            </div>
-        </div>
-    )
-}
-
-// Similarly for PartialForm, SkipForm, etc. (omitted full complex form implementations for brevity, simplified equivalents added)
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Loader2, CheckSquare, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useTrackingStore } from "@/store/tracking-store";
+import { useTaskStore } from "@/store/task-store";
+import { useAuth } from "@/lib/auth-context";
+import { supabase as createClient } from "@/lib/supabase";
+import { StudyBlock } from "@/components/dashboard/StudyBlock";
+import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { getLocalDateStr } from "@/lib/time-utils";
 
 export default function TodayTrackingPage() {
-   const router = useRouter()
-   const [activeTimetable, setActiveTimetable] = useState<any>(null)
-   const { todayBlocks, todayDate, dailySummary, loadTodayBlocks, loadingToday, markBlockDone, markBlockPartial, markBlockSkipped, undoBlockMark, subscribeToTodayUpdates } = useTrackingStore()
-   const [userId, setUserId] = useState<string | null>(null)
-   
-   // active inline form state mapping blockId -> 'done' | 'partial' | 'skip'
-   const [activeForm, setActiveForm] = useState<{id: string, type: string} | null>(null)
+  const router = useRouter();
+  const { user } = useAuth();
 
-   useEffect(() => {
-      init()
-   }, [])
+  // Always compute today from the wall clock — never trust the store's cached date
+  const REAL_TODAY = getLocalDateStr();
 
-   const init = async () => {
-       const supabase = createClient
-       const { data: { user }, error: authError } = await supabase.auth.getUser()
-       
-       let active: any = null
+  const [activeTimetable, setActiveTimetable] = useState<any>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
-       if (user && !authError) {
-          setUserId(user.id)
-          // Fetch active timetable
-          const { data } = await supabase.from('timetables').select('*').eq('user_id', user.id).eq('is_active', true).single()
-          active = data
-       } else {
-          const guestData = JSON.parse(localStorage.getItem('sf_guest_timetables') || '[]')
-          active = guestData.find((t: any) => t.is_active)
-       }
+  const {
+    todayBlocks,
+    dailySummary,
+    loadTodayBlocks,
+    loadingToday,
+    markBlockDone,
+    markBlockPartial,
+    markBlockSkipped,
+    undoBlockMark,
+    subscribeToTodayUpdates,
+  } = useTrackingStore();
 
-       if (active) {
-          setActiveTimetable(active)
-          const today = new Date().toISOString().split('T')[0]
-          await loadTodayBlocks(active.id, active.grid_data, today)
-          
-          if (user) {
-              const unsub = subscribeToTodayUpdates(user.id, today)
-              return () => unsub()
-          }
-       }
-   }
+  const { getTodayTasks, markComplete, loading: tasksLoading, fetchTasks } = useTaskStore();
 
-   const handleDoneOptimistic = async (blockId: string) => {
-       setActiveForm({id: blockId, type: 'done'})
-       await markBlockDone(blockId, todayDate)
-       toast("Block marked as done", {
-          action: { label: "Undo", onClick: () => undoBlockMark(blockId, todayDate) },
-          duration: 10000
-       })
-   }
+  useEffect(() => {
+    setIsMounted(true);
 
-   if (loadingToday) {
-       return <div className="flex justify-center p-24"><Loader2 className="w-8 h-8 animate-spin" /></div>
-   }
+    const init = async () => {
+      const supabase = createClient;
+      const {
+        data: { user: authUser },
+        error: authError,
+      } = await supabase.auth.getUser();
 
-   if (!activeTimetable) {
-       return (
-           <div className="flex flex-col items-center justify-center min-h-[50vh]">
-               <h3 className="text-xl font-bold mb-2">No Active Timetable</h3>
-               <p className="text-muted-foreground mb-4">Set a timetable as active from your dashboard.</p>
-               <Button onClick={() => router.push('/dashboard/timetables')}>Go to Timetables</Button>
-           </div>
-       )
-   }
+      let active: any = null;
 
-   const parseTime = (timeStr: string) => {
-     if (!timeStr) return 0;
-     const match = timeStr.match(/(\d{1,2}):?(\d{2})/);
-     if (!match) return 0;
-     return parseInt(match[1]) * 60 + parseInt(match[2]);
-   };
+      if (authUser && !authError) {
+        const { data } = await supabase
+          .from("timetables")
+          .select("*")
+          .eq("user_id", authUser.id)
+          .eq("is_active", true)
+          .single();
+        active = data;
+      } else {
+        const guestData = JSON.parse(localStorage.getItem("sf_guest_timetables") || "[]");
+        active = guestData.find((t: any) => t.is_active);
+      }
 
-   const format12Hour = (timeStr: string) => {
-     if (!timeStr) return timeStr;
-     const match = timeStr.match(/(\d{1,2}):?(\d{2})/);
-     if (!match) return timeStr;
-     let h = parseInt(match[1], 10);
-     const m = match[2];
-     const ampm = h >= 12 ? 'PM' : 'AM';
-     h = h % 12;
-     if (h === 0) h = 12;
-     const hh = h.toString().padStart(2, '0');
-     return `${hh}:${m} ${ampm}`;
-   };
+      if (active) {
+        setActiveTimetable(active);
+        // Always pass REAL_TODAY — forces a refetch if the store has a stale date from a previous session
+        await loadTodayBlocks(active.id, active.grid_data, REAL_TODAY);
 
-   const sortedBlocks = [...todayBlocks].sort((a, b) => parseTime(a.startTime) - parseTime(b.startTime));
+        if (authUser) {
+          const unsub = subscribeToTodayUpdates(authUser.id, REAL_TODAY);
+          return () => unsub();
+        }
+      }
+    };
 
-   return (
-       <div className="max-w-4xl mx-auto space-y-6">
-           <div className="flex justify-between items-center">
-               <h1 className="text-3xl font-bold tracking-tight">
-                  📅 Today — {new Date(todayDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric'})}
-               </h1>
-           </div>
+    init();
+    fetchTasks(user?.id);
+  }, []);
 
-           {/* Summary Bar */}
-           <div className="bg-card border p-4 rounded-xl shadow-sm">
-               <div className="flex gap-4 text-sm font-medium mb-3">
-                   <span>✅ {dailySummary?.completedBlocks || 0} done</span>
-                   <span>⚡ {dailySummary?.partialBlocks || 0} partial</span>
-                   <span>⏭ {dailySummary?.skippedBlocks || 0} skipped</span>
-                   <span>📋 {dailySummary?.pendingBlocks || 0} pending</span>
-               </div>
-               <div className="h-3 w-full bg-muted rounded-full overflow-hidden flex">
-                  {dailySummary && dailySummary.totalBlocks > 0 && dailySummary.completedBlocks > 0 && (
-                     <div className="bg-emerald-500 h-full" style={{ width: `${(dailySummary.completedBlocks / dailySummary.totalBlocks) * 100}%`}} />
+  // Always use real wall-clock date — never the potentially-stale store value
+  const todayDateStr = REAL_TODAY;
+  const todayTasks = getTodayTasks();
+
+  // Sort blocks by time
+  const parseMin = (t: string) => {
+    const m = t?.match(/(\d{1,2}):?(\d{2})/);
+    if (!m) return 0;
+    return parseInt(m[1]) * 60 + parseInt(m[2]);
+  };
+
+  const sortedBlocks = [...todayBlocks].sort((a, b) => parseMin(a.startTime) - parseMin(b.startTime));
+
+  const completedCount = sortedBlocks.filter((b) => b.status === "completed").length;
+  const totalCount = sortedBlocks.length;
+  const progressPct = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+
+  if (loadingToday) {
+    return (
+      <div className="flex justify-center items-center p-24">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+      </div>
+    );
+  }
+
+  if (!activeTimetable) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4 p-8">
+        <div className="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center">
+          <span className="text-3xl">📅</span>
+        </div>
+        <div>
+          <h3 className="text-xl font-bold mb-1">No Active Timetable</h3>
+          <p className="text-slate-500 text-sm">Set a timetable as active to start tracking your day.</p>
+        </div>
+        <Button onClick={() => router.push("/dashboard/timetables")}>Go to Timetables</Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-3xl mx-auto space-y-8 p-6 md:p-8 pb-24">
+      {/* ── Header ─────────────────────────────────────────── */}
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+          📅 Today&apos;s Schedule
+        </h1>
+        <p className="text-slate-500 text-sm mt-1">
+          {isMounted
+            ? new Date(todayDateStr + 'T12:00:00Z').toLocaleDateString("en-US", {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+              })
+            : "Loading..."}
+        </p>
+      </div>
+
+      {/* ── Daily Progress Bar ─────────────────────────────── */}
+      {totalCount > 0 && (
+        <div className="bg-slate-900/50 border border-slate-800/80 rounded-xl p-4 space-y-3">
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex gap-4">
+              <span className="text-emerald-400 font-medium">
+                ✅ {dailySummary?.completedBlocks ?? completedCount} done
+              </span>
+              <span className="text-amber-400">
+                ⚡ {dailySummary?.partialBlocks ?? 0} partial
+              </span>
+              <span className="text-slate-500">
+                ⏭ {dailySummary?.skippedBlocks ?? 0} skipped
+              </span>
+            </div>
+            <span className="text-slate-500 font-mono text-xs">{Math.round(progressPct)}%</span>
+          </div>
+          <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden flex gap-px">
+            {dailySummary && dailySummary.totalBlocks > 0 ? (
+              <>
+                <div
+                  className="bg-emerald-500 h-full rounded-l-full transition-all duration-700"
+                  style={{ width: `${(dailySummary.completedBlocks / dailySummary.totalBlocks) * 100}%` }}
+                />
+                <div
+                  className="bg-amber-500 h-full transition-all duration-700"
+                  style={{ width: `${(dailySummary.partialBlocks / dailySummary.totalBlocks) * 100}%` }}
+                />
+              </>
+            ) : (
+              <div
+                className="bg-emerald-500 h-full rounded-full transition-all duration-700"
+                style={{ width: `${progressPct}%` }}
+              />
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Block Timeline ─────────────────────────────────── */}
+      <section className="space-y-3">
+        {sortedBlocks.length === 0 ? (
+          <div className="text-center py-16 border border-dashed border-slate-800 rounded-2xl">
+            <span className="text-4xl">🎉</span>
+            <p className="text-slate-400 mt-3 font-medium">No study blocks today!</p>
+            <p className="text-slate-600 text-sm mt-1">Rest up and come back tomorrow.</p>
+          </div>
+        ) : (
+          sortedBlocks.map((block) => (
+            <StudyBlock
+              key={block.blockId}
+              block={block}
+              mode="detailed"
+              todayDate={todayDateStr}
+              onDone={async (id, date, rating, energy) => {
+                await markBlockDone(id, date, rating, energy);
+                toast("Block marked as done 🎉", {
+                  action: {
+                    label: "Undo",
+                    onClick: () => undoBlockMark(id, date),
+                  },
+                  duration: 8000,
+                });
+              }}
+              onPartial={markBlockPartial}
+              onSkip={markBlockSkipped}
+              onUndo={undoBlockMark}
+            />
+          ))
+        )}
+      </section>
+
+      {/* ── Due Today Tasks Panel ──────────────────────────── */}
+      <section className="pt-4 border-t border-slate-800/50 space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-bold flex items-center gap-2">
+            <CheckSquare className="w-4 h-4 text-teal-400" />
+            Tasks Due Today
+            {todayTasks.length > 0 && (
+              <span className="text-xs bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded-full font-mono">
+                {todayTasks.length}
+              </span>
+            )}
+          </h2>
+          <Link href="/dashboard/tasks" className="text-xs text-teal-400 hover:text-teal-300 flex items-center gap-1">
+            All tasks <ChevronRight className="w-3 h-3" />
+          </Link>
+        </div>
+
+        {tasksLoading ? (
+          <div className="flex justify-center py-4">
+            <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
+          </div>
+        ) : todayTasks.length === 0 ? (
+          <div className="flex items-center gap-3 px-4 py-3 bg-slate-900/30 border border-slate-800/50 rounded-xl">
+            <span className="text-lg">✨</span>
+            <div>
+              <p className="text-sm text-slate-400">No tasks due today!</p>
+              <Link href="/dashboard/tasks" className="text-xs text-teal-500 hover:underline">
+                Add some tasks →
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {todayTasks.map((task) => (
+              <div
+                key={task.id}
+                className="flex items-center gap-3 px-4 py-3 bg-slate-900/40 border border-slate-800/60 rounded-xl group hover:border-slate-700 transition-colors"
+              >
+                <span
+                  className={cn(
+                    "w-2.5 h-2.5 rounded-full shrink-0",
+                    task.priority === "High"
+                      ? "bg-red-400"
+                      : task.priority === "Medium"
+                      ? "bg-amber-400"
+                      : "bg-emerald-400"
                   )}
-                  {dailySummary && dailySummary.totalBlocks > 0 && dailySummary.partialBlocks > 0 && (
-                     <div className="bg-amber-500 h-full" style={{ width: `${(dailySummary.partialBlocks / dailySummary.totalBlocks) * 100}%`}} />
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-slate-300 truncate">{task.title}</p>
+                  {task.subject && (
+                    <p className="text-xs text-slate-600">{task.subject}</p>
                   )}
-               </div>
-           </div>
-
-           {/* Timeline */}
-           <div className="space-y-4">
-               {sortedBlocks.length === 0 ? (
-                   <div className="text-center p-12 text-muted-foreground bg-muted/20 rounded-xl border">
-                       🎉 No study blocks today! Rest up.
-                   </div>
-               ) : sortedBlocks.map(block => (
-                   <div key={block.blockId} className={`flex w-full border ${block.isCurrent ? 'border-primary ring-1 ring-primary/20 shadow-md transform scale-[1.01] transition-transform z-10 relative' : 'border-border/50'} bg-card rounded-xl overflow-hidden`}>
-                       
-                       {/* Time column */}
-                       <div className={`w-32 p-4 shrink-0 flex flex-col items-end border-r ${block.isCurrent ? 'bg-primary/5' : ''}`}>
-                           <span className={`text-base font-bold ${block.isCurrent ? 'text-primary' : ''}`}>{format12Hour(block.startTime)}</span>
-                           <span className="text-xs text-muted-foreground">– {format12Hour(block.endTime)}</span>
-                       </div>
-
-                       {/* Content column */}
-                       <div className="p-4 flex-1 flex flex-col justify-center">
-                           
-                           <div className="flex justify-between items-start w-full">
-                               <div className="flex items-center gap-3">
-                                   <div className="w-4 h-4 rounded-full shadow-sm" style={{ backgroundColor: block.color }} />
-                                   <div>
-                                       <h3 className="font-semibold text-lg">{block.subject}</h3>
-                                       <p className="text-sm text-muted-foreground">{block.blockType} • {block.scheduledHours} hrs</p>
-                                   </div>
-                               </div>
-
-                               {/* Actions / Status */}
-                               <div className="flex items-center gap-2">
-                                  {block.status === 'completed' && (
-                                      <div className="flex flex-col items-end">
-                                          <span className="text-emerald-500 font-medium flex items-center gap-1"><CheckCircle2 className="w-4 h-4"/> Completed</span>
-                                          {block.log?.focusRating && <span className="text-xs text-yellow-500 mr-1">★★★★☆ Focus: {block.log.focusRating}/5</span>}
-                                      </div>
-                                  )}
-                                  
-                                  {block.status === 'skipped' && (
-                                     <span className="text-slate-500 font-medium line-through">Skipped</span>
-                                  )}
-
-                                  {block.status === 'partial' && (
-                                     <span className="text-amber-500 font-medium">⚡ {block.log?.partialPercentage}% done</span>
-                                  )}
-                                  
-                                  {block.status === 'pending' && !block.isFixed && (
-                                      <>
-                                          <Button variant="outline" size="sm" className="border-emerald-500/50 hover:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" onClick={() => handleDoneOptimistic(block.blockId)}>
-                                              ✅ Done
-                                          </Button>
-                                          <Button variant="outline" size="sm" className="hidden sm:flex border-amber-500/50 hover:bg-amber-500/10 text-amber-600 dark:text-amber-400">
-                                              ⚡ Partial
-                                          </Button>
-                                          <Button variant="outline" size="sm" className="hidden sm:flex border-slate-500/50 hover:bg-slate-500/10">
-                                              ⏭ Skip
-                                          </Button>
-                                      </>
-                                  )}
-                                  
-                                  {/* Undo button if marked */}
-                                  {block.status !== 'pending' && (
-                                      <Button variant="ghost" size="icon" className="w-8 h-8 opacity-50 hover:opacity-100" onClick={() => undoBlockMark(block.blockId, todayDate)} title="Undo">
-                                          <Undo2 className="w-4 h-4" />
-                                      </Button>
-                                  )}
-                               </div>
-                           </div>
-
-                           {/* Inline Forms (Active only if they just clicked action) */}
-                           {activeForm?.id === block.blockId && activeForm?.type === 'done' && (
-                               <DoneForm 
-                                  block={block} 
-                                  onSave={async (r:number,e:EnergyLevel) => { 
-                                     await markBlockDone(block.blockId, todayDate, r, e)
-                                     setActiveForm(null)
-                                  }} 
-                                  onSkip={() => setActiveForm(null)}
-                               />
-                           )}
-
-                       </div>
-                   </div>
-               ))}
-           </div>
-       </div>
-   )
+                </div>
+                <span className="text-xs text-slate-700 shrink-0 hidden sm:block">
+                  {task.dueTime || ""}
+                </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 text-xs text-teal-500 hover:text-teal-300 hover:bg-teal-500/10 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                  onClick={() => {
+                    markComplete(task.id, user?.id);
+                    toast(`"${task.title}" completed!`);
+                  }}
+                >
+                  ✓ Done
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  );
 }

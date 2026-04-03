@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, KeyboardEvent } from 'react';
 import { useTaskStore } from '@/store/task-store';
 import { useAuth } from '@/lib/auth-context';
 import type { Task } from '@/types/task.types';
@@ -10,7 +10,7 @@ import { TaskFilters } from '@/components/tasks/TaskFilters';
 import { TaskKanban } from '@/components/tasks/TaskKanban';
 import { SmartSuggestions } from '@/components/analytics/SmartSuggestions';
 import { Button } from '@/components/ui/button';
-import { Plus, LayoutList, Columns, Loader2, CalendarDays } from 'lucide-react';
+import { Plus, LayoutList, Columns, Loader2, CalendarDays, ArrowRight, Sparkles } from 'lucide-react';
 import { isToday, parseISO, addDays, format } from 'date-fns';
 
 export default function TasksPage() {
@@ -20,6 +20,9 @@ export default function TasksPage() {
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
   const [formOpen, setFormOpen] = useState(false);
   const [editTask, setEditTask] = useState<Task | null>(null);
+  const [quickTaskTitle, setQuickTaskTitle] = useState('');
+  const [quickAdding, setQuickAdding] = useState(false);
+  const quickInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchTasks(user?.id);
@@ -37,6 +40,18 @@ export default function TasksPage() {
     );
     return { date, dateStr, label: format(date, 'EEE, MMM d'), tasks: dayTasks };
   }).filter((d) => d.tasks.length > 0);
+
+  async function handleQuickAdd() {
+    const title = quickTaskTitle.trim();
+    if (!title) return;
+    setQuickAdding(true);
+    try {
+      await useTaskStore.getState().addTask({ title, priority: 'Medium' }, user?.id);
+      setQuickTaskTitle('');
+    } finally {
+      setQuickAdding(false);
+    }
+  }
 
   function openAddTask(status?: Task['status']) {
     setEditTask(null);
@@ -88,13 +103,52 @@ export default function TasksPage() {
           )}
 
           {!loading && filteredTasks.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-64 space-y-4 text-center">
-              <div className="text-6xl animate-bounce">📝</div>
-              <h3 className="text-xl font-bold text-white">No tasks yet, yaar!</h3>
-              <p className="text-slate-400 max-w-xs">Add your assignments, exams, and study goals here.</p>
-              <Button onClick={() => openAddTask()} className="bg-indigo-600 hover:bg-indigo-700">
-                Add First Task →
-              </Button>
+            <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-6 text-center px-6">
+              {/* Illustration */}
+              <div className="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center border border-indigo-500/20">
+                <Sparkles className="w-8 h-8 text-indigo-400" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white">No tasks yet, yaar!</h3>
+                <p className="text-slate-500 text-sm mt-1 max-w-xs">
+                  Add assignments, exams, and study goals. Try typing one below ↓
+                </p>
+              </div>
+
+              {/* Smart Quick-Add */}
+              <div className="w-full max-w-md">
+                <div className="flex gap-2 items-center bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 focus-within:border-indigo-500/60 focus-within:ring-1 focus-within:ring-indigo-500/20 transition-all">
+                  <Plus className="w-4 h-4 text-slate-600 shrink-0" />
+                  <input
+                    ref={quickInputRef}
+                    type="text"
+                    value={quickTaskTitle}
+                    onChange={(e) => setQuickTaskTitle(e.target.value)}
+                    onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleQuickAdd()}
+                    placeholder='e.g. "Submit OS assignment" or "Study Networks 2hrs"'
+                    className="flex-1 bg-transparent text-sm text-white placeholder-slate-600 outline-none"
+                    autoFocus
+                  />
+                  <button
+                    onClick={handleQuickAdd}
+                    disabled={!quickTaskTitle.trim() || quickAdding}
+                    className="shrink-0 flex items-center gap-1 text-xs bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    {quickAdding ? <Loader2 className="w-3 h-3 animate-spin" /> : <ArrowRight className="w-3 h-3" />}
+                    {quickAdding ? 'Adding...' : 'Add'}
+                  </button>
+                </div>
+                <p className="text-xs text-slate-700 mt-2 text-left pl-1">
+                  Press <kbd className="bg-slate-800 px-1.5 py-0.5 rounded text-slate-500">Enter</kbd> to quickly add · Priority defaults to Medium
+                </p>
+              </div>
+
+              <button
+                onClick={() => openAddTask()}
+                className="text-xs text-slate-600 hover:text-indigo-400 transition-colors underline-offset-2 hover:underline"
+              >
+                Want more options? Open the full task form →
+              </button>
             </div>
           )}
 

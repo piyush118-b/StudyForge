@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useGridStore } from "@/store/grid-store";
 import { useAnalyticsStore } from "@/store/analytics-store";
 import { X } from "lucide-react";
-import { timeDiffMinutes } from "@/lib/time-utils";
+import { timeDiffMinutes, getLocalDateStr } from "@/lib/time-utils";
 
 
 const REASON_CHIPS = [
@@ -49,7 +49,7 @@ export function CompletionTrackerModal() {
       
       const timetableId = useGridStore.getState().id;
       if (timetableId && timetableId !== 'draft') {
-        const today = new Date().toISOString().split('T')[0];
+        const today = getLocalDateStr();
         fetch('/api/block-logs', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -58,7 +58,7 @@ export function CompletionTrackerModal() {
             timetableId: timetableId,
             subject: block.subject,
             blockType: block.subjectType,
-            dayOfWeek: block.dayId,
+            dayOfWeek: block.day,
             scheduledDate: today,
             scheduledStart: block.startTime,
             scheduledEnd: block.endTime,
@@ -75,10 +75,10 @@ export function CompletionTrackerModal() {
          blockId: block.id,
          timetableId: 'draft',
          userId: 'local-demo',
-         date: new Date().toISOString().split('T')[0],
-         dayOfWeek: block.dayId,
+         date: getLocalDateStr(),
+         dayOfWeek: block.day,
          subject: block.subject,
-         subjectType: block.subjectType,
+         subjectType: block.subjectType ?? '',
          scheduledStart: block.startTime,
          scheduledEnd: block.endTime, 
          scheduledHours: maxSubjectHours,
@@ -100,7 +100,7 @@ export function CompletionTrackerModal() {
 
     const timetableId = useGridStore.getState().id;
     if (timetableId && timetableId !== 'draft') {
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateStr();
       fetch('/api/block-logs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -109,7 +109,7 @@ export function CompletionTrackerModal() {
           timetableId: timetableId,
           subject: block.subject,
           blockType: block.subjectType,
-          dayOfWeek: block.dayId,
+          dayOfWeek: block.day,
           scheduledDate: today,
           scheduledStart: block.startTime,
           scheduledEnd: block.endTime,
@@ -127,10 +127,10 @@ export function CompletionTrackerModal() {
        blockId: block.id,
        timetableId: 'draft',
        userId: 'local-demo',
-       date: new Date().toISOString().split('T')[0],
-       dayOfWeek: block.dayId,
+       date: getLocalDateStr(),
+       dayOfWeek: block.day,
        subject: block.subject,
-       subjectType: block.subjectType,
+       subjectType: block.subjectType ?? '',
        scheduledStart: block.startTime,
        scheduledEnd: block.endTime, 
        scheduledHours: maxSubjectHours,

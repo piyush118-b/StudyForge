@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { AnalyticsData } from '@/types/analytics.types';
 import { supabase } from '@/lib/supabase';
+import { getLocalDateStr } from '@/lib/time-utils';
 
 const GUEST_SESSIONS_KEY = 'sf_guest_pomodoro_sessions';
 
@@ -156,7 +157,7 @@ export const useAnalyticsStore = create<AnalyticsStore>((set, get) => ({
             streak: {
               currentStreak: curStreak,
               longestStreak: curStreak,
-              lastStudyDate: lDate ? lDate.toISOString().split('T')[0] : null
+              lastStudyDate: lDate ? getLocalDateStr(lDate) : null
             }
           }
         });

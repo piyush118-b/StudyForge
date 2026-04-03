@@ -52,11 +52,12 @@ export default function TimetableStudioPage() {
     if (ttData && !isImported.current) {
       isImported.current = true;
       Object.entries(ttData.grid).forEach(([day, slots]) => {
-        const dayId = `col_${day.toLowerCase()}`;
+        // Capitalize first letter to match DayOfWeek ('Monday', 'Tuesday', etc.)
+        const dayName = (day.charAt(0).toUpperCase() + day.slice(1).toLowerCase()) as any;
         Object.entries(slots).forEach(([time, slot]: [string, any]) => {
           const [start, end] = time.split('-');
           addBlock({
-            dayId,
+            day: dayName,
             startTime: start,
             endTime: end,
             subject: slot.subject,

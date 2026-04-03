@@ -173,7 +173,7 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
     try {
       // 2. Calculate the correct historical date for this block
       // If it's a "Monday" block, find the date of the most recent Monday
-      const scheduledDate = getDateForDayOfWeek(block.dayId || block.dayId);
+      const scheduledDate = getDateForDayOfWeek(block.day || block.day);
       const scheduledHours = calculateHours(block.startTime, block.endTime);
 
       // 3. Sync with Block logs (Upsert)
@@ -184,8 +184,8 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
           block_id: block.id,
           timetable_id: timetableId,
           subject: block.subject,
-          block_type: (block.subjectType || 'Lecture') as any,
-          day_of_week: block.dayId,
+          block_type: (block.subjectType || 'Lecture'),
+          day_of_week: block.day,
           scheduled_date: scheduledDate,
           scheduled_start: block.startTime,
           scheduled_end: block.endTime,
@@ -194,7 +194,7 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
           actual_hours: newStatus === 'completed' ? scheduledHours : 0,
           partial_percentage: newStatus === 'completed' ? 100 : 0,
           marked_at: completedAt
-        }, {
+        } as unknown as any, {
           onConflict: 'user_id,block_id,scheduled_date'
         }) as any);
 
@@ -214,13 +214,13 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
 
         if (existingSession) {
           const updatedSubjects = Array.from(new Set([...((existingSession as any).subjects_covered || []), block.subject]));
-          await (supabase
+          await ((supabase as any)
             .from('study_sessions')
             .update({
               hours_studied: ((existingSession as any).hours_studied || 0) + scheduledHours,
               subjects_covered: updatedSubjects
-            } as any)
-            .eq('id', (existingSession as any).id) as any);
+            })
+            .eq('id', (existingSession as any).id));
         } else {
           await (supabase
             .from('study_sessions')
@@ -260,11 +260,11 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
 
   return (
     <div 
-      style={{ left: 2, top: displayY + 2, width: w - 4, height: displayHeight - 4, backgroundColor: block.color, color: block.textColor }}
+      style={{ left: 2, top: displayY + 2, width: w - 4, height: displayHeight - 4, backgroundColor: block.color, color: block.textColor ?? undefined }}
       onClick={(e) => { 
         if (activeTool === 'pan') return; // let it bubble up to pan handlers if applicable, or just ignore
         e.stopPropagation(); 
-        openBlockModal(block.dayId, block.startTime, block.endTime, block.id); 
+        openBlockModal(block.day, block.startTime, block.endTime, block.id); 
       }}
       // Use pointer-events-none conditionally to let Pan grab the wrapper underneath
       className={`absolute transition-transform duration-75 flex flex-col group rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.4)] border border-white/5

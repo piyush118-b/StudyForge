@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
 import { PomodoroConfig, PomodoroPhase, PomodoroState, DEFAULT_POMODORO_CONFIG, PomodoroSession } from '@/types/pomodoro.types';
 import { v4 as uuidv4 } from 'uuid';
+import { getLocalDateStr } from '@/lib/time-utils';
 
 const STORAGE_KEY = 'sf_pomodoro_config';
 const GUEST_SESSIONS_KEY = 'sf_guest_pomodoro_sessions';
@@ -167,7 +168,7 @@ export const usePomodoroStore = create<PomodoroStore>((set, get) => ({
           id: uuidv4(),
           userId: 'guest',
           ...sessionData,
-          date: new Date().toISOString().split('T')[0]
+          date: getLocalDateStr()
         });
         localStorage.setItem(GUEST_SESSIONS_KEY, JSON.stringify(sessions));
       } catch (e) {

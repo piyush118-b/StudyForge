@@ -156,3 +156,9 @@ export function generateQuickTimes(
   }
   return times;
 }
+
+/** Get the local date string in YYYY-MM-DD format timezone-safe */
+export function getLocalDateStr(date: Date = new Date()): string {
+  const offset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - offset).toISOString().split('T')[0];
+}

@@ -5,6 +5,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "sonner";
 import { PomodoroTimer } from "@/components/pomodoro/PomodoroTimer";
 import { PwaRegistration } from "@/components/PwaRegistration";
+import { StudyForgeProvider } from "@/providers/StudyForgeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -48,12 +49,14 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        <AuthProvider>
-          {children}
-          <PomodoroTimer />
-          <PwaRegistration />
-          <Toaster position="bottom-right" theme="dark" richColors />
-        </AuthProvider>
+        <StudyForgeProvider>
+          <AuthProvider>
+            {children}
+            <PomodoroTimer />
+            <PwaRegistration />
+            <Toaster position="bottom-right" theme="dark" richColors />
+          </AuthProvider>
+        </StudyForgeProvider>
       </body>
     </html>
   );

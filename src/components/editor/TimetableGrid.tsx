@@ -31,7 +31,7 @@ export function TimetableGrid() {
 
   // Feature 1: Drag to Create
   const [dragCreate, setDragCreate] = useState<{
-    dayId: string;
+    day: string;
     startY: number;      
     currentY: number;    
     startTime: string;   
@@ -116,9 +116,9 @@ export function TimetableGrid() {
     if (!dragCreate) return;
     const duration = timeDiffMinutes(dragCreate.startTime, dragCreate.endTime);
     if (duration < 15) {
-      openBlockModal(dragCreate.dayId, dragCreate.startTime, dragCreate.endTime);
+      openBlockModal(dragCreate.day as any, dragCreate.startTime, dragCreate.endTime);
     } else {
-      openBlockModal(dragCreate.dayId, dragCreate.startTime, dragCreate.endTime);
+      openBlockModal(dragCreate.day as any, dragCreate.startTime, dragCreate.endTime);
     }
     setDragCreate(null);
   };
@@ -179,7 +179,7 @@ export function TimetableGrid() {
       )}
 
       {/* Current Time Indicator Feature 4 */}
-      <CurrentTimeIndicator dayColumns={dayColumns} columnLefts={columnLefts} gridStartTime={gridStartTime} pxPerHour={pxPerHour} />
+      <CurrentTimeIndicator dayColumns={dayColumns} columnLefts={columnLefts} gridStartTime={gridStartTime} pxPerHour={pxPerHour} totalGridHeight={totalGridHeight} />
 
       {/* Axis Headers - Days (X) */}
       {dayColumns.map((col, i) => (
@@ -238,7 +238,7 @@ export function TimetableGrid() {
             const snappedY = timeToPixel(snappedTime, gridStartTime, pxPerHour);
             
             setDragCreate({
-              dayId: col.id,
+              day: col.id,
               startY: snappedY,
               currentY: snappedY,
               startTime: snappedTime,
@@ -248,7 +248,7 @@ export function TimetableGrid() {
           }}
         >
            {/* Drag Preview Ghost Overlay */}
-           {dragCreate?.dayId === col.id && (
+           {dragCreate?.day === col.id && (
              <div 
                className="absolute left-[4px] right-[4px] bg-indigo-500/25 border-2 border-dashed border-indigo-400 rounded-lg pointer-events-none flex flex-col items-center justify-center shadow-lg backdrop-blur-[2px]"
                style={{
@@ -269,7 +269,14 @@ export function TimetableGrid() {
 
       {/* Data Extracted Blocks Plane */}
       {Object.values(blocks).map(block => {
-        const cIdx = dayColumns.findIndex(c => c.id === block.dayId);
+        // Robust matching for legacy blocks
+        const legacyMap: Record<string, string> = {
+          col_monday: 'Monday', col_tuesday: 'Tuesday', col_wednesday: 'Wednesday',
+          col_thursday: 'Thursday', col_friday: 'Friday', col_saturday: 'Saturday', col_sunday: 'Sunday'
+        };
+        const targetId = block.day || legacyMap[(block as any).dayId] || (block as any).dayId;
+        const cIdx = dayColumns.findIndex(c => c.id === targetId || legacyMap[c.id] === targetId);
+        
         if (cIdx === -1) return null;
         
         const x = columnLefts[cIdx];
@@ -294,7 +301,7 @@ export function TimetableGrid() {
   );
 }
 
-function CurrentTimeIndicator({ dayColumns, columnLefts, gridStartTime, pxPerHour }: any) {
+function CurrentTimeIndicator({ dayColumns, columnLefts, gridStartTime, pxPerHour, totalGridHeight }: any) {
   const [now, setNow] = useState(new Date());
   
   useEffect(() => {
@@ -305,8 +312,10 @@ function CurrentTimeIndicator({ dayColumns, columnLefts, gridStartTime, pxPerHou
   const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
   const y = timeToPixel(timeStr, gridStartTime, pxPerHour);
   
+  if (totalGridHeight && (y < 0 || y > totalGridHeight)) return null;
+  
   const todayDayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][now.getDay()];
-  const todayColumnIdx = dayColumns.findIndex((d: any) => d.label === todayDayName || d.id === 'col_monday'); // Fallback purely for dev demo mapping
+  const todayColumnIdx = dayColumns.findIndex((d: any) => d.label === todayDayName);
   if (todayColumnIdx === -1) return null;
   
   const colX = columnLefts[todayColumnIdx];

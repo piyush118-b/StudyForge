@@ -1,6 +1,7 @@
 "use client"
 
 import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import { Database } from '@/types/supabase'
 import { 
@@ -34,6 +35,11 @@ interface TimetableCardProps {
 
 export function TimetableCard({ timetable, onSetActive, onDelete }: TimetableCardProps) {
   const router = useRouter()
+  const [isMounted, setIsMounted] = useState(false)
+  
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
   
   // Compute today's dayId (e.g. col_monday)
   const todayDayId = (() => {
@@ -82,7 +88,7 @@ export function TimetableCard({ timetable, onSetActive, onDelete }: TimetableCar
               {timetable.title}
             </h3>
             <p className="text-xs opacity-90">
-              Updated {formatDistanceToNow(new Date(timetable.updated_at), { addSuffix: true })}
+              {isMounted ? `Updated ${formatDistanceToNow(new Date(timetable.updated_at), { addSuffix: true })}` : 'Updating...'}
             </p>
           </div>
           {timetable.is_active && (
@@ -98,7 +104,7 @@ export function TimetableCard({ timetable, onSetActive, onDelete }: TimetableCar
         {/* Stats */}
         <div className="flex gap-2 text-xs text-muted-foreground">
 
-          {timetable.semester_start && timetable.semester_end && (
+          {isMounted && timetable.semester_start && timetable.semester_end && (
              <span className="flex items-center gap-1 bg-muted px-2 py-1 rounded-md">
                📅 Sem ({new Date(timetable.semester_start).toLocaleDateString(undefined, {month: 'short', year: '2-digit'})} - {new Date(timetable.semester_end).toLocaleDateString(undefined, {month: 'short', year: '2-digit'})})
              </span>

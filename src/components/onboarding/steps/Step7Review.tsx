@@ -7,6 +7,7 @@ import { StepCard } from "@/components/onboarding/StepCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Loader2, Sparkles, Zap, Edit2 } from "lucide-react";
+import { GenerateErrorBoundary } from "@/components/onboarding/GenerateErrorBoundary";
 
 export function Step7Review({ onBack }: { onBack: () => void }) {
   const router = useRouter();
@@ -37,13 +38,20 @@ export function Step7Review({ onBack }: { onBack: () => void }) {
       // Extract the 'timetable' object from the response wrapper
       localStorage.setItem("studyforge_timetable", JSON.stringify(data.timetable));
       router.push("/create/timetable"); // Actual route that displays the timetable
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("Uh oh! Generation failed yaar. Please try again.");
+      // In React 18+ async errors in event handlers aren't automatically caught by ErrorBoundary
+      // However the prompt asks to add ErrorBoundary to the step, so we'll set a local state to throw it.
+      setGenerationError(err);
     } finally {
       setLoading(false);
     }
   };
+
+  const [generationError, setGenerationError] = useState<Error | null>(null);
+  if (generationError) {
+    throw generationError;
+  }
 
   const isFormValid = Boolean(userData.name && userData.college && userData.semester && userData.branch && userData.subjects.length > 0 && userData.dailyHours);
 
@@ -120,17 +128,19 @@ export function Step7Review({ onBack }: { onBack: () => void }) {
          </div>
       </div>
 
-      <Button 
-        onClick={handleGenerate} 
-        disabled={loading || !isFormValid}
-        className="w-full h-14 rounded-xl text-lg font-bold bg-indigo-600 hover:bg-indigo-500 shadow-xl shadow-indigo-600/30 text-white mt-4"
-      >
-        {loading ? (
-          <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> {loadingMsg}</>
-        ) : (
-          <><Zap className="w-5 h-5 mr-2" /> Generate My Perfect Timetable with AI</>
-        )}
-      </Button>
+      <GenerateErrorBoundary>
+        <Button 
+          onClick={handleGenerate} 
+          disabled={loading || !isFormValid}
+          className="w-full h-14 rounded-xl text-lg font-bold bg-indigo-600 hover:bg-indigo-500 shadow-xl shadow-indigo-600/30 text-white mt-4"
+        >
+          {loading ? (
+            <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> {loadingMsg}</>
+          ) : (
+            <><Zap className="w-5 h-5 mr-2" /> Generate My Perfect Timetable with AI</>
+          )}
+        </Button>
+      </GenerateErrorBoundary>
 
       <div className="mt-8 flex justify-start">
         <Button variant="ghost" onClick={onBack} disabled={loading} className="text-slate-400 hover:text-white">

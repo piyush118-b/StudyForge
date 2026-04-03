@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { GridState, DayColumn, TimeBlock } from '@/lib/grid-engine';
+import { GridState, DayColumn } from '@/lib/grid-engine';
+import { GridBlock, DayOfWeek } from '@/types';
 import { PX_PER_HOUR, timeDiffMinutes, addMinutesWrapped, timeToPixel } from '@/lib/time-utils';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -17,6 +18,7 @@ interface GridStore extends GridState {
   setPan: (x: number, y: number) => void;
   setActiveTool: (tool: 'select' | 'pan') => void;
   setSnapInterval: (snap: SnapInterval) => void;
+  setGridBounds: (startTime: string, endTime: string) => void;
   
   // History mechanics
   undo: () => void;
@@ -24,16 +26,16 @@ interface GridStore extends GridState {
   pushState: () => void; 
   
   // Block mutations
-  addBlock: (partialBlock: Pick<TimeBlock, 'dayId' | 'startTime' | 'endTime'> & Partial<TimeBlock>) => void;
-  updateBlock: (id: string, updates: Partial<TimeBlock>) => void;
+  addBlock: (partialBlock: Pick<GridBlock, 'day' | 'startTime' | 'endTime'> & Partial<GridBlock>) => void;
+  updateBlock: (id: string, updates: Partial<GridBlock>) => void;
   deleteBlock: (id: string) => void;
   duplicateBlock: (id: string, targetDayIds: string[]) => void;
   shiftBlock: (id: string, direction: 'up' | 'down') => void;
   
   // UI States (Modals, overlays)
   isBlockModalOpen: boolean;
-  blockModalData: { dayId: string; startTime: string; endTime: string; blockId?: string } | null;
-  openBlockModal: (dayId: string, startTime: string, endTime: string, blockId?: string) => void;
+  blockModalData: { day: DayOfWeek; startTime: string; endTime: string; blockId?: string } | null;
+  openBlockModal: (day: DayOfWeek, startTime: string, endTime: string, blockId?: string) => void;
   closeBlockModal: () => void;
   
   isSkipModalOpen: boolean;
@@ -83,8 +85,13 @@ export const useGridStore = create<GridStore>((set, get) => ({
 
   setSnapInterval: (snap) => set({ currentSnapInterval: snap }),
   setActiveTool: (activeTool) => set({ activeTool }),
+  
+  setGridBounds: (gridStartTime, gridEndTime) => {
+    get().pushState();
+    set({ gridStartTime, gridEndTime, isDirty: true });
+  },
 
-  openBlockModal: (dayId, startTime, endTime, blockId) => set({ isBlockModalOpen: true, blockModalData: { dayId, startTime, endTime, blockId } }),
+  openBlockModal: (day, startTime, endTime, blockId) => set({ isBlockModalOpen: true, blockModalData: { day, startTime, endTime, blockId } }),
   closeBlockModal: () => set({ isBlockModalOpen: false, blockModalData: null }),
   
   openSkipModal: (blockId) => set({ isSkipModalOpen: true, skipModalBlockId: blockId }),
@@ -171,26 +178,18 @@ export const useGridStore = create<GridStore>((set, get) => ({
   addBlock: (data) => {
     get().pushState();
     const id = `block_${uuidv4()}`;
-    const newBlock: TimeBlock = {
+    const newBlock: GridBlock = {
       id,
+      timetableId: data.timetableId || get().id,
+      day: data.day || 'Monday',
       subject: data.subject || '',
-      subjectType: data.subjectType || 'Revision',
+      startTime: data.startTime || '00:00',
+      endTime: data.endTime || '01:00',
       color: data.color || '#3b82f6',
-      textColor: data.textColor || '#ffffff',
-      priority: data.priority || null,
-      notes: data.notes || '',
-      sticker: data.sticker || null,
-      status: data.status || 'pending',
-      completedAt: null,
-      skippedAt: null,
-      skipReason: null,
-      partialHours: null,
-      isFixed: false,
-      isRecurring: false,
+      tags: data.tags || [],
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      ...data
-    } as TimeBlock;
+      updatedAt: new Date().toISOString()
+    };
 
     // Expand grid bounds if block exceeds current end time
     const [gh, gm] = (get().gridEndTime).split(':').map(Number);
@@ -265,15 +264,12 @@ export const useGridStore = create<GridStore>((set, get) => ({
     set((currState) => {
       const newBlocks = { ...currState.blocks };
       
-      targetDayIds.forEach(dayId => {
+      targetDayIds.forEach(targetDay => {
         const newId = `block_${uuidv4()}`;
         newBlocks[newId] = {
            ...sourceBlock,
            id: newId,
-           dayId: dayId,
-           status: 'pending',
-           completedAt: null,
-           skippedAt: null,
+           day: targetDay as DayOfWeek,
            createdAt: new Date().toISOString(),
            updatedAt: new Date().toISOString(),
         };

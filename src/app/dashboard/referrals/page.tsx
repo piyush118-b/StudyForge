@@ -11,31 +11,22 @@ import { ProGate } from "@/components/subscription/ProGate";
 export default function ReferralsPage() {
   const { user } = useAuth();
   const [referrals, setReferrals] = useState<{ id: string, status: string, created_at: string, reward_granted: boolean }[]>([]);
-  const [shareCode, setShareCode] = useState<string>("");
   const [loading, setLoading] = useState(true);
+
+  const shareCode = user?.id.split('-')[0] || "";
 
   useEffect(() => {
     if (!user) return;
     
-    // In our simplified logic, a user's invite link is based on their UUID's first 8 characters
-    // A robust system would generate and enforce uniqueness in a profiles table.
-    const code = user.id.split('-')[0];
-    setShareCode(code);
-
     const fetchReferrals = async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('referrals')
         .select('*')
-        .eq('referrer_id', user.id)
-        .is('referee_id', null) // filter just to list if we mapped it differently
-        // Actually, we'll just pull all where referrer_id = user.id
-        // removing .is('referee_id', null)
+        .eq('referrer_id', user.id);
         
       if (!error && data) {
-         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-         const refs = await (supabase as any).from('referrals').select('*').eq('referrer_id', user.id).not('referee_id', 'is', null);
-         setReferrals(refs.data || []);
+         const { data: refsData } = await supabase.from('referrals').select('*').eq('referrer_id', user.id).not('referee_id', 'is', null);
+         setReferrals(refsData || []);
       }
       setLoading(false);
     };
@@ -69,7 +60,6 @@ export default function ReferralsPage() {
   };
 
   const convertedCount = referrals.filter(r => r.status === 'rewarded' || r.status === 'converted').length;
-  const pendingCount = referrals.length - convertedCount;
 
   return (
     <div className="flex flex-col gap-6 p-6 max-w-5xl mx-auto min-h-screen">

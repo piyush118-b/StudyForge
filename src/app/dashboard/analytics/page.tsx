@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useAnalyticsStore } from "@/store/analytics-store";
+import { useAnalyticsStore, type BlockEvent } from "@/store/analytics-store";
 import { useAuth } from "@/lib/auth-context";
 import { useSubscriptionStore } from "@/store/subscription-store";
-import { calculateWeeklyStats, WeeklyStats } from "@/lib/analytics-engine";
+import { computeWeeklyStats, WeeklyStats } from "@/lib/analytics-engine";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ProGate } from "@/components/subscription/ProGate";
 import { Lock, TrendingUp, Sparkles, RefreshCw } from "lucide-react";
@@ -14,6 +14,7 @@ import { SubjectChart } from "@/components/analytics/SubjectChart";
 import { toast } from "sonner";
 import { recalculateDailySummary } from "@/lib/analytics-utils";
 import { supabase } from "@/lib/supabase";
+import { RealtimeChannel } from "@supabase/supabase-js";
 
 export default function AnalyticsPage() {
   const { user } = useAuth();
@@ -22,10 +23,9 @@ export default function AnalyticsPage() {
   const [stats, setStats] = useState<WeeklyStats | null>(null);
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | 'all'>('7d');
   const [isSyncing, setIsSyncing] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-  // Incrementing this causes both charts to re-fetch fresh data
   const [chartRefreshKey, setChartRefreshKey] = useState(0);
-  const realtimeChannelRef = useRef<any>(null);
+  const [isMounted, setIsMounted] = useState(false);
+  const realtimeChannelRef = useRef<RealtimeChannel | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -100,13 +100,13 @@ export default function AnalyticsPage() {
       since.setDate(since.getDate() - 30);
       const sinceStr = since.toLocaleDateString('en-CA');
 
-      const { data: recentLogs } = await (supabase as any)
+      const { data: recentLogs } = await supabase
         .from('block_logs')
         .select('scheduled_date, timetable_id')
         .eq('user_id', user.id)
         .gte('scheduled_date', sinceStr);
 
-      if (!recentLogs || recentLogs.length === 0) {
+      if (!recentLogs || (recentLogs as any[]).length === 0) {
         toast.info('No study logs found to sync.');
         return;
       }
@@ -114,7 +114,7 @@ export default function AnalyticsPage() {
       // 2. Get unique date+timetableId combos
       const seen = new Set<string>();
       const pairs: { date: string; timetableId: string | null }[] = [];
-      for (const log of recentLogs) {
+      for (const log of (recentLogs as any[])) {
         const key = `${log.scheduled_date}__${log.timetable_id ?? 'null'}`;
         if (!seen.has(key)) {
           seen.add(key);
@@ -160,7 +160,7 @@ export default function AnalyticsPage() {
     // Simple deduplication if same block/date exists in both
     const uniqueEvents = Array.from(new Map(allEvents.map(e => [`${e.blockId}-${e.date}`, e])).values());
 
-    setStats(calculateWeeklyStats(uniqueEvents as any, startStr));
+    setStats(computeWeeklyStats(uniqueEvents as any[], startStr));
   }, [historicalEvents]);
 
   if (!stats || subscriptionLoading) return <div className="p-8 flex items-center justify-center min-h-[400px]"><div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" /></div>;

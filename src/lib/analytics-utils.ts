@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { getLocalDateStr } from './time-utils';
 
 /**
  * Calculates decimal hours between two HH:MM strings.
@@ -33,7 +34,7 @@ export function getDateForDayOfWeek(dayName: string, referenceDate: Date = new D
   };
   
   const targetDay = days[dayName.toLowerCase()];
-  if (targetDay === undefined) return referenceDate.toISOString().split('T')[0];
+  if (targetDay === undefined) return getLocalDateStr(referenceDate);
   
   const currentDay = referenceDate.getDay(); // 0=Sun, 1=Mon, etc.
   

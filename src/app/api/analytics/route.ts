@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { getLocalDateStr } from '@/lib/time-utils';
 
 export async function GET(request: Request) {
   const cookieStore = await cookies();
@@ -24,10 +25,10 @@ export async function GET(request: Request) {
   
   if (!fromDateStr || !toDateStr) {
       const today = new Date()
-      toDateStr = today.toISOString().split('T')[0]
+      toDateStr = getLocalDateStr(today)
       const lastWeek = new Date(today)
       lastWeek.setDate(today.getDate() - 7)
-      fromDateStr = lastWeek.toISOString().split('T')[0]
+      fromDateStr = getLocalDateStr(lastWeek)
   }
 
   const userId = user.id;
@@ -71,7 +72,7 @@ export async function GET(request: Request) {
   let curr = new Date(fromDateStr)
   const endD = new Date(toDateStr)
   while (curr <= endD) {
-      const dStr = curr.toISOString().split('T')[0]
+      const dStr = getLocalDateStr(curr)
       if (summariesMap.has(dStr)) {
           dailySummaries.push(summariesMap.get(dStr))
       } else {

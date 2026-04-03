@@ -1,5 +1,5 @@
-import { BlockEvent } from "@/store/analytics-store";
-import { GridState } from "./grid-engine";
+import { TrackingBlock } from "@/types";
+import { getLocalDateStr } from './time-utils';
 
 export interface DailyStats {
   date: string;
@@ -35,20 +35,15 @@ export interface WeeklyStats {
   }[];
 }
 
-export interface GrowthInsights {
-  completionRateDelta: number;
-  studyHoursDelta: number;
-  patterns: string[];
-  tomorrowPlan: {
-    blocks: BlockEvent[];
-    estimatedHours: number;
-    recommendation: string;
-  };
-  suggestions: string[];
+import { parseTimeToMinutes } from './grid-utils';
+
+function getDurationInHours(block: TrackingBlock): number {
+  const diff = parseTimeToMinutes(block.endTime) - parseTimeToMinutes(block.startTime);
+  return (diff < 0 ? diff + 1440 : diff) / 60;
 }
 
-export function calculateDailyStats(events: BlockEvent[], date: string): DailyStats {
-  const dailyEvents = events.filter(e => e.date === date);
+export function computeDailyStats(blocks: TrackingBlock[], date: string): DailyStats {
+  const dailyBlocks = blocks.filter(b => b.trackedAt && b.trackedAt.startsWith(date));
   
   let scheduled = 0;
   let completed = 0;
@@ -58,22 +53,25 @@ export function calculateDailyStats(events: BlockEvent[], date: string): DailySt
   const sSkip = new Set<string>();
   const reasons = new Set<string>();
 
-  dailyEvents.forEach(e => {
-    scheduled += e.scheduledHours;
-    if (e.status === 'completed') {
-      completed += e.actualHours;
-      sComp.add(e.subject);
-    } else if (e.status === 'skipped') {
-      skipped += e.scheduledHours;
-      sSkip.add(e.subject);
-      if (e.skipReason) reasons.add(e.skipReason);
-    } else if (e.status === 'partial') {
-      partial += e.actualHours;
-      sComp.add(e.subject); // Counts as partially completed mapping
+  dailyBlocks.forEach(b => {
+    const hours = getDurationInHours(b);
+    scheduled += hours;
+    
+    if (b.status === 'completed') {
+      completed += hours;
+      sComp.add(b.subject);
+    } else if (b.status === 'skipped') {
+      skipped += hours;
+      sSkip.add(b.subject);
+      // Fallback notes usage or skip notes depending on DB structure
+      if (b.notes) reasons.add(b.notes); 
+    } else if (b.status === 'partial') {
+      partial += hours / 2; // naive partial logic
+      sComp.add(b.subject);
     }
   });
 
-  const completionRate = scheduled > 0 ? (completed + partial) / scheduled * 100 : 0;
+  const completionRate = scheduled > 0 ? ((completed + partial) / scheduled) * 100 : 0;
 
   return {
     date,
@@ -88,29 +86,28 @@ export function calculateDailyStats(events: BlockEvent[], date: string): DailySt
   };
 }
 
-export function calculateWeeklyStats(events: BlockEvent[], weekStart: string): WeeklyStats {
-  // Aggregate 7 days
+// REFACTOR: Pure function to compute weekly stats on the dashboard, memoizable with useMemo
+export function computeWeeklyStats(blocks: TrackingBlock[], weekStart: string): WeeklyStats {
   const dailyStats: DailyStats[] = [];
   const start = new Date(weekStart);
   
   for (let i = 0; i < 7; i++) {
     const d = new Date(start);
     d.setDate(d.getDate() + i);
-    // en-CA is YYYY-MM-DD which is safe and uses local time
-    dailyStats.push(calculateDailyStats(events, d.toLocaleDateString('en-CA')));
+    dailyStats.push(computeDailyStats(blocks, d.toLocaleDateString('en-CA')));
   }
   
   const totalScheduled = dailyStats.reduce((sum, d) => sum + d.scheduledHours, 0);
   const totalCompleted = dailyStats.reduce((sum, d) => sum + d.completedHours, 0);
   const totalSkipped = dailyStats.reduce((sum, d) => sum + d.skippedHours, 0);
   
-  // Calculate subjects
   const subjMap: Record<string, {s: number, c: number, skipCount: number}> = {};
-  events.forEach(e => {
-    if (!subjMap[e.subject]) subjMap[e.subject] = {s:0, c:0, skipCount:0};
-    subjMap[e.subject].s += e.scheduledHours;
-    if (e.status === 'completed' || e.status === 'partial') subjMap[e.subject].c += e.actualHours;
-    if (e.status === 'skipped') subjMap[e.subject].skipCount++;
+  blocks.forEach(b => {
+    if (!subjMap[b.subject]) subjMap[b.subject] = {s:0, c:0, skipCount:0};
+    const hours = getDurationInHours(b);
+    subjMap[b.subject].s += hours;
+    if (b.status === 'completed' || b.status === 'partial') subjMap[b.subject].c += hours;
+    if (b.status === 'skipped') subjMap[b.subject].skipCount++;
   });
 
   const subjectBreakdown = Object.entries(subjMap).map(([subject, data]) => ({
@@ -121,12 +118,13 @@ export function calculateWeeklyStats(events: BlockEvent[], weekStart: string): W
      completionRate: data.s > 0 ? (data.c / data.s) * 100 : 0
   }));
 
-  const bestDay = dailyStats.reduce((best, curr) => curr.completionRate > best.completionRate ? curr : best, dailyStats[0]).date;
-  const worstDay = dailyStats.reduce((worst, curr) => curr.completionRate < worst.completionRate ? curr : worst, dailyStats[0]).date;
+  const sortedDailies = [...dailyStats].sort((a,b) => b.completionRate - a.completionRate);
+  const bestDay = sortedDailies[0]?.date || 'None';
+  const worstDay = sortedDailies[6]?.date || 'None';
 
   return {
     weekStart,
-    weekEnd: start.toISOString().split('T')[0], // placeholder binding
+    weekEnd: getLocalDateStr(start),
     dailyStats,
     totalScheduled,
     totalCompleted,
@@ -136,12 +134,7 @@ export function calculateWeeklyStats(events: BlockEvent[], weekStart: string): W
     worstDay,
     mostSkippedSubject: subjectBreakdown.sort((a,b) => b.skippedCount - a.skippedCount)[0]?.subject || 'None',
     mostCompletedSubject: subjectBreakdown.sort((a,b) => b.completedHours - a.completedHours)[0]?.subject || 'None',
-    streakDays: calculateStreak(events).current,
+    streakDays: 3, // simplified placeholder
     subjectBreakdown
   };
-}
-
-export function calculateStreak(events: BlockEvent[]): { current: number; best: number; dates: string[] } {
-  // Simplistic placeholder for evaluating contiguous non-0 completion rate days
-  return { current: 3, best: 14, dates: [] };
 }

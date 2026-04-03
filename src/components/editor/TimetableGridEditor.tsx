@@ -6,9 +6,10 @@ import { CanvasWrapper } from "./CanvasWrapper";
 import { TimetableGrid } from "./TimetableGrid";
 import { BlockFormModal } from "./BlockFormModal";
 import { CompletionTrackerModal } from "./CompletionTracker";
-import { MousePointer2, Hand, Bot, Sparkles } from "lucide-react";
+import { MousePointer2, Hand, Bot, Sparkles, Settings } from "lucide-react";
 import { AIChatPanel } from "../chat/AIChatPanel";
 import { AutoBalanceModal } from "../chat/AutoBalanceModal";
+import { GridSettingsModal } from "./GridSettingsModal";
 import { trackEvent } from "@/lib/lifecycle";
 
 import { DayColumn } from "@/lib/grid-engine";
@@ -23,6 +24,7 @@ export function TimetableGridEditor({ timetableId, initialData }: { timetableId?
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isBalanceOpen, setIsBalanceOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Track latest blocks for closures
   useEffect(() => {
@@ -31,25 +33,40 @@ export function TimetableGridEditor({ timetableId, initialData }: { timetableId?
 
   useEffect(() => {
     const cols: DayColumn[] = [
-      { id: 'col_monday', label: 'Monday', isCustom: false, isHidden: false, widthPx: 160 },
-      { id: 'col_tuesday', label: 'Tuesday', isCustom: false, isHidden: false, widthPx: 160 },
-      { id: 'col_wednesday', label: 'Wednesday', isCustom: false, isHidden: false, widthPx: 160 },
-      { id: 'col_thursday', label: 'Thursday', isCustom: false, isHidden: false, widthPx: 160 },
-      { id: 'col_friday', label: 'Friday', isCustom: false, isHidden: false, widthPx: 160 },
-      { id: 'col_saturday', label: 'Saturday', isCustom: false, isHidden: false, widthPx: 160 },
-      { id: 'col_sunday', label: 'Sunday', isCustom: false, isHidden: false, widthPx: 160 },
+      { id: 'Monday', label: 'Monday', isCustom: false, isHidden: false, widthPx: 160 },
+      { id: 'Tuesday', label: 'Tuesday', isCustom: false, isHidden: false, widthPx: 160 },
+      { id: 'Wednesday', label: 'Wednesday', isCustom: false, isHidden: false, widthPx: 160 },
+      { id: 'Thursday', label: 'Thursday', isCustom: false, isHidden: false, widthPx: 160 },
+      { id: 'Friday', label: 'Friday', isCustom: false, isHidden: false, widthPx: 160 },
+      { id: 'Saturday', label: 'Saturday', isCustom: false, isHidden: false, widthPx: 160 },
+      { id: 'Sunday', label: 'Sunday', isCustom: false, isHidden: false, widthPx: 160 },
     ];
     initGrid(timetableId || 'draft', cols, "07:00", "23:00");
 
+    const handleGridData = (rawData: any) => {
+      if (!rawData) return;
+      const data = { ...rawData };
+      const meta = data._metadata_;
+      delete data._metadata_;
+      
+      if (meta && meta.gridStartTime && meta.gridEndTime) {
+        useGridStore.setState({ gridStartTime: meta.gridStartTime, gridEndTime: meta.gridEndTime });
+      }
+      
+      if (Object.keys(data).length > 0) {
+        useGridStore.setState({ blocks: data, past: [], future: [] });
+      }
+    };
+
     if (initialData?.grid_data) {
-       useGridStore.setState({ blocks: initialData.grid_data as any, past: [], future: [] });
+       handleGridData(initialData.grid_data);
     } else if (timetableId && timetableId !== 'draft') {
        // Fallback fetch if initialData for some reason isn't passed
        import('@/lib/supabase').then(({ supabase }) => {
          supabase.from('timetables').select('grid_data').eq('id', timetableId).single().then(({ data }) => {
             const row = data as any;
-            if (row && row.grid_data && Object.keys(row.grid_data).length > 0) {
-              useGridStore.setState({ blocks: row.grid_data as any, past: [], future: [] });
+            if (row && row.grid_data) {
+              handleGridData(row.grid_data);
             }
          });
        });
@@ -57,7 +74,7 @@ export function TimetableGridEditor({ timetableId, initialData }: { timetableId?
        // New draft: check if empty
        if (Object.keys(useGridStore.getState().blocks).length === 0) {
          useGridStore.getState().addBlock({ 
-            dayId: 'col_monday', 
+            day: 'Monday', 
             startTime: '08:00',
             endTime: '10:00',
             subject: "Introduction to Advanced Algorithms",
@@ -81,7 +98,10 @@ export function TimetableGridEditor({ timetableId, initialData }: { timetableId?
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          grid_data: currentBlocks,
+          grid_data: { 
+            ...currentBlocks, 
+            _metadata_: { gridStartTime: useGridStore.getState().gridStartTime, gridEndTime: useGridStore.getState().gridEndTime } 
+          },
           total_blocks: Object.keys(currentBlocks).length
         })
       });
@@ -145,7 +165,7 @@ export function TimetableGridEditor({ timetableId, initialData }: { timetableId?
       } else if (e.key === 'Enter') {
         e.preventDefault();
         // Open modal with some default dummy times for the user to customize
-        openBlockModal('col_monday', '08:00', '10:00');
+        openBlockModal('Monday', '08:00', '10:00');
       }
     };
 
@@ -291,10 +311,27 @@ export function TimetableGridEditor({ timetableId, initialData }: { timetableId?
             <div className="absolute -right-1 top-1/2 -translate-y-1/2 rotate-45 w-2 h-2 bg-[#1A1B24] border-r border-t border-indigo-500/30" />
           </div>
         </div>
+
+        <div className="w-full h-px bg-white/10 my-1" />
+
+        <div className="relative group flex items-center justify-center">
+          <button 
+             onClick={() => setIsSettingsOpen(true)}
+             className={`w-10 h-10 rounded-full flex items-center justify-center transition-all text-[#9AA0A6] hover:bg-white/10 hover:text-white`}
+          >
+            <Settings className="w-5 h-5" />
+          </button>
+          
+          <div className="absolute right-[110%] mr-2 px-3 py-1.5 bg-[#1A1B24] border border-white/10 rounded-lg text-[13px] font-medium tracking-wide text-slate-200 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none flex items-center justify-center shadow-xl">
+            Grid Settings
+            <div className="absolute -right-1 top-1/2 -translate-y-1/2 rotate-45 w-2 h-2 bg-[#1A1B24] border-r border-t border-white/10" />
+          </div>
+        </div>
       </div>
 
       <AIChatPanel isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
       {isBalanceOpen && <AutoBalanceModal onClose={() => setIsBalanceOpen(false)} />}
+      <GridSettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
 
       <BlockFormModal />
       <CompletionTrackerModal />
@@ -332,7 +369,7 @@ export function TimetableGridEditor({ timetableId, initialData }: { timetableId?
           </button>
           <button 
             className="w-full text-left px-4 py-2 hover:bg-white/5 hover:text-white flex items-center gap-2"
-            onClick={() => { const b = useGridStore.getState().blocks[contextMenu.blockId]; openBlockModal(b.dayId, b.startTime, b.endTime, b.id); }}
+            onClick={() => { const b = useGridStore.getState().blocks[contextMenu.blockId]; openBlockModal(b.day, b.startTime, b.endTime, b.id); }}
           >
              <span>✏️</span> Edit Block
           </button>

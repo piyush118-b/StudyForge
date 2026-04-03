@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { getLocalDateStr } from '@/lib/time-utils';
 
 async function getSupabase() {
   const cookieStore = await cookies();
@@ -35,8 +36,8 @@ export async function GET(request: Request) {
     }
 
     const { searchParams } = new URL(request.url);
-    // Default to today in local-ish timezone (en-CA = YYYY-MM-DD)
-    const date = searchParams.get('date') || new Date().toLocaleDateString('en-CA');
+    // Default to today using timezone-safe getter
+    const date = searchParams.get('date') || getLocalDateStr();
 
     // ─── 1. Derive day name from date ──────────────────────────────
     // Use noon UTC to avoid off-by-one from timezone shifts

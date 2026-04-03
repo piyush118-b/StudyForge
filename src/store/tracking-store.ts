@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { supabase } from '@/lib/supabase'
-import { trackEvent } from '@/lib/lifecycle'
+import { storeLifecycle } from '@/lib/store/lifecycle'
 import { 
   BlockLog, 
   DailySummary, 
@@ -10,11 +10,14 @@ import {
   EnergyLevel, 
   SkipReason 
 } from '@/types/tracking.types'
+import { TrackingBlock } from '@/types';
+import { getLocalDateStr } from '@/lib/time-utils'
 
 interface TrackingState {
   // Today's blocks (from active timetable)
   todayBlocks: BlockWithLog[]
   todayDate: string
+  activeTimetableId: string | null
   
   // Daily Summary for today
   dailySummary: DailySummary | null
@@ -34,8 +37,12 @@ interface TrackingState {
   markBlockSkipped: (blockId: string, scheduledDate: string, reason: SkipReason, note?: string) => Promise<void>
   undoBlockMark: (blockId: string, scheduledDate: string) => Promise<void>
   
-  // Analytics
-  loadWeeklyAnalytics: (from: string, to: string) => Promise<void>
+  // Shared optimistic updater
+  updateBlockStatus: (
+    id: string, 
+    status: BlockStatus, 
+    payload: any
+  ) => Promise<void>
   
   // Real-time updates
   subscribeToTodayUpdates: (userId: string, date: string) => () => void
@@ -43,7 +50,8 @@ interface TrackingState {
 
 export const useTrackingStore = create<TrackingState>((set, get) => ({
   todayBlocks: [],
-  todayDate: new Date().toISOString().split('T')[0],
+  todayDate: getLocalDateStr(),
+  activeTimetableId: null,
   dailySummary: null,
   loadingToday: false,
   loadingAnalytics: false,
@@ -51,27 +59,41 @@ export const useTrackingStore = create<TrackingState>((set, get) => ({
   analyticsDateRange: { from: '', to: '' },
 
   loadTodayBlocks: async (timetableId, gridData, date) => {
-    set({ loadingToday: true, todayDate: date })
+    // Immediately clear STALE blocks so yesterday's data never flashes on screen
+    set({ loadingToday: true, todayDate: date, activeTimetableId: timetableId, todayBlocks: [], dailySummary: null })
     try {
       const response = await fetch(`/api/block-logs?timetableId=${timetableId}&date=${date}`)
       if (!response.ok) throw new Error('Failed to fetch block logs')
       const logs: BlockLog[] = await response.json()
       
-      // Date -> day of week, correcting for timezone (use UTC offset)
-      const dateObj = new Date(date + 'T12:00:00') // noon to avoid DST issues
-      const dayOfWeek = dateObj.toLocaleDateString('en-US', { weekday: 'long' })
+      // Use noon UTC to compute day-of-week — avoids any timezone offset flipping the date
+      const dateObj = new Date(date + 'T12:00:00Z')
+      const dayOfWeek = dateObj.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' })
       const dayId = `col_${dayOfWeek.toLowerCase()}`
       
-      // gridData format from grid-store: { blockUUID: { dayId, startTime, endTime, subject, ... } }
+      console.log(`[TrackingStore] Loading blocks for ${date} → ${dayOfWeek} (dayId: ${dayId})`)
+      // Support both old format (dayId: 'col_saturday') and new format (day: 'Saturday')
       let blocks: any[] = []
       if (gridData && typeof gridData === 'object' && !Array.isArray(gridData)) {
-        // New flat format
-        blocks = Object.values(gridData).filter((b: any) => b.dayId === dayId)
+        const allBlocks = Object.values(gridData) as any[]
+        // Debug: show what days actually exist in the grid
+        const availableDays = [...new Set(allBlocks.map((b: any) => b.day || b.dayId || '?'))]
+        console.log(`[TrackingStore] Grid has ${allBlocks.length} total blocks across days:`, availableDays)
+        
+        blocks = allBlocks.filter((b: any) => {
+          // New format: block.day === 'Saturday'
+          if (b.day && typeof b.day === 'string') {
+            return b.day.toLowerCase() === dayOfWeek.toLowerCase()
+          }
+          // Old format: block.dayId === 'col_saturday'
+          return b.dayId === dayId
+        })
+        console.log(`[TrackingStore] Matched ${blocks.length} blocks for ${dayOfWeek}`)
       }
       
       const now = new Date()
       const currentTotalMin = now.getHours() * 60 + now.getMinutes()
-      const isTodayView = date === new Date().toISOString().split('T')[0]
+      const isTodayView = date === getLocalDateStr()
 
       const todayBlocks: BlockWithLog[] = blocks.map((block: any) => {
         const blockId = block.id || block.blockId
@@ -124,33 +146,67 @@ export const useTrackingStore = create<TrackingState>((set, get) => ({
     }
   },
 
+  updateBlockStatus: async (id, status, payload) => {
+    const { todayBlocks } = get()
+    const blockIndex = todayBlocks.findIndex(b => b.blockId === id)
+    if (blockIndex === -1) return
+    
+    const prevBlock = todayBlocks[blockIndex]
+    
+    // 1. Optimistic Update
+    const updatedBlocks = [...todayBlocks]
+    updatedBlocks[blockIndex] = { ...prevBlock, status, log: { ...prevBlock.log, ...payload } as any }
+    set({ todayBlocks: updatedBlocks })
+    
+    try {
+      // 2. Network Sync via Batch API 
+      const response = await fetch('/api/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ operations: [{ type: 'track', payload: { id, status, ...payload } }] })
+      })
+      if (!response.ok) throw new Error('Failed to sync via batch API')
+      
+      // 3. Lifecycle hooks
+      storeLifecycle.onBlockTracked({
+        ...prevBlock,
+        id: prevBlock.blockId,
+        day: prevBlock.dayOfWeek as any,
+        timetableId: payload.timetableId || '',
+        tags: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        status
+      } as TrackingBlock)
+      
+    } catch (err) {
+      console.error(err);
+      // Rollback
+      const revertBlocks = [...todayBlocks]
+      revertBlocks[blockIndex] = prevBlock
+      set({ todayBlocks: revertBlocks })
+      // toast.error('Failed to save — try again') would be imported if needed
+    }
+  },
+
   markBlockDone: async (blockId, scheduledDate, rating, energy, notes) => {
-    // Optimistic update
     const { todayBlocks } = get()
     const block = todayBlocks.find(b => b.blockId === blockId)
     if (!block) return
     
-    // Call API
-    await fetch('/api/block-logs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        blockId,
-        scheduledDate,
-        timetableId: block.log?.timetableId || '', // Passed from component? Actually better if available
-        subject: block.subject,
-        blockType: block.blockType,
-        dayOfWeek: block.dayOfWeek,
-        scheduledStart: block.startTime,
-        scheduledEnd: block.endTime,
-        scheduledHours: block.scheduledHours,
-        status: 'completed',
-        focusRating: rating,
-        energyLevel: energy,
-        notes
-      })
+    await get().updateBlockStatus(blockId, 'completed', {
+      scheduledDate,
+      timetableId: block.log?.timetableId || get().activeTimetableId || undefined,
+      subject: block.subject,
+      blockType: block.blockType,
+      dayOfWeek: block.dayOfWeek,
+      scheduledStart: block.startTime,
+      scheduledEnd: block.endTime,
+      scheduledHours: block.scheduledHours,
+      focusRating: rating,
+      energyLevel: energy,
+      notes
     })
-    trackEvent('block_marked_done', { blockId, subject: block.subject, rating });
   },
 
   markBlockPartial: async (blockId, scheduledDate, percentage, actualHours, reason, rating) => {
@@ -158,24 +214,19 @@ export const useTrackingStore = create<TrackingState>((set, get) => ({
     const block = todayBlocks.find(b => b.blockId === blockId)
     if (!block) return
     
-    await fetch('/api/block-logs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        blockId,
-        scheduledDate,
-        subject: block.subject,
-        blockType: block.blockType,
-        dayOfWeek: block.dayOfWeek,
-        scheduledStart: block.startTime,
-        scheduledEnd: block.endTime,
-        scheduledHours: block.scheduledHours,
-        status: 'partial',
-        partialPercentage: percentage,
-        actualHours,
-        skipReason: reason,
-        focusRating: rating
-      })
+    await get().updateBlockStatus(blockId, 'partial', {
+      scheduledDate,
+      timetableId: block.log?.timetableId || get().activeTimetableId || undefined,
+      subject: block.subject,
+      blockType: block.blockType,
+      dayOfWeek: block.dayOfWeek,
+      scheduledStart: block.startTime,
+      scheduledEnd: block.endTime,
+      scheduledHours: block.scheduledHours,
+      partialPercentage: percentage,
+      actualHours,
+      skipReason: reason,
+      focusRating: rating
     })
   },
 
@@ -184,49 +235,38 @@ export const useTrackingStore = create<TrackingState>((set, get) => ({
     const block = todayBlocks.find(b => b.blockId === blockId)
     if (!block) return
     
-    await fetch('/api/block-logs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        blockId,
-        scheduledDate,
-        subject: block.subject,
-        blockType: block.blockType,
-        dayOfWeek: block.dayOfWeek,
-        scheduledStart: block.startTime,
-        scheduledEnd: block.endTime,
-        scheduledHours: block.scheduledHours,
-        status: 'skipped',
-        skipReason: reason,
-        skipNote: note
-      })
+    await get().updateBlockStatus(blockId, 'skipped', {
+      scheduledDate,
+      timetableId: block.log?.timetableId || get().activeTimetableId || undefined,
+      subject: block.subject,
+      blockType: block.blockType,
+      dayOfWeek: block.dayOfWeek,
+      scheduledStart: block.startTime,
+      scheduledEnd: block.endTime,
+      scheduledHours: block.scheduledHours,
+      skipReason: reason,
+      skipNote: note
     })
-    trackEvent('block_marked_skipped', { blockId, subject: block.subject, reason });
   },
 
   undoBlockMark: async (blockId, scheduledDate) => {
-    // Optimistic update
     const { todayBlocks } = get()
-    const block = todayBlocks.find(b => b.blockId === blockId)
-    if (!block || !block.log) return
+    const blockIndex = todayBlocks.findIndex(b => b.blockId === blockId)
+    if (blockIndex === -1) return
     
-    // We would PATCH the log to pending or delete it
-    await fetch(`/api/block-logs/${block.log.id}`, {
-      method: 'DELETE'
-    })
-  },
-
-  loadWeeklyAnalytics: async (from, to) => {
-    set({ loadingAnalytics: true })
+    const prevBlock = todayBlocks[blockIndex]
+    if (!prevBlock.log) return
+    
+    const updatedBlocks = [...todayBlocks]
+    updatedBlocks[blockIndex] = { ...prevBlock, status: 'pending', log: null }
+    set({ todayBlocks: updatedBlocks })
+    
     try {
-      const response = await fetch(`/api/analytics?from=${from}&to=${to}`)
-      if (response.ok) {
-        const data = await response.json()
-        set({ weeklyAnalytics: data, analyticsDateRange: { from, to }, loadingAnalytics: false })
-      }
-    } catch (error) {
-       console.error("Failed to load analytics", error)
-       set({ loadingAnalytics: false })
+      await fetch(`/api/block-logs/${prevBlock.log.id}`, { method: 'DELETE' })
+    } catch {
+      const revertBlocks = [...todayBlocks]
+      revertBlocks[blockIndex] = prevBlock
+      set({ todayBlocks: revertBlocks })
     }
   },
 
