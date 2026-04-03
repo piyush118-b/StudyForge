@@ -46,6 +46,31 @@ export function CompletionTrackerModal() {
     } else if (partialPercentage === 100) {
        // Should be handled natively by ✅ complete button, but resolve just in case
       updateBlock(block.id, { status: 'completed', completedAt: new Date().toISOString() });
+      
+      const timetableId = useGridStore.getState().id;
+      if (timetableId && timetableId !== 'draft') {
+        const today = new Date().toISOString().split('T')[0];
+        fetch('/api/block-logs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            blockId: block.id,
+            timetableId: timetableId,
+            subject: block.subject,
+            blockType: block.subjectType,
+            dayOfWeek: block.dayId,
+            scheduledDate: today,
+            scheduledStart: block.startTime,
+            scheduledEnd: block.endTime,
+            scheduledHours: maxSubjectHours,
+            status: 'completed',
+            actualHours: maxSubjectHours,
+            partialPercentage: 100,
+            markedAt: new Date().toISOString()
+          })
+        }).catch(console.error);
+      }
+
       queueEvent({
          blockId: block.id,
          timetableId: 'draft',
@@ -72,6 +97,31 @@ export function CompletionTrackerModal() {
       skipReason: finalReason,
       partialHours: status === 'partial' ? partialHours : null 
     });
+
+    const timetableId = useGridStore.getState().id;
+    if (timetableId && timetableId !== 'draft') {
+      const today = new Date().toISOString().split('T')[0];
+      fetch('/api/block-logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          blockId: block.id,
+          timetableId: timetableId,
+          subject: block.subject,
+          blockType: block.subjectType,
+          dayOfWeek: block.dayId,
+          scheduledDate: today,
+          scheduledStart: block.startTime,
+          scheduledEnd: block.endTime,
+          scheduledHours: maxSubjectHours,
+          status,
+          actualHours: partialHours,
+          partialPercentage: partialPercentage,
+          skipReason: finalReason,
+          markedAt: new Date().toISOString()
+        })
+      }).catch(console.error);
+    }
 
     queueEvent({
        blockId: block.id,

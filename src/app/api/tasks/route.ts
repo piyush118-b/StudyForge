@@ -19,14 +19,18 @@ async function getSupabase() {
 
 export async function GET(request: Request) {
   const supabase = await getSupabase();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   const { searchParams } = new URL(request.url);
+  const timetableId = searchParams.get('timetable_id');
   const status = searchParams.get('status');
   const sortBy = searchParams.get('sortBy') || 'created_at';
 
-  let query = supabase.from('tasks').select('*').eq('user_id', session.user.id);
+  let query = supabase.from('tasks').select('*').eq('user_id', user.id);
   if (status) query = query.eq('status', status);
   query = query.order(sortBy === 'due_date' ? 'due_date' : sortBy === 'priority' ? 'priority' : 'created_at', { ascending: false });
 
@@ -37,8 +41,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const supabase = await getSupabase();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const body = await request.json() as TaskFormData;
   if (!body.title?.trim()) return NextResponse.json({ error: 'Title is required' }, { status: 400 });
@@ -51,7 +55,7 @@ export async function POST(request: Request) {
   const { data, error } = await supabase
     .from('tasks')
     .insert({
-      user_id: session.user.id,
+      user_id: user.id,
       title: body.title.trim(),
       description: body.description || null,
       subject: body.subject || null,

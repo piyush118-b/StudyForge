@@ -54,14 +54,14 @@ export default function TodayTrackingPage() {
 
    const init = async () => {
        const supabase = createClient
-       const { data: { session } } = await supabase.auth.getSession()
+       const { data: { user }, error: authError } = await supabase.auth.getUser()
        
        let active: any = null
 
-       if (session) {
-          setUserId(session.user.id)
+       if (user && !authError) {
+          setUserId(user.id)
           // Fetch active timetable
-          const { data } = await supabase.from('timetables').select('*').eq('user_id', session.user.id).eq('is_active', true).single()
+          const { data } = await supabase.from('timetables').select('*').eq('user_id', user.id).eq('is_active', true).single()
           active = data
        } else {
           const guestData = JSON.parse(localStorage.getItem('sf_guest_timetables') || '[]')
@@ -73,8 +73,8 @@ export default function TodayTrackingPage() {
           const today = new Date().toISOString().split('T')[0]
           await loadTodayBlocks(active.id, active.grid_data, today)
           
-          if (session) {
-              const unsub = subscribeToTodayUpdates(session.user.id, today)
+          if (user) {
+              const unsub = subscribeToTodayUpdates(user.id, today)
               return () => unsub()
           }
        }
@@ -102,6 +102,28 @@ export default function TodayTrackingPage() {
            </div>
        )
    }
+
+   const parseTime = (timeStr: string) => {
+     if (!timeStr) return 0;
+     const match = timeStr.match(/(\d{1,2}):?(\d{2})/);
+     if (!match) return 0;
+     return parseInt(match[1]) * 60 + parseInt(match[2]);
+   };
+
+   const format12Hour = (timeStr: string) => {
+     if (!timeStr) return timeStr;
+     const match = timeStr.match(/(\d{1,2}):?(\d{2})/);
+     if (!match) return timeStr;
+     let h = parseInt(match[1], 10);
+     const m = match[2];
+     const ampm = h >= 12 ? 'PM' : 'AM';
+     h = h % 12;
+     if (h === 0) h = 12;
+     const hh = h.toString().padStart(2, '0');
+     return `${hh}:${m} ${ampm}`;
+   };
+
+   const sortedBlocks = [...todayBlocks].sort((a, b) => parseTime(a.startTime) - parseTime(b.startTime));
 
    return (
        <div className="max-w-4xl mx-auto space-y-6">
@@ -131,17 +153,17 @@ export default function TodayTrackingPage() {
 
            {/* Timeline */}
            <div className="space-y-4">
-               {todayBlocks.length === 0 ? (
+               {sortedBlocks.length === 0 ? (
                    <div className="text-center p-12 text-muted-foreground bg-muted/20 rounded-xl border">
                        🎉 No study blocks today! Rest up.
                    </div>
-               ) : todayBlocks.map(block => (
+               ) : sortedBlocks.map(block => (
                    <div key={block.blockId} className={`flex w-full border ${block.isCurrent ? 'border-primary ring-1 ring-primary/20 shadow-md transform scale-[1.01] transition-transform z-10 relative' : 'border-border/50'} bg-card rounded-xl overflow-hidden`}>
                        
                        {/* Time column */}
-                       <div className={`w-28 p-4 shrink-0 flex flex-col items-end border-r ${block.isCurrent ? 'bg-primary/5' : ''}`}>
-                           <span className={`text-base font-bold ${block.isCurrent ? 'text-primary' : ''}`}>{block.startTime}</span>
-                           <span className="text-xs text-muted-foreground">– {block.endTime}</span>
+                       <div className={`w-32 p-4 shrink-0 flex flex-col items-end border-r ${block.isCurrent ? 'bg-primary/5' : ''}`}>
+                           <span className={`text-base font-bold ${block.isCurrent ? 'text-primary' : ''}`}>{format12Hour(block.startTime)}</span>
+                           <span className="text-xs text-muted-foreground">– {format12Hour(block.endTime)}</span>
                        </div>
 
                        {/* Content column */}

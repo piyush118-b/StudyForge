@@ -26,6 +26,7 @@ export interface BlockEvent {
 
 interface AnalyticsStore {
   eventQueue: BlockEvent[];
+  historicalEvents: BlockEvent[];
   isSyncing: boolean;
   
   // Phase 3 stats
@@ -38,10 +39,12 @@ interface AnalyticsStore {
   syncEvents: () => Promise<void>;
   clearQueue: () => void;
   fetchAnalytics: (userId?: string) => Promise<void>;
+  loadHistoricalEvents: (userId: string, fromDate: string, toDate: string) => Promise<void>;
 }
 
 export const useAnalyticsStore = create<AnalyticsStore>((set, get) => ({
   eventQueue: [],
+  historicalEvents: [],
   isSyncing: false,
   data: null,
   loading: false,
@@ -160,6 +163,45 @@ export const useAnalyticsStore = create<AnalyticsStore>((set, get) => ({
       }
     } catch (err) {
       set({ error: err instanceof Error ? err.message : 'Error fetching analytics' });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  loadHistoricalEvents: async (userId, fromDate, toDate) => {
+    set({ loading: true });
+    try {
+      const { data: logs, error } = await supabase
+        .from('block_logs')
+        .select('*')
+        .eq('user_id', userId)
+        .gte('scheduled_date', fromDate)
+        .lte('scheduled_date', toDate);
+
+      if (error) throw error;
+
+      // Map back to BlockEvent interface
+      const events: BlockEvent[] = (logs as any[] || []).map(row => ({
+        id: row.id,
+        blockId: row.block_id,
+        timetableId: row.timetable_id,
+        userId: row.user_id,
+        date: row.scheduled_date,
+        dayOfWeek: row.day_of_week,
+        subject: row.subject,
+        subjectType: row.block_type || 'Lecture',
+        scheduledStart: row.scheduled_start,
+        scheduledEnd: row.scheduled_end,
+        scheduledHours: row.scheduled_hours || 0,
+        status: row.status,
+        actualHours: row.actual_hours || 0,
+        skipReason: row.skip_reason,
+        createdAt: row.created_at
+      }));
+
+      set({ historicalEvents: events });
+    } catch (err) {
+      console.error('Error loading historical events:', err);
     } finally {
       set({ loading: false });
     }

@@ -1,24 +1,35 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useGridStore } from "@/store/grid-store";
 import { CanvasWrapper } from "./CanvasWrapper";
 import { TimetableGrid } from "./TimetableGrid";
 import { BlockFormModal } from "./BlockFormModal";
 import { CompletionTrackerModal } from "./CompletionTracker";
-import { MousePointer2, Hand } from "lucide-react";
+import { MousePointer2, Hand, Bot, Sparkles } from "lucide-react";
+import { AIChatPanel } from "../chat/AIChatPanel";
+import { AutoBalanceModal } from "../chat/AutoBalanceModal";
+import { trackEvent } from "@/lib/lifecycle";
 
 import { DayColumn } from "@/lib/grid-engine";
 
-export function TimetableGridEditor({ timetableId }: { timetableId?: string }) {
-  const { initGrid, dayColumns, currentSnapInterval, setSnapInterval, deleteBlock, openBlockModal, openSkipModal, shiftBlock, duplicateBlock, activeTool, setActiveTool } = useGridStore();
-  
-  // Feature 8: Right-click Context Menu State global root mapping
+export function TimetableGridEditor({ timetableId, initialData }: { timetableId?: string, initialData?: any }) {
+  const { initGrid, dayColumns, blocks, currentSnapInterval, setSnapInterval, deleteBlock, openBlockModal, openSkipModal, shiftBlock, duplicateBlock, activeTool, setActiveTool } = useGridStore();
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestBlocksRef = useRef(blocks);
+  const isFirstLoadRef = useRef(true);
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, blockId: string } | null>(null);
   const [duplicateModalBlockId, setDuplicateModalBlockId] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isBalanceOpen, setIsBalanceOpen] = useState(false);
+
+  // Track latest blocks for closures
+  useEffect(() => {
+    latestBlocksRef.current = blocks;
+  }, [blocks]);
 
   useEffect(() => {
-    // Boilerplate hydration simulating loading /api/timetables/[id] mapping to store parameters!
     const cols: DayColumn[] = [
       { id: 'col_monday', label: 'Monday', isCustom: false, isHidden: false, widthPx: 160 },
       { id: 'col_tuesday', label: 'Tuesday', isCustom: false, isHidden: false, widthPx: 160 },
@@ -30,20 +41,86 @@ export function TimetableGridEditor({ timetableId }: { timetableId?: string }) {
     ];
     initGrid(timetableId || 'draft', cols, "07:00", "23:00");
 
-    // Dummy block binding to showcase render
-    useGridStore.getState().addBlock({ 
-       dayId: 'col_monday', 
-       startTime: '08:00',
-       endTime: '10:00',
-       subject: "Introduction to Advanced Algorithms",
-       subjectType: "Lecture",
-       priority: "High",
-       color: "#4f46e5", // Updated to PresenceX Indigo
-       textColor: "#ffffff",
-       notes: "Read chapter 4 before class."
-    });
+    if (initialData?.grid_data) {
+       useGridStore.setState({ blocks: initialData.grid_data as any, past: [], future: [] });
+    } else if (timetableId && timetableId !== 'draft') {
+       // Fallback fetch if initialData for some reason isn't passed
+       import('@/lib/supabase').then(({ supabase }) => {
+         supabase.from('timetables').select('grid_data').eq('id', timetableId).single().then(({ data }) => {
+            const row = data as any;
+            if (row && row.grid_data && Object.keys(row.grid_data).length > 0) {
+              useGridStore.setState({ blocks: row.grid_data as any, past: [], future: [] });
+            }
+         });
+       });
+    } else {
+       // New draft: check if empty
+       if (Object.keys(useGridStore.getState().blocks).length === 0) {
+         useGridStore.getState().addBlock({ 
+            dayId: 'col_monday', 
+            startTime: '08:00',
+            endTime: '10:00',
+            subject: "Introduction to Advanced Algorithms",
+            subjectType: "Lecture",
+            priority: "High",
+            color: "#4f46e5", 
+            textColor: "#ffffff",
+            notes: "Read chapter 4 before class."
+         });
+       }
+    }
+  }, [initGrid, timetableId, initialData]);
+
+  const saveToSupabase = useCallback(async () => {
+    if (!timetableId || timetableId === 'draft') return;
     
-  }, [initGrid, timetableId]);
+    setSaveStatus('saving');
+    try {
+      const currentBlocks = latestBlocksRef.current;
+      const res = await fetch(`/api/timetables/${timetableId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          grid_data: currentBlocks,
+          total_blocks: Object.keys(currentBlocks).length
+        })
+      });
+
+      if (!res.ok) throw new Error('Save failed');
+
+      trackEvent('timetable_saved', { blockCount: Object.keys(currentBlocks).length });
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch (e) {
+      console.error('Auto-save failed', e);
+      setSaveStatus('error');
+    }
+  }, [timetableId]);
+
+  // Auto-save: debounce 5s instead of 2s
+  useEffect(() => {
+    if (isFirstLoadRef.current) {
+      isFirstLoadRef.current = false;
+      return;
+    }
+    if (!timetableId || timetableId === 'draft') return;
+    
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    
+    autoSaveTimerRef.current = setTimeout(saveToSupabase, 1000);
+    
+    return () => { 
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current); 
+    };
+  }, [blocks, timetableId, saveToSupabase]);
+
+  // Save on unmount
+  useEffect(() => {
+    return () => {
+      // If dirty and unmounting, we should ideally save. 
+      // Note: fetch on unmount is unreliable unless using keepalive or navigator.sendBeacon
+    };
+  }, []);
 
   // Global Context Listener override & Keyboard shortcuts
   useEffect(() => {
@@ -54,10 +131,21 @@ export function TimetableGridEditor({ timetableId }: { timetableId?: string }) {
       // Ignore if typing in input fields
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+        saveToSupabase();
+        return;
+      }
+
       if (e.key.toLowerCase() === 'v') {
         setActiveTool('select');
       } else if (e.key.toLowerCase() === 'h') {
         setActiveTool('pan');
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        // Open modal with some default dummy times for the user to customize
+        openBlockModal('col_monday', '08:00', '10:00');
       }
     };
 
@@ -95,13 +183,32 @@ export function TimetableGridEditor({ timetableId }: { timetableId?: string }) {
       </div>
 
       {/* Floating Top Left Brand Nav (Phase 2) */}
-      <div className="absolute top-4 left-4 z-[100] pointer-events-auto flex gap-3">
+      <div className="absolute top-4 left-4 z-[100] pointer-events-auto flex gap-3 items-center">
          <div className="bg-[#292A2D]/90 backdrop-blur-xl border border-white/10 rounded-full px-5 py-2.5 flex items-center shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
            <h1 className="font-bold text-[15px] text-[#E8EAED] tracking-wide flex items-center gap-2.5">
              <div className="w-2.5 h-2.5 rounded-full bg-[#f97316] shadow-[0_0_12px_rgba(249,115,22,0.8)]" />
              StudyForge
            </h1>
          </div>
+         {/* Auto-save status */}
+         {saveStatus === 'saving' && (
+           <div className="bg-[#292A2D]/90 backdrop-blur-xl border border-white/10 rounded-full px-4 py-2 flex items-center gap-2 text-[12px] text-[#9AA0A6]">
+             <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+             Saving...
+           </div>
+         )}
+         {saveStatus === 'saved' && (
+           <div className="bg-[#292A2D]/90 backdrop-blur-xl border border-white/10 rounded-full px-4 py-2 flex items-center gap-2 text-[12px] text-emerald-400">
+             <div className="w-2 h-2 rounded-full bg-emerald-400" />
+             Saved ✓
+           </div>
+         )}
+         {saveStatus === 'error' && (
+           <div className="bg-red-500/20 backdrop-blur-xl border border-red-500/30 rounded-full px-4 py-2 flex items-center gap-2 text-[12px] text-red-400">
+             <div className="w-2 h-2 rounded-full bg-red-400" />
+             Save Failed
+           </div>
+         )}
       </div>
 
       {/* Floating Bottom Command Bar (Phase 2) */}
@@ -118,6 +225,15 @@ export function TimetableGridEditor({ timetableId }: { timetableId?: string }) {
                <option value="30">30 mins</option>
                <option value="60">1 hour</option>
              </select>
+           </div>
+           
+           <div className="border-r border-[#E8EAED]/10 pr-6">
+              <button 
+                onClick={() => setIsBalanceOpen(true)}
+                className="flex items-center gap-2 text-sm font-bold text-indigo-400 hover:text-indigo-300 transition-colors"
+              >
+                <Sparkles className="w-4 h-4" /> Auto-Balance
+              </button>
            </div>
            
            <div className="text-[#9AA0A6] font-medium text-[12px] flex items-center gap-5 tracking-wide">
@@ -159,7 +275,26 @@ export function TimetableGridEditor({ timetableId }: { timetableId?: string }) {
             <div className="absolute -right-1 top-1/2 -translate-y-1/2 rotate-45 w-2 h-2 bg-[#1A1B24] border-r border-t border-white/10" />
           </div>
         </div>
+
+        <div className="w-full h-px bg-white/10 my-1" />
+
+        <div className="relative group flex items-center justify-center">
+          <button 
+             onClick={() => setIsChatOpen(!isChatOpen)}
+             className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isChatOpen ? 'bg-indigo-500/20 text-indigo-400 shadow-md scale-105 border border-indigo-500/30' : 'text-indigo-400/80 hover:bg-indigo-500/10 hover:text-indigo-300'}`}
+          >
+            <Bot className={`w-5 h-5 ${isChatOpen ? 'fill-indigo-500/20' : ''}`} />
+          </button>
+          
+          <div className="absolute right-[110%] mr-2 px-3 py-1.5 bg-[#1A1B24] border border-indigo-500/30 rounded-lg text-[13px] font-medium tracking-wide text-indigo-200 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none flex items-center justify-center shadow-[0_4px_20px_rgba(99,102,241,0.3)]">
+            AI Assistant
+            <div className="absolute -right-1 top-1/2 -translate-y-1/2 rotate-45 w-2 h-2 bg-[#1A1B24] border-r border-t border-indigo-500/30" />
+          </div>
+        </div>
       </div>
+
+      <AIChatPanel isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+      {isBalanceOpen && <AutoBalanceModal onClose={() => setIsBalanceOpen(false)} />}
 
       <BlockFormModal />
       <CompletionTrackerModal />

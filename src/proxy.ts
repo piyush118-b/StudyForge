@@ -27,8 +27,8 @@ export async function proxy(request: NextRequest) {
 
   // Refresh session — required for Server Components to read auth state
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
 
@@ -39,12 +39,12 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/shared') || pathname === '/timetable/draft';
 
   // Redirect logged-in users away from /auth pages → send to dashboard
-  if (isAuthRoute && session) {
+  if (isAuthRoute && user) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   // Redirect unauthenticated users away from protected routes
-  if (isProtectedRoute && !session && !isGuestAllowed) {
+  if (isProtectedRoute && !user && !isGuestAllowed) {
     return NextResponse.redirect(new URL('/auth/login', request.url));
   }
 

@@ -40,7 +40,7 @@ export interface GrowthInsights {
   studyHoursDelta: number;
   patterns: string[];
   tomorrowPlan: {
-    blocks: any[];
+    blocks: BlockEvent[];
     estimatedHours: number;
     recommendation: string;
   };
@@ -96,7 +96,8 @@ export function calculateWeeklyStats(events: BlockEvent[], weekStart: string): W
   for (let i = 0; i < 7; i++) {
     const d = new Date(start);
     d.setDate(d.getDate() + i);
-    dailyStats.push(calculateDailyStats(events, d.toISOString().split('T')[0]));
+    // en-CA is YYYY-MM-DD which is safe and uses local time
+    dailyStats.push(calculateDailyStats(events, d.toLocaleDateString('en-CA')));
   }
   
   const totalScheduled = dailyStats.reduce((sum, d) => sum + d.scheduledHours, 0);

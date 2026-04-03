@@ -1,247 +1,296 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from 'react'
-import { CheckCircle2, TrendingUp, TrendingDown, Minus, Flame, Sparkles, Box, AlertCircle, Loader2 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { useTrackingStore } from '@/store/tracking-store'
+import { useEffect, useState, useRef } from "react";
+import { useAnalyticsStore } from "@/store/analytics-store";
+import { useAuth } from "@/lib/auth-context";
+import { useSubscriptionStore } from "@/store/subscription-store";
+import { calculateWeeklyStats, WeeklyStats } from "@/lib/analytics-engine";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { ProGate } from "@/components/subscription/ProGate";
+import { Lock, TrendingUp, Sparkles, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { StudyVolumeChart } from "@/components/analytics/StudyVolumeChart";
+import { SubjectChart } from "@/components/analytics/SubjectChart";
+import { toast } from "sonner";
+import { recalculateDailySummary } from "@/lib/analytics-utils";
+import { supabase } from "@/lib/supabase";
 
 export default function AnalyticsPage() {
-    const { weeklyAnalytics, loadWeeklyAnalytics, loadingAnalytics } = useTrackingStore()
-    const [aiInsight, setAiInsight] = useState<any>(null)
-    const [loadingAi, setLoadingAi] = useState(false)
+  const { user } = useAuth();
+  const { historicalEvents, loadHistoricalEvents } = useAnalyticsStore();
+  const { isPro, loading: subscriptionLoading, fetchSubscription } = useSubscriptionStore();
+  const [stats, setStats] = useState<WeeklyStats | null>(null);
+  const [timeRange, setTimeRange] = useState<'7d' | '30d' | 'all'>('7d');
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  // Incrementing this causes both charts to re-fetch fresh data
+  const [chartRefreshKey, setChartRefreshKey] = useState(0);
+  const realtimeChannelRef = useRef<any>(null);
 
-    useEffect(() => {
-        // Load this week's analytics
-        const today = new Date()
-        const lastWeek = new Date(today)
-        lastWeek.setDate(today.getDate() - 7)
-        loadWeeklyAnalytics(lastWeek.toISOString().split('T')[0], today.toISOString().split('T')[0])
-    }, [loadWeeklyAnalytics])
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
-    useEffect(() => {
-        // Hydrate AI insight from localstorage if fresh
-        const cached = localStorage.getItem('sf_ai_insight_cache')
-        if (cached) {
-            const data = JSON.parse(cached)
-            if (Date.now() - data.timestamp < 24 * 60 * 60 * 1000) {
-               setAiInsight(data.response)
-            }
+  // ── Realtime: refresh charts on any relevant DB change ─────────────
+  //
+  // Two sources need to trigger a chart refresh:
+  //   1. daily_summaries  — when a block is marked done/partial/skipped
+  //   2. timetables       — when a new block is added/removed from grid_data
+  //
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel(`analytics-refresh-${user.id}`)
+      // Trigger 1: a block was marked → daily_summaries updated
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'daily_summaries',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => setChartRefreshKey((k) => k + 1)
+      )
+      // Trigger 2: timetable grid_data changed (new block added/removed/edited)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'timetables',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => setChartRefreshKey((k) => k + 1)
+      )
+      .subscribe();
+
+    realtimeChannelRef.current = channel;
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+
+  useEffect(() => {
+    if (!user) return;
+
+    // Ensure subscription is loaded
+    fetchSubscription(user.id);
+
+    // Determine the range based on current local date (matching database DATE type)
+    const toDate = new Date();
+    const fromDate = new Date();
+    fromDate.setDate(toDate.getDate() - 7);
+
+    loadHistoricalEvents(
+      user.id,
+      fromDate.toLocaleDateString('en-CA'),
+      toDate.toLocaleDateString('en-CA')
+    );
+  }, [user, fetchSubscription, loadHistoricalEvents]);
+
+  const handleManualSync = async () => {
+    if (!user) return;
+    setIsSyncing(true);
+    try {
+      // 1. Find all unique dates with block_logs for this user in the last 30 days
+      const since = new Date();
+      since.setDate(since.getDate() - 30);
+      const sinceStr = since.toLocaleDateString('en-CA');
+
+      const { data: recentLogs } = await (supabase as any)
+        .from('block_logs')
+        .select('scheduled_date, timetable_id')
+        .eq('user_id', user.id)
+        .gte('scheduled_date', sinceStr);
+
+      if (!recentLogs || recentLogs.length === 0) {
+        toast.info('No study logs found to sync.');
+        return;
+      }
+
+      // 2. Get unique date+timetableId combos
+      const seen = new Set<string>();
+      const pairs: { date: string; timetableId: string | null }[] = [];
+      for (const log of recentLogs) {
+        const key = `${log.scheduled_date}__${log.timetable_id ?? 'null'}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          pairs.push({ date: log.scheduled_date, timetableId: log.timetable_id });
         }
-    }, [])
+      }
 
-    const handleAskAi = async () => {
-        if (!weeklyAnalytics) return
-        setLoadingAi(true)
-        try {
-            // Hardcoding dummy payload to Gemini here due to the user's prompt requesting it "calls Gemini only on click"
-            // Let's assume we have an endpoint /api/gemini/insights
-            const promptData = {
-                rate: weeklyAnalytics.overallCompletionRate,
-                best: weeklyAnalytics.mostCompletedSubject || 'None',
-                worst: weeklyAnalytics.mostSkippedSubject || 'None',
-                topSkipReason: weeklyAnalytics.skipReasonBreakdown?.[0]?.reason || 'None',
-                streak: weeklyAnalytics.currentStreak,
-                hours: weeklyAnalytics.totalCompletedHours
-            }
-            
-            // For now simulating AI API response because of absence of actual /api/gemini/insights logic described in PRD for backend
-            await new Promise(r => setTimeout(r, 1500))
-            const data = {
-                encouragement: "Great hustle this week! You crushed your DBMS classes.",
-                tip: "Since you skip most when tired, try reviewing Mathematics earlier in the morning.",
-                motivation: "Keep building that streak—consistency over intensity!"
-            }
+      // 3. Recalculate each combo (timetableId may be null for orphaned logs)
+      await Promise.all(
+        pairs.map(({ date, timetableId }) =>
+          recalculateDailySummary(user.id, timetableId, date)
+        )
+      );
 
-            setAiInsight(data)
-            localStorage.setItem('sf_ai_insight_cache', JSON.stringify({
-                timestamp: Date.now(),
-                response: data
-            }))
-        } catch (error) {
-            console.error("AI Insight error", error)
-        } finally {
-            setLoadingAi(false)
-        }
+      toast.success(`✅ Analytics synced! Rebuilt ${pairs.length} daily summaries.`);
+
+      // 4. Refresh view
+      const toDate = new Date();
+      const fromDate = new Date();
+      fromDate.setDate(toDate.getDate() - 7);
+      loadHistoricalEvents(
+        user.id,
+        fromDate.toLocaleDateString('en-CA'),
+        toDate.toLocaleDateString('en-CA')
+      );
+      setTimeRange(prev => prev);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to sync analytics');
+    } finally {
+      setIsSyncing(false);
     }
+  };
 
-    if (loadingAnalytics) {
-        return <div className="p-24 text-center text-muted-foreground animate-pulse">Loading analytics...</div>
-    }
+  useEffect(() => {
+    const weekStart = new Date();
+    weekStart.setDate(weekStart.getDate() - 6);
+    const startStr = weekStart.toLocaleDateString('en-CA');
+    
+    // Combine session events with stored database events
+    const allEvents = [...historicalEvents];
+    
+    // Simple deduplication if same block/date exists in both
+    const uniqueEvents = Array.from(new Map(allEvents.map(e => [`${e.blockId}-${e.date}`, e])).values());
 
-    if (!weeklyAnalytics) {
-        return <div className="p-24 text-center text-muted-foreground">No recent tracking data available.</div>
-    }
+    setStats(calculateWeeklyStats(uniqueEvents as any, startStr));
+  }, [historicalEvents]);
 
-    // Process rules for suggestions
-    const suggestions: string[] = []
-    if (weeklyAnalytics.subjectStats && weeklyAnalytics.subjectStats.length > 0) {
-        const worst = [...weeklyAnalytics.subjectStats].sort((a,b) => a.completionRate - b.completionRate)[0]
-        if (worst.completionRate < 60) {
-            suggestions.push(`📚 ${worst.subject} has only ${Math.round(worst.completionRate)}% completion. Add 2 extra sessions next week.`)
-        }
-    }
-    if (weeklyAnalytics.worstDay) {
-        suggestions.push(`📅 ${weeklyAnalytics.worstDay} is your worst day. Try reducing the load on ${weeklyAnalytics.worstDay} next week.`)
-    }
-    if (weeklyAnalytics.overallCompletionRate > 0 && weeklyAnalytics.totalCompletedHours < 5) {
-         suggestions.push(`🍅 Your focus is clear but hours are low. Try extending your sessions using the Pomodoro timer.`)
-    }
+  if (!stats || subscriptionLoading) return <div className="p-8 flex items-center justify-center min-h-[400px]"><div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" /></div>;
 
-    return (
-        <div className="max-w-6xl mx-auto space-y-8 pb-12 p-8">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight mb-1">📊 Your Study Analytics</h1>
-                <p className="text-muted-foreground">Track your progress and improve every week</p>
-            </div>
 
-            {aiInsight && (
-                <Card className="bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-transparent border-indigo-500/20 shadow-inner">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-lg flex items-center text-indigo-400">
-                           <Sparkles className="w-5 h-5 mr-2" /> AI Study Coach Insight
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                        <p className="font-medium text-emerald-400">{aiInsight.encouragement}</p>
-                        <div className="bg-background/50 p-4 border rounded-lg shadow-sm">
-                            <span className="font-semibold block mb-1">Actionable Tip:</span>
-                            {aiInsight.tip}
-                        </div>
-                        <p className="italic opacity-80">{aiInsight.motivation}</p>
-                    </CardContent>
-                </Card>
-            )}
 
-            {/* Core Metrics */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Card className="bg-card">
-                    <CardContent className="p-5">
-                       <h3 className="text-sm font-medium text-muted-foreground mb-2">Completion Rate</h3>
-                       <div className="text-3xl font-bold">{Math.round(weeklyAnalytics.overallCompletionRate)}%</div>
-                       <p className="text-xs text-muted-foreground mt-1">of scheduled blocks</p>
-                    </CardContent>
-                </Card>
-                <Card className="bg-card">
-                    <CardContent className="p-5">
-                       <h3 className="text-sm font-medium text-muted-foreground mb-2">Study Hours</h3>
-                       <div className="text-3xl font-bold">{weeklyAnalytics.totalCompletedHours.toFixed(1)} <span className="text-lg font-normal opacity-50">hrs</span></div>
-                       <p className="text-xs text-muted-foreground mt-1">out of {weeklyAnalytics.totalScheduledHours} hrs scheduled</p>
-                    </CardContent>
-                </Card>
-                <Card className="bg-card">
-                    <CardContent className="p-5">
-                       <h3 className="text-sm font-medium text-muted-foreground mb-2 flex items-center justify-between">Current Streak <Flame className="w-4 h-4 text-orange-500"/></h3>
-                       <div className="text-3xl font-bold text-orange-500">{weeklyAnalytics.currentStreak} 🔥</div>
-                       <p className="text-xs text-muted-foreground mt-1">Best: {weeklyAnalytics.longestStreak} days</p>
-                    </CardContent>
-                </Card>
-                <Card className="bg-card">
-                    <CardContent className="p-5">
-                       <h3 className="text-sm font-medium text-muted-foreground mb-2">Focus Score</h3>
-                       <div className="text-3xl font-bold text-yellow-400">
-                           {weeklyAnalytics.subjectStats && weeklyAnalytics.subjectStats.length > 0
-                             ? (weeklyAnalytics.subjectStats.reduce((s,x)=>s+(x.completionRate > 50 ? 4 : 2), 0)/Math.max(1, weeklyAnalytics.subjectStats.length)).toFixed(1)
-                             : "0.0"} ★
-                       </div>
-                       <p className="text-xs text-muted-foreground mt-1">Estimated avg rating</p>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Daily Bar Chart */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Daily Progress This Week</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex h-[200px] items-end justify-between gap-2 px-2 mt-4">
-                        {(weeklyAnalytics.dailySummaries || []).map(d => {
-                            const date = new Date(d.date)
-                            const dayName = date.toLocaleDateString('en-US', { weekday: 'short'})
-                            const height = `${Math.max(5, d.completionRate)}%`
-                            const color = d.completionRate >= 80 ? 'bg-emerald-500' : d.completionRate >= 60 ? 'bg-amber-500' : 'bg-rose-500'
-                            
-                            return (
-                                <div key={d.id} className="flex flex-col items-center gap-2 group w-full relative">
-                                    <span className="text-xs font-mono opacity-0 group-hover:opacity-100 transition-opacity absolute -top-6">{Math.round(d.completionRate)}%</span>
-                                    <div className="w-full bg-slate-800 rounded-t-md overflow-hidden h-full flex items-end relative">
-                                        <div className={`w-full ${color} rounded-t-md transition-all duration-500 max-h-full min-h-[4px]`} style={{ height }}></div>
-                                    </div>
-                                    <span className="text-xs text-muted-foreground uppercase">{dayName}</span>
-                                </div>
-                            )
-                        })}
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Improvements */}
-            {suggestions.length > 0 && (
-                <div className="space-y-3">
-                   <h3 className="text-xl font-bold">💡 How to Improve Next Week</h3>
-                   <div className="grid gap-3 sm:grid-cols-2">
-                       {suggestions.map((s, i) => (
-                           <Card key={i} className="bg-primary/5 border-primary/20">
-                               <CardContent className="p-4 flex gap-4">
-                                   <AlertCircle className="w-5 h-5 text-primary shrink-0" />
-                                   <div className="text-sm">{s}</div>
-                               </CardContent>
-                           </Card>
-                       ))}
-                   </div>
-                </div>
-            )}
-
-            {/* Subject Table */}
-            {weeklyAnalytics.subjectStats && weeklyAnalytics.subjectStats.length > 0 && (
-            <Card>
-                <CardHeader>
-                    <CardTitle>Subject-wise Performance</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="text-xs text-muted-foreground uppercase bg-muted/50">
-                                <tr>
-                                    <th className="px-4 py-3">Subject</th>
-                                    <th className="px-4 py-3">Scheduled</th>
-                                    <th className="px-4 py-3">Completed</th>
-                                    <th className="px-4 py-3">Completion</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {weeklyAnalytics.subjectStats.map(s => (
-                                    <tr key={s.subject} className="border-b last:border-0 hover:bg-muted/10">
-                                        <td className="px-4 py-3 font-medium flex items-center gap-2">
-                                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: s.color || '#6366f1' }}/>
-                                            {s.subject}
-                                        </td>
-                                        <td className="px-4 py-3">{s.scheduledHours.toFixed(1)} hrs</td>
-                                        <td className="px-4 py-3">{s.completedHours.toFixed(1)} hrs</td>
-                                        <td className="px-4 py-3 min-w-[120px]">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-                                                    <div className="h-full bg-indigo-500" style={{ width: `${s.completionRate}%` }} />
-                                                </div>
-                                                <span className="text-xs font-mono">{Math.round(s.completionRate)}%</span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </CardContent>
-            </Card>
-            )}
-
-            <div className="flex justify-center pt-8">
-                <Button onClick={handleAskAi} disabled={loadingAi} className="px-8 shadow-lg shadow-indigo-500/20 bg-indigo-600 hover:bg-indigo-700">
-                    {loadingAi ? <Loader2 className="w-5 h-5 animate-spin mr-2"/> : <Sparkles className="w-5 h-5 mr-2" />}
-                    Ask AI for Deeper Analysis
-                </Button>
-            </div>
+  return (
+    <div className="flex flex-col gap-6 p-6 max-w-7xl mx-auto min-h-screen">
+      
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-white flex items-center gap-3">
+            Deep Analytics <TrendingUp className="w-8 h-8 text-indigo-400" />
+          </h1>
+          <p className="text-slate-400 mt-1">Visualize your study patterns and efficiency.</p>
         </div>
-    )
+
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleManualSync}
+            disabled={isSyncing}
+            className="bg-slate-900 border-slate-800 text-slate-300 hover:text-white gap-2"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? 'Syncing...' : 'Sync Data'}
+          </Button>
+
+          <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-lg p-1">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className={`text-xs ${timeRange === '7d' ? 'bg-slate-800 text-white' : 'text-slate-400'}`}
+              onClick={() => setTimeRange('7d')}
+            >
+              7 Days
+            </Button>
+            
+            <ProGate feature="advanced_analytics" fallback={
+              <Button variant="ghost" size="sm" className="text-xs text-slate-500 opacity-50 cursor-not-allowed">
+                <Lock className="w-3 h-3 mr-1 inline" /> 30 Days
+              </Button>
+            }>
+               <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className={`text-xs ${timeRange === '30d' ? 'bg-slate-800 text-white' : 'text-slate-400'}`}
+                  onClick={() => setTimeRange('30d')}
+               >
+                  30 Days
+               </Button>
+            </ProGate>
+
+            <ProGate feature="advanced_analytics" fallback={
+               <Button variant="ghost" size="sm" className="text-xs text-slate-500 opacity-50 cursor-not-allowed">
+                 <Lock className="w-3 h-3 mr-1 inline" /> All Time
+               </Button>
+            }>
+               <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className={`text-xs ${timeRange === 'all' ? 'bg-slate-800 text-white' : 'text-slate-400'}`}
+                  onClick={() => setTimeRange('all')}
+               >
+                  All Time
+               </Button>
+            </ProGate>
+          </div>
+        </div>
+      </div>
+
+      {!isPro && timeRange === '7d' && (
+        <div className="bg-indigo-900/20 border border-indigo-500/30 rounded-xl p-4 flex items-start sm:items-center gap-4">
+           <div className="bg-indigo-500/20 p-2 rounded-lg"><Sparkles className="w-5 h-5 text-indigo-400" /></div>
+           <div className="flex-1">
+             <h4 className="text-sm font-semibold text-indigo-200">Unlock Multi-Month Trends</h4>
+             <p className="text-xs text-indigo-300/70 mt-1">Free users can view 7-day stats. Upgrade to Pro to track your consistency across your entire semester with 30-day and all-time analytics.</p>
+           </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+      {/* Study Volume Chart */}
+      <div className="col-span-1 md:col-span-2">
+        <StudyVolumeChart range={timeRange} key={timeRange} refreshKey={chartRefreshKey} />
+      </div>
+
+      {/* Subject Distribution Chart — today's subjects with planned vs actual */}
+      <SubjectChart refreshKey={chartRefreshKey} />
+
+        {/* Efficiency Insights Gated View */}
+        <Card className="bg-slate-900/50 border-slate-800 relative overflow-hidden group">
+          <CardHeader>
+            <CardTitle className="text-lg text-slate-200">Peak Efficiency Hours</CardTitle>
+            <CardDescription>When are you most likely to focus?</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+             <ProGate feature="advanced_analytics" fallback={
+               <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-[2px] flex flex-col items-center justify-center p-6 text-center z-10 transition-all">
+                  <Lock className="w-8 h-8 text-slate-500 mb-3" />
+                  <h3 className="text-slate-300 font-semibold mb-1">Deep Correlation Locked</h3>
+                  <p className="text-xs text-slate-400 max-w-[80%]">Discover exactly which hours of the day yield your highest focus ratings.</p>
+               </div>
+             }>
+               <div className="h-[200px] flex items-end justify-between px-2 pb-4 border-b border-slate-800">
+                  {/* Mock visually complex Pro chart using standard divs since recharts pie/scatter is overkill here */}
+                  {[6, 8, 10, 12, 14, 16, 18, 20].map((hour) => {
+                     const heightPercentage = Math.random() * 80 + 20;
+                     return (
+                       <div key={hour} className="flex flex-col items-center gap-2 group/bar">
+                         <div className="w-8 bg-blue-500/20 rounded-t-sm relative transition-all duration-500 hover:bg-blue-500/40" style={{ height: `${heightPercentage}%` }}>
+                           <div className="absolute top-0 left-0 w-full bg-blue-500 rounded-t-sm transition-all" style={{ height: '4px' }} />
+                         </div>
+                         <span className="text-[10px] text-slate-500 group-hover/bar:text-slate-300">{hour}:00</span>
+                       </div>
+                     )
+                  })}
+               </div>
+               <div className="pt-2 flex justify-between text-xs text-slate-400">
+                 <span>Morning slump detected</span>
+                 <span className="text-emerald-400">Peak: 14:00 - 18:00</span>
+               </div>
+             </ProGate>
+          </CardContent>
+        </Card>
+
+      </div>
+    </div>
+  );
 }

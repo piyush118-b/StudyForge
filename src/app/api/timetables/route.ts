@@ -19,9 +19,9 @@ async function getSupabase() {
 export async function POST(request: Request) {
   try {
     const supabase = await getSupabase()
-    const { data: { session } } = await supabase.auth.getSession()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    if (!session) {
+    if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -36,12 +36,12 @@ export async function POST(request: Request) {
     // Deactivate others if needed
     if (isActive) {
        await supabase.from('timetables')
-         .update({ is_active: false })
-         .eq('user_id', session.user.id)
+        .update({ is_active: false })
+        .eq('user_id', user.id)
     }
 
     const { data, error } = await supabase.from('timetables').insert({
-       user_id: session.user.id,
+       user_id: user.id,
        title,
        color_tag: colorTag || '#6366f1',
        semester_start: semesterStart || null,
@@ -50,7 +50,8 @@ export async function POST(request: Request) {
        activated_at: isActive ? new Date().toISOString() : null,
        grid_data: gridData || {},
        onboarding_data: onboardingData || {},
-       total_blocks: calculateTotalBlocks(gridData)
+       total_blocks: calculateTotalBlocks(gridData),
+       total_weekly_hours: 0
     }).select().single()
 
     if (error) throw error
@@ -65,15 +66,15 @@ export async function POST(request: Request) {
 export async function GET() {
   try {
     const supabase = await getSupabase()
-    const { data: { session } } = await supabase.auth.getSession()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    if (!session) {
+    if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { data, error } = await supabase.from('timetables')
         .select('*')
-        .eq('user_id', session.user.id)
+        .eq('user_id', user.id)
         .order('updated_at', { ascending: false })
 
     if (error) throw error
@@ -86,7 +87,15 @@ export async function GET() {
 }
 
 function calculateTotalBlocks(gridData: any) {
-  if (!gridData || !gridData.days) return 0
+  if (!gridData) return 0
+  
+  // Handle newer interactive store map format where gridData is { "block_uuid": { ... } }
+  if (typeof gridData === 'object' && !Array.isArray(gridData) && !gridData.days) {
+     return Object.keys(gridData).length
+  }
+
+  // Legacy format { days: [ { blocks: [] } ] }
+  if (!gridData.days) return 0
   let total = 0
   for (const day of gridData.days) {
      if (day.blocks) total += day.blocks.length

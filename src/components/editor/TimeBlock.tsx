@@ -5,6 +5,10 @@ import { TimeBlock } from "@/lib/grid-engine";
 import { GripHorizontal, CheckCircle2, ChevronRight, FileText } from "lucide-react";
 import { useState, useRef, MouseEvent as ReactMouseEvent } from "react";
 import { pixelToTime, snapTime, timeToPixel, to12HourShort, timeDiffMinutes } from "@/lib/time-utils";
+import { getDateForDayOfWeek, calculateHours, recalculateDailySummary } from "@/lib/analytics-utils";
+import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 interface TimeBlockComponentProps {
   block: TimeBlock;
@@ -26,6 +30,8 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
     zoom,
     activeTool 
   } = useGridStore();
+  
+  const { user } = useAuth();
   
   const [isResizingTop, setIsResizingTop] = useState(false);
   const [isResizingBottom, setIsResizingBottom] = useState(false);
@@ -148,14 +154,96 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
     document.addEventListener("mouseup", handleMouseUp);
   };
 
-  const handleToggleComplete = (e: ReactMouseEvent) => {
-    if (activeTool === 'pan') return;
+  const handleToggleComplete = async (e: ReactMouseEvent) => {
+    if (activeTool === 'pan' || !user) return;
     
     e.stopPropagation();
+    const newStatus: 'completed' | 'pending' = isCompleted ? 'pending' : 'completed';
+    const completedAt = newStatus === 'completed' ? new Date().toISOString() : null;
+    
+    // 1. Optimistic Update in Grid Store (for the canvas)
     updateBlock(block.id, { 
-      status: isCompleted ? 'pending' : 'completed',
-      completedAt: isCompleted ? null : new Date().toISOString()
+      status: newStatus,
+      completedAt: completedAt
     });
+
+    const timetableId = useGridStore.getState().id;
+    if (!timetableId || timetableId === 'draft') return;
+
+    try {
+      // 2. Calculate the correct historical date for this block
+      // If it's a "Monday" block, find the date of the most recent Monday
+      const scheduledDate = getDateForDayOfWeek(block.dayId || block.dayId);
+      const scheduledHours = calculateHours(block.startTime, block.endTime);
+
+      // 3. Sync with Block logs (Upsert)
+      const { error: logError } = await (supabase
+        .from('block_logs')
+        .upsert({
+          user_id: user.id,
+          block_id: block.id,
+          timetable_id: timetableId,
+          subject: block.subject,
+          block_type: (block.subjectType || 'Lecture') as any,
+          day_of_week: block.dayId,
+          scheduled_date: scheduledDate,
+          scheduled_start: block.startTime,
+          scheduled_end: block.endTime,
+          scheduled_hours: scheduledHours,
+          status: newStatus,
+          actual_hours: newStatus === 'completed' ? scheduledHours : 0,
+          partial_percentage: newStatus === 'completed' ? 100 : 0,
+          marked_at: completedAt
+        }, {
+          onConflict: 'user_id,block_id,scheduled_date'
+        }) as any);
+
+      if (logError) throw logError;
+
+      // 4. Update daily_summaries (Recalculate)
+      await recalculateDailySummary(user.id, timetableId, scheduledDate);
+
+      // 5. Update study_sessions for streak/total tracking
+      if (newStatus === 'completed') {
+        const { data: existingSession } = await (supabase
+          .from('study_sessions')
+          .select('id, hours_studied, subjects_covered')
+          .eq('user_id', user.id)
+          .eq('date', scheduledDate)
+          .single() as any);
+
+        if (existingSession) {
+          const updatedSubjects = Array.from(new Set([...((existingSession as any).subjects_covered || []), block.subject]));
+          await (supabase
+            .from('study_sessions')
+            .update({
+              hours_studied: ((existingSession as any).hours_studied || 0) + scheduledHours,
+              subjects_covered: updatedSubjects
+            } as any)
+            .eq('id', (existingSession as any).id) as any);
+        } else {
+          await (supabase
+            .from('study_sessions')
+            .insert({
+              user_id: user.id,
+              timetable_id: timetableId,
+              date: scheduledDate,
+              hours_studied: scheduledHours,
+              subjects_covered: [block.subject]
+            } as any) as any);
+        }
+      }
+
+      toast.success(newStatus === 'completed' ? `✅ ${block.subject} marked done!` : `Restored ${block.subject}`);
+    } catch (err) {
+      console.error('Failed to sync block status:', err);
+      toast.error('Sync failed. Please check connection.');
+      // Revert optimistic update
+      updateBlock(block.id, { 
+        status: isCompleted ? 'completed' : 'pending',
+        completedAt: block.completedAt
+      });
+    }
   };
 
   const handleContextMenu = (e: ReactMouseEvent) => {

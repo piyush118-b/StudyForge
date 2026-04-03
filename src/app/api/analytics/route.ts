@@ -15,8 +15,8 @@ export async function GET(request: Request) {
     }
   );
 
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const { searchParams } = new URL(request.url)
   let fromDateStr = searchParams.get('from')
@@ -30,7 +30,7 @@ export async function GET(request: Request) {
       fromDateStr = lastWeek.toISOString().split('T')[0]
   }
 
-  const userId = session.user.id;
+  const userId = user.id;
 
   // 1. Get daily summaries
   const { data: summariesArray } = await supabase

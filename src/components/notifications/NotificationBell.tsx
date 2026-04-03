@@ -7,18 +7,82 @@ import { Bell, Check, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { formatDistanceToNow } from 'date-fns';
+import { trackEvent } from '@/lib/lifecycle';
+import { toast } from 'sonner';
 
 export function NotificationBell() {
   const { notifications, unreadCount, fetchNotifications, markAsSent, dismissNotification, dismissAll } = useNotificationStore();
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const [open, setOpen] = useState(false);
+  const [pushStatus, setPushStatus] = useState<NotificationPermission | 'unsupported'>('default');
 
   // Initialize background smart reminders
   useSmartReminders();
 
   useEffect(() => {
     fetchNotifications(user?.id);
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+       setPushStatus(Notification.permission);
+    } else {
+       setPushStatus('unsupported');
+    }
   }, [user?.id]);
+
+  const requestPushPermission = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+       toast.error("Push notifications are not supported in your browser.");
+       return;
+    }
+    try {
+      const permission = await Notification.requestPermission();
+      setPushStatus(permission);
+      
+      if (permission === 'granted') {
+        const registration = await navigator.serviceWorker.register('/sw.js');
+        const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+        if (!vapidPublicKey) {
+           toast.error("VAPID key not configured properly.");
+           return;
+        }
+
+        const subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+        });
+
+        const res = await fetch('/api/notifications/subscribe', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`
+          },
+          body: JSON.stringify(subscription)
+        });
+
+        if (res.ok) {
+           toast.success("Push notifications enabled!");
+           trackEvent('push_notification_enabled');
+        } else {
+           throw new Error("Failed to subscribe");
+        }
+      }
+    } catch (err: any) {
+       console.error("Push setup error:", err);
+       toast.error("Failed to enable push notifications.");
+    }
+  };
+
+  // Helper
+  function urlBase64ToUint8Array(base64String: string) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -45,6 +109,17 @@ export function NotificationBell() {
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto">
+          {pushStatus === 'default' && (
+             <div className="bg-indigo-900/20 border-b border-indigo-500/10 p-4">
+                <div className="flex items-center justify-between gap-3">
+                   <p className="text-xs text-indigo-200">Enable push notifications to never miss a study block.</p>
+                   <button onClick={requestPushPermission} className="px-3 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded-lg transition-colors whitespace-nowrap">
+                     Enable
+                   </button>
+                </div>
+             </div>
+          )}
+
           {notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-slate-500 space-y-3 p-8 text-center">
               <div className="w-16 h-16 bg-slate-900 rounded-full flex items-center justify-center">

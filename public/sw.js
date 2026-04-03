@@ -1,51 +1,36 @@
-const CACHE_NAME = 'studyforge-cache-v1';
-const OFFLINE_URL = '/';
-
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      // Basic core caching layout for PWA
-      return cache.addAll([
-        OFFLINE_URL,
-        '/favicon.ico',
-        '/icon-192x192.png',
-        '/icon-512x512.png',
-      ]);
-    })
-  );
-  self.skipWaiting();
+self.addEventListener('push', function (event) {
+  if (event.data) {
+    const data = event.data.json();
+    const options = {
+      body: data.body,
+      icon: data.icon || '/icon-192x192.png',
+      badge: '/badge-72x72.png',
+      vibrate: [100, 50, 100],
+      data: {
+        dateOfArrival: Date.now(),
+        primaryKey: data.url || '/'
+      }
+    };
+    event.waitUntil(self.registration.showNotification(data.title, options));
+  }
 });
 
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((cacheNames) => Promise.all(
-      cacheNames.map((name) => {
-        if (name !== CACHE_NAME) {
-          return caches.delete(name);
+self.addEventListener('notificationclick', function(event) {
+  event.notification.close();
+  const targetUrl = event.notification.data.primaryKey;
+  if (targetUrl) {
+    event.waitUntil(
+      clients.matchAll({ type: 'window' }).then(windowClients => {
+        for (var i = 0; i < windowClients.length; i++) {
+          var client = windowClients[i];
+          if (client.url === targetUrl && 'focus' in client) {
+            return client.focus();
+          }
+        }
+        if (clients.openWindow) {
+          return clients.openWindow(targetUrl);
         }
       })
-    ))
-  );
-  self.clients.claim();
-});
-
-// Cache First Strategy for assets, Network First for HTML
-self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
-
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) return cachedResponse;
-      
-      return fetch(event.request).then((networkResponse) => {
-        // Optional: Cache dynamically generated chunks
-        return networkResponse;
-      }).catch(() => {
-        // Offline Fallback for Navigation
-        if (event.request.mode === 'navigate') {
-          return caches.match(OFFLINE_URL);
-        }
-      });
-    })
-  );
+    );
+  }
 });

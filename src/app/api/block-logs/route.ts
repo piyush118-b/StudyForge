@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { recalculateDailySummary } from '@/lib/analytics-utils'
 
 async function getSupabase() {
   const cookieStore = await cookies();
@@ -19,9 +20,9 @@ async function getSupabase() {
 export async function POST(request: Request) {
   try {
     const supabase = await getSupabase()
-    const { data: { session } } = await supabase.auth.getSession()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    if (!session) {
+    if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -38,10 +39,12 @@ export async function POST(request: Request) {
     // Let's do a select then update/insert as alternative if unique constraint isn't perfect, 
     // or just use UPSERT with onConflict 'user_id,block_id,scheduled_date'
     
-    // Check if it exists
+    // Check if a log already exists for this block+date so we can UPDATE it
+    // We also fetch timetable_id so recalculate always uses the correct value
+    // even if the caller didn't send it (e.g. markBlockPartial in tracking-store)
     const { data: existing } = await supabase.from('block_logs')
-       .select('id')
-       .eq('user_id', session.user.id)
+       .select('id, timetable_id')
+       .eq('user_id', user.id)
        .eq('block_id', blockId)
        .eq('scheduled_date', scheduledDate)
        .single()
@@ -66,7 +69,7 @@ export async function POST(request: Request) {
     } else {
        result = await supabase.from('block_logs')
           .insert({
-             user_id: session.user.id,
+             user_id: user.id,
              timetable_id: timetableId,
              block_id: blockId,
              subject: subject,
@@ -91,8 +94,20 @@ export async function POST(request: Request) {
 
     if (result.error) throw result.error
 
-    // Recalculate daily summary in background (don't await)
-    recalculateDailySummary(session.user.id, timetableId, scheduledDate).catch(console.error)
+    // ── Recalculate daily summary ─────────────────────────────────────────────
+    //
+    // IMPORTANT: Always use the timetable_id that's actually stored in block_logs,
+    // NOT what the caller passed (partial/skip actions from tracking-store don't
+    // send timetableId, which would create orphaned null-timetable summaries and
+    // break the Study Volume chart).
+    //
+    const effectiveTimetableId =
+      (result.data as any)?.timetable_id   // from the written/updated row
+      ?? existing?.timetable_id            // from the pre-existing row
+      ?? timetableId                       // fallback to request body value
+      ?? null;
+
+    recalculateDailySummary(user.id, effectiveTimetableId, scheduledDate).catch(console.error)
 
     return NextResponse.json(result.data)
   } catch (err: any) {
@@ -104,9 +119,9 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   try {
     const supabase = await getSupabase()
-    const { data: { session } } = await supabase.auth.getSession()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    if (!session) {
+    if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -114,7 +129,7 @@ export async function GET(request: Request) {
     const date = searchParams.get('date')
     const timetableId = searchParams.get('timetableId')
 
-    let query = supabase.from('block_logs').select('*').eq('user_id', session.user.id)
+    let query = supabase.from('block_logs').select('*').eq('user_id', user.id)
     
     if (date) query = query.eq('scheduled_date', date)
     if (timetableId) query = query.eq('timetable_id', timetableId)
@@ -153,90 +168,4 @@ export async function GET(request: Request) {
   }
 }
 
-// Background Task Function
-async function recalculateDailySummary(userId: string, timetableId: string, date: string) {
-    const supabase = await getSupabase();
-    
-    // 1. Get all logs
-    const { data: logs } = await supabase.from('block_logs')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('timetable_id', timetableId)
-        .eq('scheduled_date', date)
-        
-    if (!logs) return;
 
-    // 2. Calculate
-    const completedBlocks = logs.filter(l => l.status === 'completed').length
-    const partialBlocks = logs.filter(l => l.status === 'partial').length
-    const skippedBlocks = logs.filter(l => l.status === 'skipped').length
-    const pendingBlocks = logs.filter(l => l.status === 'pending').length
-    const totalBlocks = logs.length
-
-    const scheduledHours = logs.reduce((sum, l) => sum + (Number(l.scheduled_hours) || 0), 0)
-    const completedHours = logs.filter(l => l.status === 'completed').reduce((sum, l) => sum + (Number(l.scheduled_hours) || 0), 0)
-    const partialHours = logs.filter(l => l.status === 'partial').reduce((sum, l) => sum + (Number(l.actual_hours) || 0), 0)
-
-    const effectiveCompleted = completedBlocks + (partialBlocks * 0.5)
-    const completionRate = totalBlocks > 0 ? (effectiveCompleted / totalBlocks) * 100 : 0
-
-    const ratedLogs = logs.filter(l => l.focus_rating !== null)
-    const focusAvg = ratedLogs.length > 0 ? ratedLogs.reduce((sum, l) => sum + l.focus_rating!, 0) / ratedLogs.length : null
-
-    const subjects = [...new Set(logs.map(l => l.subject))]
-    const subjectBreakdown = subjects.map(subject => {
-       const subjectLogs = logs.filter(l => l.subject === subject)
-       return {
-          subject,
-          scheduled: subjectLogs.reduce((s, l) => s + (Number(l.scheduled_hours) || 0), 0),
-          completed: subjectLogs.filter(l => l.status === 'completed').reduce((s, l) => s + (Number(l.scheduled_hours) || 0), 0),
-          status: 'calculated' // getMajorityStatus omitted for brevity
-       }
-    })
-
-    // 3. Upsert into daily_summaries
-    // check existence
-    const { data: existingSum } = await supabase.from('daily_summaries')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('timetable_id', timetableId)
-        .eq('date', date)
-        .single()
-
-    if (existingSum) {
-        await supabase.from('daily_summaries')
-           .update({
-              total_blocks: totalBlocks,
-              completed_blocks: completedBlocks,
-              partial_blocks: partialBlocks,
-              skipped_blocks: skippedBlocks,
-              pending_blocks: pendingBlocks,
-              scheduled_hours: scheduledHours,
-              completed_hours: completedHours,
-              partial_hours: partialHours,
-              completion_rate: completionRate,
-              focus_avg: focusAvg,
-              subject_breakdown: subjectBreakdown,
-              updated_at: new Date().toISOString()
-           })
-           .eq('id', existingSum.id)
-    } else {
-        await supabase.from('daily_summaries')
-           .insert({
-              user_id: userId,
-              timetable_id: timetableId,
-              date: date,
-              total_blocks: totalBlocks,
-              completed_blocks: completedBlocks,
-              partial_blocks: partialBlocks,
-              skipped_blocks: skippedBlocks,
-              pending_blocks: pendingBlocks,
-              scheduled_hours: scheduledHours,
-              completed_hours: completedHours,
-              partial_hours: partialHours,
-              completion_rate: completionRate,
-              focus_avg: focusAvg,
-              subject_breakdown: subjectBreakdown
-           })
-    }
-}

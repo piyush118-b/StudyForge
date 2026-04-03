@@ -305,6 +305,74 @@ export interface Database {
           updated_at?: string
         }
       }
+      tasks: {
+        Row: {
+          id: string
+          user_id: string
+          timetable_id: string | null
+          title: string
+          description: string | null
+          subject: string | null
+          priority: string
+          status: string
+          due_date: string | null
+          due_time: string | null
+          estimated_hours: number | null
+          actual_hours: number | null
+          completed_at: string | null
+          tags: string[] | null
+          linked_block_id: string | null
+          notes: string | null
+          completion_percentage: number | null
+          reminder_minutes: number | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          timetable_id?: string | null
+          title: string
+          description?: string | null
+          subject?: string | null
+          priority?: string
+          status?: string
+          due_date?: string | null
+          due_time?: string | null
+          estimated_hours?: number | null
+          actual_hours?: number | null
+          completed_at?: string | null
+          tags?: string[] | null
+          linked_block_id?: string | null
+          notes?: string | null
+          completion_percentage?: number | null
+          reminder_minutes?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          timetable_id?: string | null
+          title?: string
+          description?: string | null
+          subject?: string | null
+          priority?: string
+          status?: string
+          due_date?: string | null
+          due_time?: string | null
+          estimated_hours?: number | null
+          actual_hours?: number | null
+          completed_at?: string | null
+          tags?: string[] | null
+          linked_block_id?: string | null
+          notes?: string | null
+          completion_percentage?: number | null
+          reminder_minutes?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
   }
 }

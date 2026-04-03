@@ -10,11 +10,13 @@ import { calculateWeeklyStats, WeeklyStats } from "@/lib/analytics-engine";
 import Link from "next/link";
 import { Database } from "@/types/supabase";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Download, Edit3, Flame, LayoutGrid, Share2, Trash2, CalendarHeart, Loader2, FilePlus, Plus } from "lucide-react";
+import { Flame, Clock, CalendarHeart, MoreHorizontal, CheckCircle2, Circle, AlertCircle, TrendingUp, Sparkles, AlertTriangle, Download, Edit3, LayoutGrid, Share2, Trash2, Loader2, FilePlus, Plus } from 'lucide-react';
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { WeeklyAIInsights } from '@/components/dashboard/WeeklyAIInsights';
+import { TimetableCard } from "@/components/timetable/TimetableCard";
 
 // Local Type Binding
 type TimetableRow = Database['public']['Tables']['timetables']['Row'];
@@ -78,7 +80,14 @@ export default function DashboardPage() {
         const active = (data as any[])?.find(t => t.is_active);
         if (active) {
            const todayStr = new Date().toISOString().split('T')[0];
-           loadTodayBlocks(active.id, active.grid_data, todayStr);
+           // DEBUG: log grid_data to diagnose tracking issues
+           const gridData = active.grid_data;
+           const blockCount = gridData && typeof gridData === 'object' ? Object.keys(gridData).length : 0;
+           console.log('[Dashboard] Active timetable grid_data:', { blockCount, gridData: blockCount > 0 ? 'has blocks' : 'EMPTY - no blocks saved!' });
+           if (blockCount === 0) {
+             console.warn('[Dashboard] grid_data is empty. Open the editor and make a change to trigger auto-save.');
+           }
+           loadTodayBlocks(active.id, gridData, todayStr);
         }
       } catch (err) {
         console.error("Failed to load timetables:", err);
@@ -198,12 +207,12 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-baseline gap-2">
-              <div className="text-3xl font-bold text-white">84</div>
+              <div className="text-3xl font-bold text-white">
+                {Math.round(weeklyStats.overallCompletionRate * 0.8 + 20)}
+              </div>
               <div className="text-sm text-slate-400 font-medium">/ 100</div>
             </div>
-            <p className="text-xs text-blue-200/50 leading-tight">
-               AI Assessment: Excellent distribution of subjects. Reduced load on Friday detected. Keep it balanced!
-            </p>
+            <WeeklyAIInsights weeklyStats={weeklyStats} />
           </CardContent>
         </Card>
       </section>
@@ -305,68 +314,12 @@ export default function DashboardPage() {
           // Grid View
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {timetables.map((tt) => (
-              <Card key={tt.id} className="bg-slate-900/50 border-slate-800 overflow-hidden group hover:border-slate-700 transition-colors">
-                {/* Thumbnail Header */}
-                <div className="w-full h-40 bg-slate-950 border-b border-slate-800 relative overflow-hidden flex items-center justify-center">
-                   {tt.preview_image_url ? (
-                     <img src={tt.preview_image_url} alt={tt.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
-                   ) : (
-                     <div className="text-slate-700">
-                       <LayoutGrid className="w-12 h-12 opacity-50" />
-                     </div>
-                   )}
-                   {/* Hover Action Overlay */}
-                   <div className="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-sm">
-                      <Button size="sm" variant="secondary" onClick={() => router.push(`/timetable/${tt.id}`)}>
-                        <Edit3 className="w-4 h-4 mr-1.5" /> Edit
-                      </Button>
-                      <Button size="icon" variant="secondary" title="Share" onClick={() => toast.success("Share link generated!")}>
-                        <Share2 className="w-4 h-4" />
-                      </Button>
-                   </div>
-                </div>
-                
-                <CardContent className="p-5">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-bold text-lg text-slate-100 truncate pr-2" title={tt.title}>{tt.title}</h3>
-                    <DropdownMenu>
-                       <DropdownMenuTrigger asChild>
-                         <Button variant="ghost" size="icon" className="h-8 w-8 -mt-1 -mr-2 text-slate-400">
-                            {/* SVG for Vertical Ellipsis */}
-                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                         </Button>
-                       </DropdownMenuTrigger>
-                       <DropdownMenuContent align="end" className="w-48 bg-slate-900 border-slate-800 text-slate-200">
-                         <DropdownMenuItem onClick={() => router.push(`/timetable/${tt.id}`)} className="cursor-pointer hover:bg-slate-800">
-                           <Edit3 className="w-4 h-4 mr-2" /> Open Editor
-                         </DropdownMenuItem>
-                         <DropdownMenuItem onClick={() => toast.info("Exporting PDF...")} className="cursor-pointer hover:bg-slate-800">
-                           <Download className="w-4 h-4 mr-2" /> Export PDF
-                         </DropdownMenuItem>
-                         <DropdownMenuSeparator className="bg-slate-800" />
-                         <DropdownMenuItem onClick={() => handleDelete(tt.id, tt.title)} className="cursor-pointer text-red-400 hover:text-red-300 hover:bg-red-400/10 focus:text-red-300">
-                           <Trash2 className="w-4 h-4 mr-2" /> Delete
-                         </DropdownMenuItem>
-                       </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                  
-                  <div className="text-xs text-slate-500 mb-4 whitespace-nowrap overflow-hidden text-ellipsis">
-                    Updated {new Date(tt.updated_at).toLocaleDateString()}
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="outline" className="bg-slate-800/50 text-slate-300 border-slate-700">
-                       {tt.total_weekly_hours || 0} Hrs/Week
-                    </Badge>
-                    {tt.is_public && (
-                      <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
-                         Public
-                      </Badge>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+               <TimetableCard 
+                 key={tt.id} 
+                 timetable={tt} 
+                 onSetActive={() => {}} 
+                 onDelete={() => handleDelete(tt.id, tt.title)} 
+               />
             ))}
           </div>
         )}

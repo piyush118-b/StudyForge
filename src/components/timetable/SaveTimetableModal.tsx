@@ -105,7 +105,10 @@ export function SaveTimetableModal({
           })
         })
         
-        if (!res.ok) throw new Error('Failed to save timetable')
+        if (!res.ok) {
+           const errText = await res.text()
+           throw new Error(`Failed to save timetable: ${res.status} ${errText}`)
+        }
         
         onSuccess(makeActive)
       }

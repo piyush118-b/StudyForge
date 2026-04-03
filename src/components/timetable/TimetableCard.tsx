@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatDistanceToNow } from 'date-fns'
+import { Database } from '@/types/supabase'
 import { 
   MoreHorizontal, 
   Pencil, 
@@ -15,15 +15,19 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { useTrackingStore } from '@/store/tracking-store'
+
+type Timetable = Database['public']['Tables']['timetables']['Row']
 
 interface TimetableCardProps {
-  timetable: any
+  timetable: Timetable
   onSetActive: (id: string, name: string) => void
   onDelete: (id: string) => void
 }
@@ -31,11 +35,32 @@ interface TimetableCardProps {
 export function TimetableCard({ timetable, onSetActive, onDelete }: TimetableCardProps) {
   const router = useRouter()
   
-  // Calculate today's progress if active
-  // Based on mock data for now - could integrate with TrackingStore if we want it fully live
-  const todayProgress = 0.6 // 60%
-  const todayCompleted = 3
-  const todayTotal = 5
+  // Compute today's dayId (e.g. col_monday)
+  const todayDayId = (() => {
+    const d = new Date()
+    const day = d.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
+    return `col_${day}`
+  })()
+
+  let todayTotal = 0
+  let todayDoneCount = 0
+  let todayPartialCount = 0
+  
+  if (timetable.is_active) {
+    const gridData = timetable.grid_data as Record<string, any>
+    if (gridData && typeof gridData === 'object' && !Array.isArray(gridData)) {
+      const allGridBlocks = Object.values(gridData)
+      const todayGridBlocks = allGridBlocks.filter((b: any) => b.dayId === todayDayId)
+      
+      todayTotal = todayGridBlocks.length
+      todayDoneCount = todayGridBlocks.filter((b: any) => b.status === 'completed').length
+      todayPartialCount = todayGridBlocks.filter((b: any) => b.status === 'partial').length
+    }
+  }
+  
+  // Weighted progress: partial counts as 0.5
+  const weightedDone = todayDoneCount + todayPartialCount * 0.5
+  const progressPercentage = todayTotal > 0 ? (weightedDone / todayTotal) : 0
 
   return (
     <div className="bg-card w-full border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
@@ -72,9 +97,7 @@ export function TimetableCard({ timetable, onSetActive, onDelete }: TimetableCar
         
         {/* Stats */}
         <div className="flex gap-2 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1 bg-muted px-2 py-1 rounded-md">
-            📚 {timetable.total_blocks} blocks/wk
-          </span>
+
           {timetable.semester_start && timetable.semester_end && (
              <span className="flex items-center gap-1 bg-muted px-2 py-1 rounded-md">
                📅 Sem ({new Date(timetable.semester_start).toLocaleDateString(undefined, {month: 'short', year: '2-digit'})} - {new Date(timetable.semester_end).toLocaleDateString(undefined, {month: 'short', year: '2-digit'})})
@@ -86,14 +109,29 @@ export function TimetableCard({ timetable, onSetActive, onDelete }: TimetableCar
         {timetable.is_active && (
           <div className="flex flex-col gap-1">
             <div className="flex justify-between text-xs">
-              <span className="font-medium">Today's Progress</span>
-              <span className="text-muted-foreground">{todayCompleted}/{todayTotal} blocks done ({Math.round(todayProgress*100)}%)</span>
+              <span className="font-medium">Today&apos;s Progress</span>
+              <span className="text-muted-foreground">
+                {todayDoneCount > 0 || todayPartialCount > 0
+                  ? `${todayDoneCount} done${todayPartialCount > 0 ? ` · ${todayPartialCount} partial` : ''} / ${todayTotal}`
+                  : `0 / ${todayTotal} blocks`
+                } ({Math.round(progressPercentage * 100)}%)
+              </span>
             </div>
             <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-               <div 
-                 className={`h-full rounded-full ${todayProgress >= 0.7 ? 'bg-green-500' : todayProgress >= 0.4 ? 'bg-yellow-500' : 'bg-red-500'}`} 
-                 style={{ width: `${todayProgress * 100}%` }} 
-               />
+              {/* Full done portion */}
+              <div className="h-full w-full relative rounded-full overflow-hidden">
+                <div
+                  className="absolute inset-y-0 left-0 rounded-full bg-green-500 transition-all duration-500"
+                  style={{ width: `${(todayDoneCount / Math.max(todayTotal, 1)) * 100}%` }}
+                />
+                <div
+                  className="absolute inset-y-0 rounded-full bg-amber-400 transition-all duration-500"
+                  style={{
+                    left: `${(todayDoneCount / Math.max(todayTotal, 1)) * 100}%`,
+                    width: `${(todayPartialCount * 0.5 / Math.max(todayTotal, 1)) * 100}%`
+                  }}
+                />
+              </div>
             </div>
           </div>
         )}
@@ -119,46 +157,46 @@ export function TimetableCard({ timetable, onSetActive, onDelete }: TimetableCar
           )}
 
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-9 w-9 data-[state=open]:bg-muted">
-                <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">Open menu</span>
-              </Button>
+            <DropdownMenuTrigger className={`${buttonVariants({ variant: "ghost", size: "icon" })} h-9 w-9 data-[state=open]:bg-muted`}>
+              <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">Open menu</span>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Pencil className="mr-2 h-4 w-4" />
-                Rename
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Copy className="mr-2 h-4 w-4" />
-                Duplicate
-              </DropdownMenuItem>
-              {!timetable.is_active && (
-                  <DropdownMenuItem onClick={() => onSetActive(timetable.id, timetable.title)}>
-                    <Star className="mr-2 h-4 w-4" />
-                    Set as Active
-                  </DropdownMenuItem>
-              )}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Download className="mr-2 h-4 w-4" />
-                Export
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Share className="mr-2 h-4 w-4" />
-                Share
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                className="text-red-600 focus:bg-red-50 focus:text-red-600"
-                onClick={() => onDelete(timetable.id)}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Rename
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Copy className="mr-2 h-4 w-4" />
+                  Duplicate
+                </DropdownMenuItem>
+                {!timetable.is_active && (
+                    <DropdownMenuItem onClick={() => onSetActive(timetable.id, timetable.title)}>
+                      <Star className="mr-2 h-4 w-4" />
+                      Set as Active
+                    </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <Download className="mr-2 h-4 w-4" />
+                  Export
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Share className="mr-2 h-4 w-4" />
+                  Share
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  className="text-red-600 focus:bg-red-50 focus:text-red-600"
+                  onClick={() => onDelete(timetable.id)}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

@@ -20,9 +20,9 @@ export async function DELETE(request: Request, context: any) {
   try {
     const { id } = context.params
     const supabase = await getSupabase()
-    const { data: { session } } = await supabase.auth.getSession()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    if (!session) {
+    if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -32,7 +32,7 @@ export async function DELETE(request: Request, context: any) {
     const { error } = await supabase.from('block_logs')
         .delete()
         .eq('id', id)
-        .eq('user_id', session.user.id)
+        .eq('user_id', user.id)
 
     if (error) throw error
 

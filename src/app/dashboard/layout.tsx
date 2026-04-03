@@ -4,12 +4,13 @@ import { useState } from "react";
 
 import { useAuth } from "@/lib/auth-context";
 import Link from "next/link";
-import { BookOpen, HelpCircle, LayoutDashboard, Plus, Settings, CalendarDays, LogOut, Menu, CheckSquare, TrendingUp, Camera, CalendarClock } from "lucide-react";
+import { BookOpen, HelpCircle, LayoutDashboard, Plus, Settings, CalendarDays, LogOut, Menu, CheckSquare, TrendingUp, Camera, CalendarClock, Trophy, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { usePathname } from "next/navigation";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { AchievementModal } from "@/components/dashboard/AchievementModal";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { profile, signOut } = useAuth();
@@ -22,6 +23,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { label: "My Timetables", href: "/dashboard/timetables", icon: CalendarDays },
     { label: "Tasks", href: "/dashboard/tasks", icon: CheckSquare },
     { label: "Analytics", href: "/dashboard/analytics", icon: TrendingUp },
+    { label: "Achievements", href: "/dashboard/achievements", icon: Trophy },
+    { label: "Referrals", href: "/dashboard/referrals", icon: Gift },
     { label: "Photo Scanner", href: "/dashboard/scanner", icon: Camera },
     { label: "Create New", href: "/create", icon: Plus, highlight: true },
     { label: "Settings", href: "/dashboard/settings", icon: Settings },
@@ -128,6 +131,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </main>
       </div>
+
+      <AchievementModal />
     </div>
   );
 }

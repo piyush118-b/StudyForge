@@ -43,6 +43,7 @@ export function BlockFormModal() {
   const [recentSubjects, setRecentSubjects] = useState<string[]>([]);
   const [isNotesExpanded, setIsNotesExpanded] = useState(false);
   const [isStickerExpanded, setIsStickerExpanded] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     try {
@@ -80,6 +81,8 @@ export function BlockFormModal() {
   }, [isEditing, existingBlock, isBlockModalOpen, blockModalData]);
 
   if (!isBlockModalOpen || !blockModalData) return null;
+  // Reset delete confirm whenever modal closes/reopens
+  // (effect not needed — it resets naturally since the component re-renders with fresh state when modal opens)
 
   const currentDuration = timeDiffMinutes(startTime, endTime);
   const dayName = dayColumns.find(d => d.id === blockModalData.dayId)?.label || "Day";
@@ -155,6 +158,12 @@ export function BlockFormModal() {
                 placeholder="Search or type subject name..."
                 value={subject}
                 onChange={e => setSubject(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSave();
+                  }
+                }}
               />
             </div>
             {recentSubjects.length > 0 && (
@@ -316,32 +325,65 @@ export function BlockFormModal() {
         </div>
 
         {/* Footer Actions */}
-        <div className="p-5 border-t border-white/5 flex justify-between shrink-0 bg-[#0A0B0E]/30 rounded-b-3xl">
-          <div>
-            {isEditing && (
-              <button 
-                onClick={() => { if(confirm("Delete block?")) { deleteBlock(existingBlock!.id); closeBlockModal(); } }}
-                className="px-4 py-2.5 rounded-xl text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-colors flex items-center justify-center border border-transparent hover:border-red-500/20"
-                title="Delete Block"
+        <div className="p-5 border-t border-white/5 shrink-0 bg-[#0A0B0E]/30 rounded-b-3xl">
+
+          {/* Inline Delete Confirmation Section */}
+          {showDeleteConfirm && isEditing && (
+            <div className="mb-4 p-4 rounded-2xl bg-red-500/8 border border-red-500/25 animate-in slide-in-from-bottom-2 fade-in duration-200">
+              <p className="text-sm font-semibold text-red-400 mb-1">Delete this block?</p>
+              <p className="text-xs text-slate-400 mb-4">
+                This removes <span className="text-slate-200 font-medium">{existingBlock?.subject}</span> from your timetable.
+                Any logged study history for this block will remain in your analytics.
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 px-4 py-2 rounded-xl text-sm font-medium text-slate-300 bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => { deleteBlock(existingBlock!.id); closeBlockModal(); }}
+                  className="flex-1 px-4 py-2 rounded-xl text-sm font-bold text-white bg-red-600 hover:bg-red-700 shadow-[0_4px_16px_rgba(239,68,68,0.3)] transition-all"
+                >
+                  🗑 Delete Block
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-between items-center">
+            <div>
+              {isEditing && (
+                <button
+                  onClick={() => setShowDeleteConfirm(s => !s)}
+                  className={`px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 transition-all border ${
+                    showDeleteConfirm
+                      ? 'bg-red-500/15 text-red-400 border-red-500/30'
+                      : 'text-slate-400 hover:bg-red-500/10 hover:text-red-400 border-transparent hover:border-red-500/20'
+                  }`}
+                  title="Delete Block"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Delete</span>
+                </button>
+              )}
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={closeBlockModal}
+                className="px-5 py-2.5 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors border border-transparent"
               >
-                <Trash2 className="w-4 h-4" />
+                Cancel
               </button>
-            )}
-          </div>
-          <div className="flex gap-3">
-            <button 
-              onClick={closeBlockModal}
-              className="px-5 py-2.5 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors border border-transparent"
-            >
-              Cancel
-            </button>
-            <button 
-              onClick={handleSave}
-              disabled={!subject.trim()}
-              className="px-6 py-2.5 text-[15px] bg-[#4F46E5] hover:bg-[#4338ca] text-white font-bold rounded-xl shadow-[0_4px_16px_rgba(79,70,229,0.5)] border border-white/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              {isEditing ? 'Save Changes' : 'Add Block'}
-            </button>
+              <button
+                onClick={handleSave}
+                disabled={!subject.trim()}
+                className="px-6 py-2.5 text-[15px] bg-[#4F46E5] hover:bg-[#4338ca] text-white font-bold rounded-xl shadow-[0_4px_16px_rgba(79,70,229,0.5)] border border-white/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isEditing ? 'Save Changes' : 'Add Block'}
+              </button>
+            </div>
           </div>
         </div>
 

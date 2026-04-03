@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { supabase } from '@/lib/supabase'
+import { trackEvent } from '@/lib/lifecycle'
 import { 
   BlockLog, 
   DailySummary, 
@@ -56,46 +57,50 @@ export const useTrackingStore = create<TrackingState>((set, get) => ({
       if (!response.ok) throw new Error('Failed to fetch block logs')
       const logs: BlockLog[] = await response.json()
       
-      const dayOfWeek = new Date(date).toLocaleDateString('en-US', { weekday: 'long' })
+      // Date -> day of week, correcting for timezone (use UTC offset)
+      const dateObj = new Date(date + 'T12:00:00') // noon to avoid DST issues
+      const dayOfWeek = dateObj.toLocaleDateString('en-US', { weekday: 'long' })
+      const dayId = `col_${dayOfWeek.toLowerCase()}`
       
-      // Parse gridData to get blocks for 'dayOfWeek'
-      // Expected gridData structure: { days: [{ day: 'Monday', blocks: [...] }] }
-      const dayData = gridData?.days?.find((d: any) => d.day === dayOfWeek)
-      const blocks: any[] = dayData?.blocks || []
+      // gridData format from grid-store: { blockUUID: { dayId, startTime, endTime, subject, ... } }
+      let blocks: any[] = []
+      if (gridData && typeof gridData === 'object' && !Array.isArray(gridData)) {
+        // New flat format
+        blocks = Object.values(gridData).filter((b: any) => b.dayId === dayId)
+      }
       
       const now = new Date()
-      const currentHour = now.getHours()
-      const currentMin = now.getMinutes()
-      const currentTotalMin = currentHour * 60 + currentMin
-      
+      const currentTotalMin = now.getHours() * 60 + now.getMinutes()
       const isTodayView = date === new Date().toISOString().split('T')[0]
 
-      const todayBlocks: BlockWithLog[] = blocks.map(block => {
-        const log = logs.find(l => l.blockId === block.id) || null
+      const todayBlocks: BlockWithLog[] = blocks.map((block: any) => {
+        const blockId = block.id || block.blockId
+        const log = logs.find(l => l.blockId === blockId) || null
         
         let startTotalMin = 0
         let endTotalMin = 0
-        
-        if (block.startTime && block.endTime) {
-            const [sH, sM] = block.startTime.split(':').map(Number)
-            startTotalMin = sH * 60 + sM
-            const [eH, eM] = block.endTime.split(':').map(Number)
-            endTotalMin = eH * 60 + eM
-        }
+        const startTime = block.startTime || '00:00'
+        const endTime   = block.endTime   || '00:00'
+        const [sH, sM] = startTime.split(':').map(Number)
+        const [eH, eM] = endTime.split(':').map(Number)
+        startTotalMin = sH * 60 + sM
+        endTotalMin   = eH * 60 + eM
 
-        const isPast = isTodayView && endTotalMin < currentTotalMin
+        const durationHrs = (endTotalMin - startTotalMin) / 60
+
+        const isPast    = isTodayView && endTotalMin < currentTotalMin
         const isCurrent = isTodayView && startTotalMin <= currentTotalMin && currentTotalMin < endTotalMin
 
         return {
-          blockId: block.id,
-          subject: block.subject || block.label || 'Unknown',
-          blockType: block.type || null,
+          blockId,
+          subject: block.subject || 'Unknown',
+          blockType: block.subjectType || block.type || null,
           color: block.color || '#e5e7eb',
           priority: block.priority || 'medium',
-          startTime: block.startTime || '00:00',
-          endTime: block.endTime || '00:00',
-          scheduledHours: block.durationBlock || 1, // calculate from start-end
-          dayOfWeek: dayOfWeek,
+          startTime,
+          endTime,
+          scheduledHours: durationHrs > 0 ? durationHrs : 1,
+          dayOfWeek,
           isFixed: block.isFixed || false,
           log,
           status: log ? log.status : 'pending',
@@ -145,6 +150,7 @@ export const useTrackingStore = create<TrackingState>((set, get) => ({
         notes
       })
     })
+    trackEvent('block_marked_done', { blockId, subject: block.subject, rating });
   },
 
   markBlockPartial: async (blockId, scheduledDate, percentage, actualHours, reason, rating) => {
@@ -195,6 +201,7 @@ export const useTrackingStore = create<TrackingState>((set, get) => ({
         skipNote: note
       })
     })
+    trackEvent('block_marked_skipped', { blockId, subject: block.subject, reason });
   },
 
   undoBlockMark: async (blockId, scheduledDate) => {
@@ -224,9 +231,9 @@ export const useTrackingStore = create<TrackingState>((set, get) => ({
   },
 
   subscribeToTodayUpdates: (userId, date) => {
-    // const supabase = createClient()
+    const uniqueId = Math.random().toString(36).substring(7);
     const channel = supabase
-      .channel(`block-logs-${userId}-${date}`)
+      .channel(`block-logs-${userId}-${date}-${uniqueId}`)
       .on(
         'postgres_changes',
         {
@@ -237,24 +244,23 @@ export const useTrackingStore = create<TrackingState>((set, get) => ({
         },
         async (payload: any) => {
            // Refetch blocks to update state correctly
-           // Need timetableId and gridData... wait, we can't easily access them from subscription alone if they aren't in scope.
-           // Alternative: if payload is block_log, map it directly into todayBlocks 
            const { todayBlocks, todayDate } = get()
            if (todayDate !== date) return
            
            const newLog = payload.new as BlockLog
            
            if (payload.eventType === 'DELETE') {
-              const oldLog = payload.old as BlockLog
+              const oldLog = payload.old as any
               set({
                  todayBlocks: todayBlocks.map(b => 
-                    b.blockId === oldLog.block_id || b.blockId === (oldLog as any).blockId ? { ...b, log: null, status: 'pending' } : b
+                    b.blockId === (oldLog.blockId || oldLog.block_id) ? { ...b, log: null, status: 'pending' } : b
                  )
               })
            } else if (newLog) {
+              const logAny = newLog as any
               set({
                  todayBlocks: todayBlocks.map(b => 
-                    b.blockId === newLog.block_id || b.blockId === (newLog as any).blockId ? { ...b, log: newLog, status: newLog.status } : b
+                    b.blockId === (logAny.blockId || logAny.block_id) ? { ...b, log: newLog, status: newLog.status } : b
                  )
               })
            }
@@ -264,14 +270,14 @@ export const useTrackingStore = create<TrackingState>((set, get) => ({
       
     // Subscribe to daily summaries
     const summaryChannel = supabase
-      .channel(`daily-summaries-${userId}-${date}`)
+      .channel(`daily-summaries-${userId}-${date}-${uniqueId}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'daily_summaries',
-          filter: `user_id=eq.${userId} AND date=eq.${date}` /* Supabase realtime eq filters might only be on single column mostly, assuming filter: `user_id=eq.${userId}` is safer */
+          filter: `user_id=eq.${userId}`
         },
         (payload: any) => {
            const newSummary = payload.new as DailySummary

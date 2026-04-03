@@ -18,31 +18,37 @@ async function getSupabase() {
 
 export async function PATCH(request: Request, context: any) {
     try {
-        const { id } = context.params
+        const { id } = await context.params
         const supabase = await getSupabase()
-        const { data: { session } } = await supabase.auth.getSession()
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-        if (!session) {
+        if (authError || !user) {
            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
         const body = await request.json()
         
+        // Prepare update object to avoid broad body injection
+        const updateData: any = {}
+        if (body.grid_data !== undefined) updateData.grid_data = body.grid_data
+        if (body.title !== undefined) updateData.title = body.title
+        if (body.is_active !== undefined) updateData.is_active = body.is_active
+        if (body.total_blocks !== undefined) updateData.total_blocks = body.total_blocks
+        if (body.total_weekly_hours !== undefined) updateData.total_weekly_hours = body.total_weekly_hours
+        
         // If they are setting this as active, deactivate all others
-        if (body.is_active) {
+        if (updateData.is_active) {
             await supabase.from('timetables')
               .update({ is_active: false })
-              .eq('user_id', session.user.id)
-        }
-
-        if (body.is_active) {
-            body.activated_at = new Date().toISOString()
+              .eq('user_id', user.id)
+            
+            updateData.activated_at = new Date().toISOString()
         }
 
         const { data, error } = await supabase.from('timetables')
-            .update(body)
+            .update(updateData)
             .eq('id', id)
-            .eq('user_id', session.user.id)
+            .eq('user_id', user.id)
             .select()
             .single()
 
@@ -58,25 +64,52 @@ export async function PATCH(request: Request, context: any) {
 
 export async function DELETE(request: Request, context: any) {
     try {
-        const { id } = context.params
+        const { id } = await context.params
         const supabase = await getSupabase()
-        const { data: { session } } = await supabase.auth.getSession()
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-        if (!session) {
+        if (authError || !user) {
            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const { error } = await supabase.from('timetables')
+        // 1. Preserve analytics history — null out timetable_id in block_logs and daily_summaries
+        // This keeps the user's study history intact even after the timetable is deleted.
+        await supabase.from('block_logs')
+            .update({ timetable_id: null })
+            .eq('timetable_id', id)
+            .eq('user_id', user.id)
+
+        await supabase.from('daily_summaries')
+            .update({ timetable_id: null })
+            .eq('timetable_id', id)
+            .eq('user_id', user.id)
+
+        // 2. Delete associated tasks
+        await supabase.from('tasks')
+            .delete()
+            .eq('timetable_id', id)
+            .eq('user_id', user.id)
+
+        // 3. Delete the timetable itself
+        const { error: deleteError } = await supabase.from('timetables')
             .delete()
             .eq('id', id)
-            .eq('user_id', session.user.id)
+            .eq('user_id', user.id)
 
-        if (error) throw error
+        if (deleteError) {
+            console.error('Delete error:', deleteError)
+            return NextResponse.json({ 
+                error: deleteError.message || 'Database error occurred',
+                code: deleteError.code,
+                details: deleteError.details
+            }, { status: 500 })
+        }
 
         return NextResponse.json({ success: true })
 
     } catch (err: any) {
-        console.error(err)
-        return NextResponse.json({ error: err.message || 'Error occurred' }, { status: 500 })
+        console.error('Catch error:', err)
+        return NextResponse.json({ error: err.message || 'Server error occurred' }, { status: 500 })
     }
+
 }

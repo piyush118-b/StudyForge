@@ -2,7 +2,10 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { UserData } from "./types";
 
 export const callGemini = async (userData: UserData) => {
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error("Gemini API key is not configured. Please add GEMINI_API_KEY to your env.");
+  }
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
   const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
   const customRules = userData.hardConstraints.length > 0 ? `HARD CONSTRAINTS:\n- ${userData.hardConstraints.join("\n- ")}` : "";
