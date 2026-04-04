@@ -24,6 +24,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { useTrackingStore } from '@/store/tracking-store'
+import { getLocalDateStr } from '@/lib/time-utils'
+import type { DailySummary } from '@/types/tracking.types'
 
 type Timetable = Database['public']['Tables']['timetables']['Row']
 
@@ -36,37 +38,52 @@ interface TimetableCardProps {
 export function TimetableCard({ timetable, onSetActive, onDelete }: TimetableCardProps) {
   const router = useRouter()
   const [isMounted, setIsMounted] = useState(false)
+  const [stats, setStats] = useState<DailySummary | null>(null)
   
   useEffect(() => {
     setIsMounted(true)
-  }, [])
-  
-  // Compute today's dayId (e.g. col_monday)
-  const todayDayId = (() => {
-    const d = new Date()
-    const day = d.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
-    return `col_${day}`
-  })()
+    fetchTodayStats()
+  }, [timetable.id])
 
-  let todayTotal = 0
-  let todayDoneCount = 0
-  let todayPartialCount = 0
+  const fetchTodayStats = async () => {
+    try {
+      const date = getLocalDateStr()
+      const res = await fetch(`/api/daily-summaries?timetableId=${timetable.id}&date=${date}`)
+      if (res.ok) {
+        const data = await res.json()
+        setStats(data)
+      }
+    } catch (err) {
+      console.error('Error fetching card stats:', err)
+    }
+  }
   
-  if (timetable.is_active) {
+  // Compute today's day (e.g. Monday)
+  const todayDay = (() => {
+    const d = new Date()
+    return d.toLocaleDateString('en-US', { weekday: 'long' })
+  })()
+  
+  // Calculate progress using stats if available, fallback to grid structure for total
+  const todayTotal = stats?.totalBlocks ?? (() => {
     const gridData = timetable.grid_data as Record<string, any>
     if (gridData && typeof gridData === 'object' && !Array.isArray(gridData)) {
       const allGridBlocks = Object.values(gridData)
-      const todayGridBlocks = allGridBlocks.filter((b: any) => b.dayId === todayDayId)
-      
-      todayTotal = todayGridBlocks.length
-      todayDoneCount = todayGridBlocks.filter((b: any) => b.status === 'completed').length
-      todayPartialCount = todayGridBlocks.filter((b: any) => b.status === 'partial').length
+      return allGridBlocks.filter((b: any) => {
+        const blockDay = b.day || (b.dayId ? b.dayId.replace('col_', '').charAt(0).toUpperCase() + b.dayId.replace('col_', '').slice(1) : null);
+        return blockDay === todayDay;
+      }).length
     }
-  }
+    return 0
+  })()
+
+  const todayDoneCount = stats?.completedBlocks ?? 0
+  const todayPartialCount = stats?.partialBlocks ?? 0
   
   // Weighted progress: partial counts as 0.5
   const weightedDone = todayDoneCount + todayPartialCount * 0.5
   const progressPercentage = todayTotal > 0 ? (weightedDone / todayTotal) : 0
+  const hasActivity = todayDoneCount > 0 || todayPartialCount > 0
 
   return (
     <div className="bg-card w-full border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
@@ -111,20 +128,19 @@ export function TimetableCard({ timetable, onSetActive, onDelete }: TimetableCar
           )}
         </div>
 
-        {/* Progress Bar (Only active) */}
-        {timetable.is_active && (
+        {/* Progress Bar (Only active or those with activity) */}
+        {(timetable.is_active || hasActivity) && (
           <div className="flex flex-col gap-1">
             <div className="flex justify-between text-xs">
               <span className="font-medium">Today&apos;s Progress</span>
               <span className="text-muted-foreground">
-                {todayDoneCount > 0 || todayPartialCount > 0
+                {hasActivity
                   ? `${todayDoneCount} done${todayPartialCount > 0 ? ` · ${todayPartialCount} partial` : ''} / ${todayTotal}`
                   : `0 / ${todayTotal} blocks`
                 } ({Math.round(progressPercentage * 100)}%)
               </span>
             </div>
             <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-              {/* Full done portion */}
               <div className="h-full w-full relative rounded-full overflow-hidden">
                 <div
                   className="absolute inset-y-0 left-0 rounded-full bg-green-500 transition-all duration-500"

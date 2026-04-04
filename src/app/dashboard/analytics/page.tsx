@@ -7,7 +7,7 @@ import { useSubscriptionStore } from "@/store/subscription-store";
 import { computeWeeklyStats, WeeklyStats } from "@/lib/analytics-engine";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ProGate } from "@/components/subscription/ProGate";
-import { Lock, TrendingUp, Sparkles, RefreshCw } from "lucide-react";
+import { Lock, TrendingUp, Sparkles, RefreshCw, Flame, Target, Brain, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StudyVolumeChart } from "@/components/analytics/StudyVolumeChart";
 import { SubjectChart } from "@/components/analytics/SubjectChart";
@@ -244,6 +244,63 @@ export default function AnalyticsPage() {
         </div>
       )}
 
+      {/* ── Stats Strip ── */}
+      {stats && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {/* Streak */}
+          <div className="bg-[#0A0C14] border border-white/5 rounded-xl p-4 flex items-center gap-3 hover:border-orange-500/20 transition-colors">
+            <div className="w-9 h-9 rounded-lg bg-orange-500/10 flex items-center justify-center shrink-0">
+              <Flame className="w-4 h-4 text-orange-400" />
+            </div>
+            <div>
+              <p className="text-[11px] text-slate-500 font-medium uppercase tracking-wider">Streak</p>
+              <p className="text-xl font-black text-white leading-none mt-0.5">
+                {stats.streakDays}<span className="text-[13px] text-slate-500 font-medium ml-0.5">days</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Weekly Completion Rate */}
+          <div className="bg-[#0A0C14] border border-white/5 rounded-xl p-4 flex items-center gap-3 hover:border-indigo-500/20 transition-colors">
+            <div className="w-9 h-9 rounded-lg bg-indigo-500/10 flex items-center justify-center shrink-0">
+              <Target className="w-4 h-4 text-indigo-400" />
+            </div>
+            <div>
+              <p className="text-[11px] text-slate-500 font-medium uppercase tracking-wider">This Week</p>
+              <p className="text-xl font-black text-white leading-none mt-0.5">
+                {Math.round(stats.overallCompletionRate)}<span className="text-[13px] text-slate-500 font-medium ml-0.5">%</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Hours Completed */}
+          <div className="bg-[#0A0C14] border border-white/5 rounded-xl p-4 flex items-center gap-3 hover:border-emerald-500/20 transition-colors">
+            <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
+              <TrendingUp className="w-4 h-4 text-emerald-400" />
+            </div>
+            <div>
+              <p className="text-[11px] text-slate-500 font-medium uppercase tracking-wider">Hours Done</p>
+              <p className="text-xl font-black text-white leading-none mt-0.5">
+                {stats.totalCompleted.toFixed(1)}<span className="text-[13px] text-slate-500 font-medium ml-0.5">h</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Most Skipped */}
+          <div className="bg-[#0A0C14] border border-white/5 rounded-xl p-4 flex items-center gap-3 hover:border-rose-500/20 transition-colors">
+            <div className="w-9 h-9 rounded-lg bg-rose-500/10 flex items-center justify-center shrink-0">
+              <TrendingDown className="w-4 h-4 text-rose-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] text-slate-500 font-medium uppercase tracking-wider">Needs Focus</p>
+              <p className="text-[15px] font-black text-white leading-none mt-0.5 truncate">
+                {stats.mostSkippedSubject === 'None' ? '—' : stats.mostSkippedSubject}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
       {/* Study Volume Chart */}
@@ -254,39 +311,72 @@ export default function AnalyticsPage() {
       {/* Subject Distribution Chart — today's subjects with planned vs actual */}
       <SubjectChart refreshKey={chartRefreshKey} />
 
-        {/* Efficiency Insights Gated View */}
-        <Card className="bg-slate-900/50 border-slate-800 relative overflow-hidden group">
-          <CardHeader>
-            <CardTitle className="text-lg text-slate-200">Peak Efficiency Hours</CardTitle>
-            <CardDescription>When are you most likely to focus?</CardDescription>
+        {/* AI Insight Card */}
+        <Card className="bg-[#0A0C14] border-white/5 shadow-2xl overflow-hidden">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
+              <Brain className="w-4 h-4 text-violet-400" />
+              AI Study Insight
+              <span className="ml-auto text-[10px] font-normal text-violet-400 bg-violet-500/10 px-2 py-0.5 rounded-full">Live</span>
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-             <ProGate feature="advanced_analytics" fallback={
-               <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-[2px] flex flex-col items-center justify-center p-6 text-center z-10 transition-all">
-                  <Lock className="w-8 h-8 text-slate-500 mb-3" />
-                  <h3 className="text-slate-300 font-semibold mb-1">Deep Correlation Locked</h3>
-                  <p className="text-xs text-slate-400 max-w-[80%]">Discover exactly which hours of the day yield your highest focus ratings.</p>
-               </div>
-             }>
-               <div className="h-[200px] flex items-end justify-between px-2 pb-4 border-b border-slate-800">
-                  {/* Mock visually complex Pro chart using standard divs since recharts pie/scatter is overkill here */}
-                  {[6, 8, 10, 12, 14, 16, 18, 20].map((hour) => {
-                     const heightPercentage = Math.random() * 80 + 20;
-                     return (
-                       <div key={hour} className="flex flex-col items-center gap-2 group/bar">
-                         <div className="w-8 bg-blue-500/20 rounded-t-sm relative transition-all duration-500 hover:bg-blue-500/40" style={{ height: `${heightPercentage}%` }}>
-                           <div className="absolute top-0 left-0 w-full bg-blue-500 rounded-t-sm transition-all" style={{ height: '4px' }} />
-                         </div>
-                         <span className="text-[10px] text-slate-500 group-hover/bar:text-slate-300">{hour}:00</span>
-                       </div>
-                     )
-                  })}
-               </div>
-               <div className="pt-2 flex justify-between text-xs text-slate-400">
-                 <span>Morning slump detected</span>
-                 <span className="text-emerald-400">Peak: 14:00 - 18:00</span>
-               </div>
-             </ProGate>
+          <CardContent className="space-y-3">
+            {stats ? (
+              <>
+                {/* Primary insight */}
+                <div className="bg-violet-500/5 border border-violet-500/15 rounded-lg p-3">
+                  <p className="text-sm text-slate-200 leading-relaxed">
+                    {stats.overallCompletionRate >= 80
+                      ? `🔥 Outstanding week! You completed ${Math.round(stats.overallCompletionRate)}% of scheduled study. Keep this momentum going!`
+                      : stats.overallCompletionRate >= 50
+                      ? `📈 Solid progress at ${Math.round(stats.overallCompletionRate)}% completion. Focus on consistency to break the 80% mark.`
+                      : stats.totalCompleted === 0
+                      ? `🚀 Your analytics are ready. Start marking blocks complete in your timetable to see insights here!`
+                      : `💡 At ${Math.round(stats.overallCompletionRate)}% this week — small wins add up. Try completing one extra block each day.`
+                    }
+                  </p>
+                </div>
+
+                {/* Secondary insights */}
+                <div className="space-y-2">
+                  {stats.mostCompletedSubject !== 'None' && (
+                    <div className="flex items-start gap-2 text-xs">
+                      <span className="w-4 h-4 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="text-emerald-400 text-[9px]">✓</span>
+                      </span>
+                      <span className="text-slate-400">
+                        <span className="text-emerald-400 font-semibold">{stats.mostCompletedSubject}</span> is your strongest subject this week.
+                      </span>
+                    </div>
+                  )}
+                  {stats.mostSkippedSubject !== 'None' && (
+                    <div className="flex items-start gap-2 text-xs">
+                      <span className="w-4 h-4 rounded-full bg-rose-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="text-rose-400 text-[9px]">!</span>
+                      </span>
+                      <span className="text-slate-400">
+                        <span className="text-rose-400 font-semibold">{stats.mostSkippedSubject}</span> has the most skips — try splitting it into shorter 30-min sessions.
+                      </span>
+                    </div>
+                  )}
+                  {stats.bestDay && stats.bestDay !== 'None' && (
+                    <div className="flex items-start gap-2 text-xs">
+                      <span className="w-4 h-4 rounded-full bg-indigo-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="text-indigo-400 text-[9px]">★</span>
+                      </span>
+                      <span className="text-slate-400">
+                        Your best study day was <span className="text-indigo-300 font-semibold">{new Date(stats.bestDay + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'long' })}</span>. Try to replicate that schedule.
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-[140px] gap-2 text-center">
+                <Sparkles className="w-8 h-8 text-slate-600" />
+                <p className="text-slate-500 text-sm">Start tracking blocks to unlock AI insights.</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 

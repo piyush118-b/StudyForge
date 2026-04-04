@@ -87,13 +87,16 @@ export function BlockFormModal() {
   // (effect not needed — it resets naturally since the component re-renders with fresh state when modal opens)
 
   const currentDuration = timeDiffMinutes(startTime, endTime);
-  const dayName = dayColumns.find(d => d.id === blockModalData.day)?.label || "Day";
+  const dayName = dayColumns.find(d => d.id === blockModalData.dayId)?.label || "Day";
 
-  // Conflict Detection logic structurally analyzing mathematical bounds
+  // Conflict Detection: match blocks in the same column (dayId or day field)
   const collidingBlock = Object.values(blocks).find(b => {
-    if (b.day !== blockModalData.day) return false;
+    const bColId = b.dayId || '';
+    const bDay = b.day || '';
+    const targetDayId = blockModalData.dayId;
+    const targetLabel = dayName;
+    if (bColId !== targetDayId && bDay !== targetLabel && bColId !== targetLabel) return false;
     if (isEditing && b.id === existingBlock?.id) return false;
-    // Check intersection: start1 < end2 && end1 > start2
     const s1 = timeDiffMinutes("00:00", b.startTime);
     const e1 = timeDiffMinutes("00:00", b.endTime);
     const s2 = timeDiffMinutes("00:00", startTime);
@@ -125,7 +128,7 @@ export function BlockFormModal() {
     if (isEditing) {
        updateBlock(existingBlock!.id, payload);
     } else {
-       addBlock({ day: blockModalData.day, ...payload });
+       addBlock({ dayId: blockModalData.dayId, ...payload });
     }
     closeBlockModal();
   };

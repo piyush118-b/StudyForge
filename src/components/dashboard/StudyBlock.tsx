@@ -96,9 +96,54 @@ function StatusBadge({ status }: { status: BlockWithLog["status"] }) {
   return null;
 }
 
+// ─── Inline Partial Form ──────────────────────────────────────
+function PartialForm({
+  onSave,
+  onCancel,
+  scheduledHours,
+}: {
+  onSave: (percentage: number, actualHours: number) => void;
+  onCancel: () => void;
+  scheduledHours: number;
+}) {
+  const [partialPercentage, setPartialPercentage] = useState(50);
+
+  return (
+    <div className="mt-3 p-3 border border-amber-500/25 bg-amber-500/5 rounded-lg text-sm animate-in fade-in slide-in-from-top-2 duration-200">
+      <p className="text-amber-400 font-medium mb-3">How much did you actually study? ⚡</p>
+
+      <div className="p-3 bg-slate-950/60 rounded-xl border border-white/5 space-y-3 mb-3">
+        <input
+          type="range"
+          min="0" max="100" step="25"
+          value={partialPercentage}
+          onChange={e => setPartialPercentage(parseInt(e.target.value))}
+          className="w-full h-1.5 bg-slate-700 rounded-full appearance-none flex cursor-pointer"
+        />
+        <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+          <span>0%</span>
+          <span>25%</span>
+          <span>50%</span>
+          <span>75%</span>
+          <span>100%</span>
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        <Button size="sm" className="h-7 text-xs bg-amber-600 hover:bg-amber-700" onClick={() => onSave(partialPercentage, scheduledHours * (partialPercentage / 100))}>
+          Save Partial
+        </Button>
+        <Button size="sm" variant="ghost" className="h-7 text-xs text-slate-500" onClick={onCancel}>
+          Cancel
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────
 export function StudyBlock({ block, mode, todayDate, onDone, onPartial, onSkip, onUndo }: StudyBlockProps) {
-  const [showDoneForm, setShowDoneForm] = useState(false);
+  const [activeForm, setActiveForm] = useState<'none' | 'done' | 'partial'>('none');
 
   const isPending = block.status === "pending" && !block.isFixed;
   const isDone = block.status === "completed";
@@ -198,7 +243,7 @@ export function StudyBlock({ block, mode, todayDate, onDone, onPartial, onSkip, 
                   size="sm"
                   variant="outline"
                   className="h-8 text-xs border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10"
-                  onClick={() => setShowDoneForm((v) => !v)}
+                  onClick={() => setActiveForm((v) => v === 'done' ? 'none' : 'done')}
                 >
                   <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
                   Done
@@ -207,18 +252,10 @@ export function StudyBlock({ block, mode, todayDate, onDone, onPartial, onSkip, 
                   size="sm"
                   variant="outline"
                   className="h-8 text-xs border-amber-500/30 text-amber-400 hover:bg-amber-500/10 hidden sm:flex"
-                  onClick={() => onPartial(block.blockId, todayDate, 50, block.scheduledHours * 0.5)}
+                  onClick={() => setActiveForm((v) => v === 'partial' ? 'none' : 'partial')}
                 >
                   <Zap className="w-3.5 h-3.5 mr-1" />
                   Partial
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-8 text-xs text-slate-500 hover:text-slate-300 hidden sm:flex"
-                  onClick={() => onSkip(block.blockId, todayDate, "other")}
-                >
-                  <SkipForward className="w-3.5 h-3.5" />
                 </Button>
               </>
             )}
@@ -238,13 +275,25 @@ export function StudyBlock({ block, mode, todayDate, onDone, onPartial, onSkip, 
         </div>
 
         {/* Inline Done Form */}
-        {showDoneForm && isPending && (
+        {activeForm === 'done' && isPending && (
           <DoneForm
             onSave={(rating, energy) => {
               onDone(block.blockId, todayDate, rating, energy);
-              setShowDoneForm(false);
+              setActiveForm('none');
             }}
-            onSkip={() => setShowDoneForm(false)}
+            onSkip={() => setActiveForm('none')}
+          />
+        )}
+
+        {/* Inline Partial Form */}
+        {activeForm === 'partial' && isPending && (
+          <PartialForm
+            scheduledHours={block.scheduledHours}
+            onSave={(percentage, actualHours) => {
+              onPartial(block.blockId, todayDate, percentage, actualHours, "other");
+              setActiveForm('none');
+            }}
+            onCancel={() => setActiveForm('none')}
           />
         )}
       </div>

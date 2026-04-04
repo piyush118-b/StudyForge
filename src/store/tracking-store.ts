@@ -81,12 +81,12 @@ export const useTrackingStore = create<TrackingState>((set, get) => ({
         console.log(`[TrackingStore] Grid has ${allBlocks.length} total blocks across days:`, availableDays)
         
         blocks = allBlocks.filter((b: any) => {
-          // New format: block.day === 'Saturday'
-          if (b.day && typeof b.day === 'string') {
-            return b.day.toLowerCase() === dayOfWeek.toLowerCase()
-          }
-          // Old format: block.dayId === 'col_saturday'
-          return b.dayId === dayId
+          const bDay = typeof b.day === 'string' ? b.day.toLowerCase() : '';
+          const bId = typeof b.dayId === 'string' ? b.dayId.toLowerCase() : '';
+          const targetDayName = dayOfWeek.toLowerCase();
+          const targetColId = dayId; // e.g. col_saturday
+
+          return bId === targetColId || bId === targetDayName || bDay === targetDayName || bDay === targetColId;
         })
         console.log(`[TrackingStore] Matched ${blocks.length} blocks for ${dayOfWeek}`)
       }
@@ -159,13 +159,22 @@ export const useTrackingStore = create<TrackingState>((set, get) => ({
     set({ todayBlocks: updatedBlocks })
     
     try {
-      // 2. Network Sync via Batch API 
-      const response = await fetch('/api/sync', {
+      // 2. Network Sync via dedicated API 
+      // We use /api/block-logs instead of batch sync because it triggers analytics triggers
+      // (daily summary recalculation) immediately.
+      const response = await fetch('/api/block-logs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ operations: [{ type: 'track', payload: { id, status, ...payload } }] })
+        body: JSON.stringify({ 
+          blockId: id, // Explicitly pass blockId as expected by API
+          status, 
+          ...payload 
+        })
       })
-      if (!response.ok) throw new Error('Failed to sync via batch API')
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to sync tracking data')
+      }
       
       // 3. Lifecycle hooks
       storeLifecycle.onBlockTracked({

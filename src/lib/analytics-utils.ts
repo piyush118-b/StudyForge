@@ -33,6 +33,7 @@ export function getDateForDayOfWeek(dayName: string, referenceDate: Date = new D
     'col_thursday': 4, 'col_friday': 5, 'col_saturday': 6
   };
   
+  if (!dayName) return getLocalDateStr(referenceDate);
   const targetDay = days[dayName.toLowerCase()];
   if (targetDay === undefined) return getLocalDateStr(referenceDate);
   
@@ -62,14 +63,18 @@ export function getDateForDayOfWeek(dayName: string, referenceDate: Date = new D
 export async function recalculateDailySummary(
   userId: string,
   timetableId: string | null | undefined,
-  date: string
+  date: string,
+  customSupabase?: any
 ) {
+  // Use either the provided server-side client or the default browser-side client
+  const supabaseClient = customSupabase || supabase;
+
   // 1. Get ALL block_logs for this user on this date.
   //    IMPORTANT: Do NOT filter by timetable_id here.
   //    Partial/skip actions from the Today page insert logs with null timetable_id
   //    (the tracking-store doesn't send timetableId for those calls). If we filter
   //    by timetable_id, those logs become invisible and partial_hours stays 0.
-  const { data: logs, error: logsError } = await supabase
+  const { data: logs, error: logsError } = await supabaseClient
     .from('block_logs')
     .select('*')
     .eq('user_id', userId)
@@ -87,7 +92,7 @@ export async function recalculateDailySummary(
   let totalScheduledHours = 0;
 
   if (timetableId) {
-    const { data: timetable, error: ttError } = await supabase
+    const { data: timetable, error: ttError } = await supabaseClient
       .from('timetables')
       .select('grid_data')
       .eq('id', timetableId)
@@ -169,7 +174,7 @@ export async function recalculateDailySummary(
   // When timetableId is null: PostgreSQL treats NULL != NULL in unique constraints,
   // so we do a manual look-up + update-or-insert to avoid duplicates.
   if (timetableId) {
-    const { error: upsertError } = await supabase
+    const { error: upsertError } = await supabaseClient
       .from('daily_summaries')
       .upsert(upsertData, { onConflict: 'user_id,date,timetable_id' });
 
@@ -178,7 +183,7 @@ export async function recalculateDailySummary(
     }
   } else {
     // Find existing row with null timetable_id for this user+date
-    const { data: existing } = await supabase
+    const { data: existing } = await supabaseClient
       .from('daily_summaries')
       .select('id')
       .eq('user_id', userId)
@@ -187,13 +192,13 @@ export async function recalculateDailySummary(
       .maybeSingle() as any;
 
     if (existing?.id) {
-      const { error: updateError } = await (supabase
+      const { error: updateError } = await (supabaseClient
         .from('daily_summaries') as any)
         .update(upsertData)
         .eq('id', existing.id);
       if (updateError) console.error('daily_summaries update error:', updateError);
     } else {
-      const { error: insertError } = await (supabase
+      const { error: insertError } = await (supabaseClient
         .from('daily_summaries') as any)
         .insert(upsertData);
       if (insertError) console.error('daily_summaries insert error:', insertError);

@@ -1,6 +1,5 @@
 import { create } from 'zustand';
-import { GridState, DayColumn } from '@/lib/grid-engine';
-import { GridBlock, DayOfWeek } from '@/types';
+import { GridState, DayColumn, TimeBlock } from '@/lib/grid-engine';
 import { PX_PER_HOUR, timeDiffMinutes, addMinutesWrapped, timeToPixel } from '@/lib/time-utils';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -10,34 +9,36 @@ type StateParams = Omit<GridState, 'past' | 'future'>;
 
 interface GridStore extends GridState {
   currentSnapInterval: SnapInterval;
-  activeTool: 'select' | 'pan';
-  
+
+  // Tool mode
+  activeTool: 'pointer' | 'pan' | 'select';
+  setActiveTool: (tool: 'pointer' | 'pan' | 'select') => void;
+
   // Actions
   initGrid: (id: string, cols: DayColumn[], gridStartTime?: string, gridEndTime?: string) => void;
   setZoom: (zoom: number) => void;
   setPan: (x: number, y: number) => void;
-  setActiveTool: (tool: 'select' | 'pan') => void;
   setSnapInterval: (snap: SnapInterval) => void;
-  setGridBounds: (startTime: string, endTime: string) => void;
-  
+  setGridBounds: (start: string, end: string) => void;
+
   // History mechanics
   undo: () => void;
   redo: () => void;
-  pushState: () => void; 
-  
+  pushState: () => void;
+
   // Block mutations
-  addBlock: (partialBlock: Pick<GridBlock, 'day' | 'startTime' | 'endTime'> & Partial<GridBlock>) => void;
-  updateBlock: (id: string, updates: Partial<GridBlock>) => void;
+  addBlock: (partialBlock: Pick<TimeBlock, 'startTime' | 'endTime'> & Partial<TimeBlock> & { dayId?: string; day?: string }) => void;
+  updateBlock: (id: string, updates: Partial<TimeBlock>) => void;
   deleteBlock: (id: string) => void;
   duplicateBlock: (id: string, targetDayIds: string[]) => void;
   shiftBlock: (id: string, direction: 'up' | 'down') => void;
-  
+
   // UI States (Modals, overlays)
   isBlockModalOpen: boolean;
-  blockModalData: { day: DayOfWeek; startTime: string; endTime: string; blockId?: string } | null;
-  openBlockModal: (day: DayOfWeek, startTime: string, endTime: string, blockId?: string) => void;
+  blockModalData: { dayId: string; startTime: string; endTime: string; blockId?: string } | null;
+  openBlockModal: (dayId: string, startTime: string, endTime: string, blockId?: string) => void;
   closeBlockModal: () => void;
-  
+
   isSkipModalOpen: boolean;
   skipModalBlockId: string | null;
   openSkipModal: (blockId: string) => void;
@@ -55,7 +56,7 @@ export const useGridStore = create<GridStore>((set, get) => ({
   panX: 0,
   panY: 0,
   currentSnapInterval: 30,
-  activeTool: 'select',
+  activeTool: 'pointer' as 'pointer' | 'pan' | 'select',
   isDirty: false,
   lastSavedAt: null,
   past: [],
@@ -84,22 +85,18 @@ export const useGridStore = create<GridStore>((set, get) => ({
   }),
 
   setSnapInterval: (snap) => set({ currentSnapInterval: snap }),
-  setActiveTool: (activeTool) => set({ activeTool }),
-  
-  setGridBounds: (gridStartTime, gridEndTime) => {
-    get().pushState();
-    set({ gridStartTime, gridEndTime, isDirty: true });
-  },
+  setActiveTool: (tool) => set({ activeTool: tool }),
+  setGridBounds: (start, end) => set({ gridStartTime: start, gridEndTime: end }),
 
-  openBlockModal: (day, startTime, endTime, blockId) => set({ isBlockModalOpen: true, blockModalData: { day, startTime, endTime, blockId } }),
+  openBlockModal: (dayId, startTime, endTime, blockId) => set({ isBlockModalOpen: true, blockModalData: { dayId, startTime, endTime, blockId } }),
   closeBlockModal: () => set({ isBlockModalOpen: false, blockModalData: null }),
-  
+
   openSkipModal: (blockId) => set({ isSkipModalOpen: true, skipModalBlockId: blockId }),
   closeSkipModal: () => set({ isSkipModalOpen: false, skipModalBlockId: null }),
 
   setZoom: (zoom) => set({ zoom }),
   setPan: (panX, panY) => set({ panX, panY }),
-  
+
   pushState: () => {
     set((state) => {
       const currentState: StateParams = {
@@ -178,24 +175,32 @@ export const useGridStore = create<GridStore>((set, get) => ({
   addBlock: (data) => {
     get().pushState();
     const id = `block_${uuidv4()}`;
-    const newBlock: GridBlock = {
+    const newBlock: TimeBlock = {
       id,
-      timetableId: data.timetableId || get().id,
-      day: data.day || 'Monday',
       subject: data.subject || '',
-      startTime: data.startTime || '00:00',
-      endTime: data.endTime || '01:00',
+      subjectType: data.subjectType || 'Revision',
       color: data.color || '#3b82f6',
-      tags: data.tags || [],
+      textColor: data.textColor || '#ffffff',
+      priority: data.priority || null,
+      notes: data.notes || '',
+      sticker: data.sticker || null,
+      status: data.status || 'pending',
+      completedAt: null,
+      skippedAt: null,
+      skipReason: null,
+      partialHours: null,
+      isFixed: false,
+      isRecurring: false,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+      updatedAt: new Date().toISOString(),
+      ...data
+    } as TimeBlock;
 
     // Expand grid bounds if block exceeds current end time
     const [gh, gm] = (get().gridEndTime).split(':').map(Number);
     const [bh, bm] = (data.endTime || '00:00').split(':').map(Number);
     const [sh, sm] = (get().gridStartTime).split(':').map(Number);
-    
+
     let currentGridEndAbs = gh * 60 + gm;
     let blockEndAbs = bh * 60 + bm;
     const gridStartAbs = sh * 60 + sm;
@@ -204,7 +209,7 @@ export const useGridStore = create<GridStore>((set, get) => ({
     if (blockEndAbs <= gridStartAbs) blockEndAbs += 24 * 60;
 
     if (blockEndAbs > currentGridEndAbs) {
-       set({ gridEndTime: data.endTime });
+      set({ gridEndTime: data.endTime });
     }
 
     set((state) => ({
@@ -217,7 +222,7 @@ export const useGridStore = create<GridStore>((set, get) => ({
     set((state) => {
       const block = state.blocks[id];
       if (!block) return {};
-      
+
       const nextBlocks = {
         ...state.blocks,
         [id]: { ...block, ...updates, updatedAt: new Date().toISOString() }
@@ -228,7 +233,7 @@ export const useGridStore = create<GridStore>((set, get) => ({
         const [gh, gm] = (state.gridEndTime).split(':').map(Number);
         const [bh, bm] = (updates.endTime).split(':').map(Number);
         const [sh, sm] = (state.gridStartTime).split(':').map(Number);
-        
+
         let currentGridEndAbs = gh * 60 + gm;
         let blockEndAbs = bh * 60 + bm;
         const gridStartAbs = sh * 60 + sm;
@@ -237,7 +242,7 @@ export const useGridStore = create<GridStore>((set, get) => ({
         if (blockEndAbs <= gridStartAbs) blockEndAbs += 24 * 60;
 
         if (blockEndAbs > currentGridEndAbs) {
-           return { blocks: nextBlocks, gridEndTime: updates.endTime };
+          return { blocks: nextBlocks, gridEndTime: updates.endTime };
         }
       }
 
@@ -258,23 +263,26 @@ export const useGridStore = create<GridStore>((set, get) => ({
     const state = get();
     const sourceBlock = state.blocks[id];
     if (!sourceBlock || targetDayIds.length === 0) return;
-    
+
     state.pushState();
-    
+
     set((currState) => {
       const newBlocks = { ...currState.blocks };
-      
-      targetDayIds.forEach(targetDay => {
+
+      targetDayIds.forEach(dayId => {
         const newId = `block_${uuidv4()}`;
         newBlocks[newId] = {
-           ...sourceBlock,
-           id: newId,
-           day: targetDay as DayOfWeek,
-           createdAt: new Date().toISOString(),
-           updatedAt: new Date().toISOString(),
+          ...sourceBlock,
+          id: newId,
+          dayId: dayId,
+          status: 'pending',
+          completedAt: null,
+          skippedAt: null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         };
       });
-      
+
       return { blocks: newBlocks };
     });
   },
@@ -283,32 +291,32 @@ export const useGridStore = create<GridStore>((set, get) => ({
     const state = get();
     const block = state.blocks[id];
     if (!block) return;
-    
+
     state.pushState();
-    
+
     const delta = direction === 'down' ? state.currentSnapInterval : -state.currentSnapInterval;
-    
+
     const newStart = addMinutesWrapped(block.startTime, delta);
     const newEnd = addMinutesWrapped(block.endTime, delta);
-    
+
     set((currState) => {
       const nextBlocks = {
         ...currState.blocks,
-        [id]: { 
-           ...block, 
-           startTime: newStart, 
-           endTime: newEnd, 
-           updatedAt: new Date().toISOString() 
+        [id]: {
+          ...block,
+          startTime: newStart,
+          endTime: newEnd,
+          updatedAt: new Date().toISOString()
         }
       };
-      
+
       let nextEndTime = currState.gridEndTime;
-      
+
       // Auto-expand viewport vertically bounds if wrapping isn't enabled natively
       const [gh, gm] = (currState.gridEndTime).split(':').map(Number);
       const [bh, bm] = newEnd.split(':').map(Number);
       const [sh, sm] = (currState.gridStartTime).split(':').map(Number);
-      
+
       let currentGridEndAbs = gh * 60 + gm;
       let blockEndAbs = bh * 60 + bm;
       const gridStartAbs = sh * 60 + sm;
@@ -317,29 +325,29 @@ export const useGridStore = create<GridStore>((set, get) => ({
       if (blockEndAbs <= gridStartAbs) blockEndAbs += 24 * 60;
 
       if (blockEndAbs > currentGridEndAbs) {
-         nextEndTime = newEnd;
+        nextEndTime = newEnd;
       }
-      
+
       // Auto-Center logic: Update PanY to track the block natively!
       const blockYPos = timeToPixel(newStart, currState.gridStartTime, currState.pxPerHour);
-      
+
       // We assume standard viewport Height ~ 800px. Ideally we want blockYPos to be ~100px from Top.
       // E.g., panY = window config height. But Zustand doesn't have window strictly safely.
       // A standard centered offset is about blockYPos - 200.
       let newPanY = currState.panY;
-      
+
       // Only jump camera if it's currently out of ideal bound
-      const maxViewportWindow = 600; 
+      const maxViewportWindow = 600;
       const currentRelativePos = blockYPos * currState.zoom + currState.panY;
-      
+
       if (currentRelativePos < 50 || currentRelativePos > maxViewportWindow) {
-         newPanY = -(blockYPos * currState.zoom - 100); 
-         // clamp to zero if too high
-         if (newPanY > 0) newPanY = 0;
+        newPanY = -(blockYPos * currState.zoom - 100);
+        // clamp to zero if too high
+        if (newPanY > 0) newPanY = 0;
       }
 
-      return { 
-        blocks: nextBlocks, 
+      return {
+        blocks: nextBlocks,
         gridEndTime: nextEndTime,
         panY: newPanY
       };

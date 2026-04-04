@@ -42,8 +42,26 @@ export async function GET(request: Request) {
     // ─── 1. Derive day name from date ──────────────────────────────
     // Use noon UTC to avoid off-by-one from timezone shifts
     const dayName = new Date(date + 'T12:00:00Z')
-      .toLocaleDateString('en-US', { weekday: 'long' }); // e.g. "Thursday"
-    const colId = `col_${dayName.toLowerCase()}`; // e.g. "col_thursday"
+      .toLocaleDateString('en-US', { weekday: 'long' }); // e.g. "Saturday"
+    const dayNameLower = dayName.toLowerCase();           // e.g. "saturday"
+    const colId = `col_${dayNameLower}`;                  // e.g. "col_saturday"
+
+    // Helper: does this block belong to today's column?
+    // Handles all storage formats used by the editor:
+    //   block.dayId === 'col_saturday'
+    //   block.day   === 'Saturday'  (exact match)
+    //   block.day   === 'saturday'  (lowercase)
+    //   block.day   === 'col_saturday' (legacy)
+    function blockMatchesToday(b: any): boolean {
+      const dayId = (b.dayId || '').toLowerCase();
+      const day   = (b.day   || '').toLowerCase();
+      return (
+        dayId === colId ||
+        dayId === dayNameLower ||
+        day   === dayNameLower ||
+        day   === colId
+      );
+    }
 
     // ─── 2. Get the active timetable's grid_data ───────────────────
     const { data: activeTT } = await supabase
@@ -53,14 +71,12 @@ export async function GET(request: Request) {
       .eq('is_active', true)
       .maybeSingle() as any;
 
-    // Build a map: subject → { plannedHours, color }
-    const plannedMap: Record<string, { plannedHours: number; color: string }> = {};
+    // Build a map: subject → { plannedHours, color, startTime, endTime }
+    const plannedMap: Record<string, { plannedHours: number; color: string; startTime?: string; endTime?: string }> = {};
 
     if (activeTT?.grid_data) {
       const allBlocks = Object.values(activeTT.grid_data) as any[];
-      const todayBlocks = allBlocks.filter(
-        (b) => b.dayId === colId || b.day === dayName
-      );
+      const todayBlocks = allBlocks.filter(blockMatchesToday);
 
       for (const block of todayBlocks) {
         const subject: string = block.subject || 'Unknown';
@@ -77,9 +93,16 @@ export async function GET(request: Request) {
         }
 
         if (!plannedMap[subject]) {
-          plannedMap[subject] = { plannedHours: 0, color };
+          plannedMap[subject] = { plannedHours: 0, color, startTime: block.startTime, endTime: block.endTime };
         }
         plannedMap[subject].plannedHours += hrs;
+        // Keep the earliest startTime and latest endTime for the "Now Studying" feature
+        if (block.startTime && (!plannedMap[subject].startTime || block.startTime < plannedMap[subject].startTime!)) {
+          plannedMap[subject].startTime = block.startTime;
+        }
+        if (block.endTime && (!plannedMap[subject].endTime || block.endTime > plannedMap[subject].endTime!)) {
+          plannedMap[subject].endTime = block.endTime;
+        }
       }
     }
 
@@ -137,6 +160,8 @@ export async function GET(request: Request) {
         completionRate: Number(completionRate.toFixed(1)),
         status: actual.status,
         color: planned.color,
+        startTime: planned.startTime,
+        endTime: planned.endTime,
       };
     });
 

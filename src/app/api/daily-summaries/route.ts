@@ -41,7 +41,30 @@ export async function GET(request: Request) {
       throw error
     }
 
-    return NextResponse.json(data || null)
+    if (!data) {
+      return NextResponse.json(null)
+    }
+
+    // Map snake_case -> camelCase
+    const mapped = {
+      id: data.id,
+      userId: data.user_id,
+      timetableId: data.timetable_id,
+      date: data.date,
+      totalBlocks: data.total_blocks,
+      completedBlocks: data.completed_blocks,
+      partialBlocks: data.partial_blocks,
+      skippedBlocks: data.skipped_blocks,
+      pendingBlocks: data.pending_blocks,
+      scheduledHours: data.scheduled_hours,
+      completedHours: data.completed_hours,
+      partialHours: data.partial_hours,
+      completionRate: data.completion_rate,
+      focusAvg: data.focus_avg,
+      subjectBreakdown: data.subject_breakdown
+    }
+
+    return NextResponse.json(mapped)
   } catch (err: any) {
     console.error(err)
     return NextResponse.json({ error: err.message }, { status: 500 })

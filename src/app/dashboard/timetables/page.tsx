@@ -142,17 +142,14 @@ export default function MyTimetablesPage() {
   const archivedTimetables = timetables.filter(t => !t.is_active)
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="max-w-5xl mx-auto p-8 md:p-12 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="flex border-b border-white/5 pb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">My Timetables</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-3xl font-bold tracking-tight text-white">My Timetables</h1>
+          <p className="text-slate-500 mt-1">
             {timetables.length} timetable{timetables.length !== 1 ? 's' : ''} saved
           </p>
         </div>
-        <Button onClick={() => router.push('/create/timetable')}>
-          <Plus className="mr-2 h-4 w-4" /> Create New
-        </Button>
       </div>
 
       {loading ? (
@@ -227,8 +224,8 @@ export default function MyTimetablesPage() {
               Are you sure you want to permanently delete{' '}
               <span className="font-semibold text-foreground">&ldquo;{deleteDialog.title}&rdquo;</span>?
               <br />
-              <span className="text-red-400 text-xs mt-1 block">
-                This will also remove all related block logs and progress data. This action cannot be undone.
+              <span className="text-emerald-400 text-xs mt-1 block font-medium">
+                Don't worry — your recorded study history and all analytics will stay safe.
               </span>
             </DialogDescription>
           </DialogHeader>

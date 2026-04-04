@@ -93,8 +93,16 @@ export default function TodayTrackingPage() {
   const sortedBlocks = [...todayBlocks].sort((a, b) => parseMin(a.startTime) - parseMin(b.startTime));
 
   const completedCount = sortedBlocks.filter((b) => b.status === "completed").length;
+  const partialCount = sortedBlocks.filter((b) => b.status === "partial").length;
+  
+  // Left = pending and either current or in the future
+  const leftCount = sortedBlocks.filter((b) => b.status === "pending" && (!b.isPast || b.isCurrent)).length;
+  // Left Behind = pending but the time has already passed (or manually skipped)
+  const leftBehindCount = sortedBlocks.filter((b) => (b.status === "pending" && b.isPast && !b.isCurrent) || b.status === "skipped").length;
+  
   const totalCount = sortedBlocks.length;
-  const progressPct = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+  // Partials count as 50% toward progress
+  const progressPct = totalCount > 0 ? ((completedCount + partialCount * 0.5) / totalCount) * 100 : 0;
 
   if (loadingToday) {
     return (
@@ -146,11 +154,16 @@ export default function TodayTrackingPage() {
                 ✅ {dailySummary?.completedBlocks ?? completedCount} done
               </span>
               <span className="text-amber-400">
-                ⚡ {dailySummary?.partialBlocks ?? 0} partial
+                ⚡ {dailySummary?.partialBlocks ?? partialCount} partial
               </span>
-              <span className="text-slate-500">
-                ⏭ {dailySummary?.skippedBlocks ?? 0} skipped
+              <span className="text-indigo-400">
+                ⏳ {leftCount} left
               </span>
+              {leftBehindCount > 0 && (
+                <span className="text-red-400/80">
+                  ⚠️ {leftBehindCount} left behind
+                </span>
+              )}
             </div>
             <span className="text-slate-500 font-mono text-xs">{Math.round(progressPct)}%</span>
           </div>

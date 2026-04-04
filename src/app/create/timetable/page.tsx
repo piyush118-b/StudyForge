@@ -51,13 +51,12 @@ export default function TimetableStudioPage() {
     // If we have AI-generated data, import it into the interactive Studio Store
     if (ttData && !isImported.current) {
       isImported.current = true;
-      Object.entries(ttData.grid).forEach(([day, slots]) => {
-        // Capitalize first letter to match DayOfWeek ('Monday', 'Tuesday', etc.)
-        const dayName = (day.charAt(0).toUpperCase() + day.slice(1).toLowerCase()) as any;
+      Object.entries(ttData.grid).forEach(([dayName, slots]) => {
+        const day = dayName.charAt(0).toUpperCase() + dayName.slice(1).toLowerCase() as any; // Ensure 'Monday' format
         Object.entries(slots).forEach(([time, slot]: [string, any]) => {
           const [start, end] = time.split('-');
           addBlock({
-            day: dayName,
+            day,
             startTime: start,
             endTime: end,
             subject: slot.subject,

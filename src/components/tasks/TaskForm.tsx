@@ -11,6 +11,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Loader2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { getLocalDateStr } from '@/lib/time-utils';
 
 const COMMON_TAGS = ['📝 Assignment', '📖 Study', '🧪 Lab', '📊 Project', '🎯 Exam Prep', '💻 Coding'];
 const PRIORITY_OPTIONS: { value: TaskPriority; label: string; color: string }[] = [
@@ -35,7 +36,7 @@ export function TaskForm({ open, onClose, editTask, defaultStatus = 'pending' }:
   const [description, setDescription] = useState(editTask?.description || '');
   const [subject, setSubject] = useState(editTask?.subject || '');
   const [priority, setPriority] = useState<TaskPriority>(editTask?.priority || 'Medium');
-  const [dueDate, setDueDate] = useState(editTask?.dueDate || '');
+  const [dueDate, setDueDate] = useState(editTask?.dueDate || getLocalDateStr());
   const [dueTime, setDueTime] = useState(editTask?.dueTime || '');
   const [estimatedHours, setEstimatedHours] = useState<number>(editTask?.estimatedHours || 1);
   const [tags, setTags] = useState<string[]>(editTask?.tags || []);

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useGridStore } from "@/store/grid-store"
 import { X, Clock } from "lucide-react"
 
@@ -14,13 +14,15 @@ export function GridSettingsModal({ isOpen, onClose }: Props) {
   
   const [start, setStart] = useState(gridStartTime)
   const [end, setEnd] = useState(gridEndTime)
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen)
 
-  useEffect(() => {
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen)
     if (isOpen) {
       setStart(gridStartTime)
       setEnd(gridEndTime)
     }
-  }, [isOpen, gridStartTime, gridEndTime])
+  }
 
   if (!isOpen) return null
 

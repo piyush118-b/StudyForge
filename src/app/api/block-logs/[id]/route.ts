@@ -16,9 +16,9 @@ async function getSupabase() {
   );
 }
 
-export async function DELETE(request: Request, context: any) {
+export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = context.params
+    const { id } = await context.params
     const supabase = await getSupabase()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 

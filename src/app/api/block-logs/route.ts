@@ -107,7 +107,7 @@ export async function POST(request: Request) {
       ?? timetableId                       // fallback to request body value
       ?? null;
 
-    recalculateDailySummary(user.id, effectiveTimetableId, scheduledDate).catch(console.error)
+    recalculateDailySummary(user.id, effectiveTimetableId, scheduledDate, supabase).catch(console.error)
 
     return NextResponse.json(result.data)
   } catch (err: any) {

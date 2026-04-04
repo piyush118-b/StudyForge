@@ -104,7 +104,7 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
       ${task.status === 'completed' ? 'opacity-60 border-slate-800' : 'border-slate-800'}
       ${deleting ? 'opacity-0 scale-95 -translate-x-4 pointer-events-none' : ''}
     `}
-    style={{ transition: 'opacity 0.3s ease, transform 0.3s ease, border-color 0.15s ease' }}
+      style={{ transition: 'opacity 0.3s ease, transform 0.3s ease, border-color 0.15s ease' }}
     >
       {/* Header Row */}
       <div className="flex items-start gap-3">
@@ -220,3 +220,4 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
     </div>
   );
 }
+

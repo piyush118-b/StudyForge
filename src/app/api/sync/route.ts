@@ -1,8 +1,30 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+
+async function getSupabase() {
+  const cookieStore = await cookies();
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll: () => cookieStore.getAll(),
+        setAll: (toSet) => toSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options)),
+      },
+    }
+  );
+}
 
 export async function POST(req: Request) {
   try {
+    const supabase = await getSupabase();
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { operations } = await req.json()
     if (!operations || !Array.isArray(operations)) {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
@@ -14,7 +36,8 @@ export async function POST(req: Request) {
       if (op.type === 'track') {
         const payload = op.payload
         // Upsert standard block_logs structure
-        const { data, error } = await (supabase as any).from('block_logs').upsert({
+        const { data, error } = await supabase.from('block_logs').upsert({
+          user_id: user.id, // Explicitly include user_id for RLS
           block_id: payload.id,
           timetable_id: payload.timetableId,
           subject: payload.subject,

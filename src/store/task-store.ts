@@ -225,9 +225,17 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
 
   getTodayTasks: () => {
     const today = getLocalDateStr();
-    return get().tasks.filter(
-      (t) => t.dueDate === today && t.status !== 'cancelled' && t.status !== 'completed'
-    );
+    return get().tasks.filter((t) => {
+      if (t.status === 'cancelled' || t.status === 'completed') return false;
+      // Task explicitly due today
+      if (t.dueDate === today) return true;
+      // Task with no due date that was created today in LOCAL time (handles IST etc.)
+      if (!t.dueDate && t.createdAt) {
+        const localCreatedDate = new Date(t.createdAt).toLocaleDateString('en-CA'); // 'en-CA' gives YYYY-MM-DD
+        if (localCreatedDate === today) return true;
+      }
+      return false;
+    });
   },
 }));
 

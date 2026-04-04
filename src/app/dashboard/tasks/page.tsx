@@ -163,7 +163,7 @@ export default function TasksPage() {
           {!loading && viewMode === 'kanban' && (
             <TaskKanban
               onAddTask={openAddTask}
-              onEditTask={(t) => { setEditTask(t); setFormOpen(true); }}
+              onEditTask={(t: Task) => { setEditTask(t); setFormOpen(true); }}
             />
           )}
         </div>
@@ -172,7 +172,7 @@ export default function TasksPage() {
       {/* RIGHT: Today's Focus + Upcoming */}
       <aside className="hidden xl:flex flex-col w-72 shrink-0 border-l border-slate-800 overflow-y-auto">
         <SmartSuggestions />
-        
+
         {/* Today's Focus */}
         <div className="p-4 border-b border-slate-800">
           <h2 className="text-sm font-semibold text-slate-300 mb-3 flex items-center gap-2">

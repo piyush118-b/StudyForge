@@ -31,7 +31,7 @@ export async function GET(request: Request) {
     const today = new Date();
     // Use local end of day
     today.setHours(23, 59, 59, 999);
-    
+
     let startDate = new Date(today);
     if (range === '30d') {
       startDate.setDate(today.getDate() - 29);
@@ -57,7 +57,7 @@ export async function GET(request: Request) {
 
     // 3. Fallback to block_logs if no summaries found or error
     let chartData: any[] = [];
-    
+
     if (!summaryError && summaries && summaries.length > 0) {
       chartData = summaries.map((s: any) => ({
         date: s.date,
@@ -80,10 +80,10 @@ export async function GET(request: Request) {
       const grouped = (logs || []).reduce((acc: any, log: any) => {
         const d = log.scheduled_date;
         if (!acc[d]) acc[d] = { completed: 0, scheduled: 0, blocks: 0, compBlocks: 0 };
-        
+
         acc[d].scheduled += Number(log.scheduled_hours) || 0;
         acc[d].blocks += 1;
-        
+
         if (log.status === 'completed') {
           acc[d].completed += Number(log.scheduled_hours) || 0;
           acc[d].compBlocks += 1;
@@ -113,7 +113,7 @@ export async function GET(request: Request) {
     while (current <= endDate) {
       const dStr = current.toLocaleDateString('en-CA');
       const existing = chartData.find(d => d.date === dStr);
-      
+
       if (existing) {
         filledData.push(existing);
       } else {
@@ -154,10 +154,15 @@ export async function GET(request: Request) {
       if (activeTT?.grid_data && todayEntry) {
         const dayName = new Date(todayStr + 'T12:00:00Z')
           .toLocaleDateString('en-US', { weekday: 'long' });
-        const colId = `col_${dayName.toLowerCase()}`;
+        const dayNameLower = dayName.toLowerCase();
+        const colId = `col_${dayNameLower}`;
 
         const todayGridBlocks = Object.values(activeTT.grid_data as Record<string, any>)
-          .filter((b: any) => b.dayId === colId || b.day === dayName);
+          .filter((b: any) => {
+            const bId = (b.dayId || '').toLowerCase();
+            const bDay = (b.day || '').toLowerCase();
+            return bId === colId || bId === dayNameLower || bDay === dayNameLower || bDay === colId;
+          });
 
         let liveScheduledHrs = 0;
         for (const b of todayGridBlocks) {
@@ -206,21 +211,21 @@ export async function GET(request: Request) {
         todayEntry.completionRate = todayEntry.blocksTotal > 0
           ? Number(((liveCompletedBlocks / todayEntry.blocksTotal) * 100).toFixed(1))
           : 0;
-        // blocksTotal: use max of grid blocks and logged blocks
-        todayEntry.blocksTotal = Math.max(todayEntry.blocksTotal, todayLogs.length);
+// blocksTotal: use max of grid blocks and logged blocks
+todayEntry.blocksTotal = Math.max(todayEntry.blocksTotal, todayLogs.length);
       }
     } catch {
-      // Non-critical — keep values from daily_summaries on error
-    }
+  // Non-critical — keep values from daily_summaries on error
+}
 
 
-    return NextResponse.json({ 
-      data: filledData,
-      dateRange: { start: startStr, end: endStr } 
-    });
+return NextResponse.json({
+  data: filledData,
+  dateRange: { start: startStr, end: endStr }
+});
 
   } catch (err: any) {
-    console.error('Analytics API Error:', err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-  }
+  console.error('Analytics API Error:', err);
+  return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+}
 }

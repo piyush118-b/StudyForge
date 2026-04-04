@@ -27,6 +27,9 @@ export interface TrackingBlock extends UnifiedBlock {
 // GridBlock: the canonical block stored in the grid editor.
 // Extends UnifiedBlock with optional UI-rich editor fields.
 export interface GridBlock extends UnifiedBlock {
+  // dayId is the column ID used by the grid-store ('col_monday' etc.)
+  // It mirrors the `day` field but in column-ID format. Both may be present.
+  dayId?: string;
   // Editor-specific optional fields
   subjectType?: SubjectType | string;
   notes?: string | null;
@@ -36,12 +39,14 @@ export interface GridBlock extends UnifiedBlock {
   isFixed?: boolean;
   isPlaceholder?: boolean;
   isDragging?: boolean;
+  isRecurring?: boolean;
   // Local-only tracking
   status?: BlockStatus;
   completedAt?: string | null;
   skippedAt?: string | null;
   skipReason?: string | null;
   partialHours?: number | null;
+  completionPercentage?: number | null;
 }
 
 // TimeBlock: backward-compat alias for the grid editor components that haven't

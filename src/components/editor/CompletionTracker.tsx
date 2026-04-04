@@ -22,7 +22,7 @@ export function CompletionTrackerModal() {
   const { blocks, updateBlock, isSkipModalOpen, skipModalBlockId, closeSkipModal } = useGridStore();
   const { queueEvent, syncEvents } = useAnalyticsStore();
   const block = skipModalBlockId ? blocks[skipModalBlockId] : null;
-  
+
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
   const [customReason, setCustomReason] = useState("");
   const [partialPercentage, setPartialPercentage] = useState<number>(0);
@@ -34,19 +34,19 @@ export function CompletionTrackerModal() {
 
   const handleSkip = () => {
     const finalReason = selectedReason === 'Write my own reason...' ? customReason : selectedReason;
-    
+
     // Status resolution based on partial efforts
     let status: 'skipped' | 'partial' = 'skipped';
     let partialHours = 0;
-    
+
     const maxSubjectHours = timeDiffMinutes(block.startTime, block.endTime) / 60; // simple scalar conversion for analytics heuristic
     if (partialPercentage > 0 && partialPercentage < 100) {
       status = 'partial';
       partialHours = (partialPercentage / 100) * maxSubjectHours;
     } else if (partialPercentage === 100) {
-       // Should be handled natively by ✅ complete button, but resolve just in case
+      // Should be handled natively by ✅ complete button, but resolve just in case
       updateBlock(block.id, { status: 'completed', completedAt: new Date().toISOString() });
-      
+
       const timetableId = useGridStore.getState().id;
       if (timetableId && timetableId !== 'draft') {
         const today = getLocalDateStr();
@@ -72,19 +72,19 @@ export function CompletionTrackerModal() {
       }
 
       queueEvent({
-         blockId: block.id,
-         timetableId: 'draft',
-         userId: 'local-demo',
-         date: getLocalDateStr(),
-         dayOfWeek: block.day,
-         subject: block.subject,
-         subjectType: block.subjectType ?? '',
-         scheduledStart: block.startTime,
-         scheduledEnd: block.endTime, 
-         scheduledHours: maxSubjectHours,
-         status: 'completed',
-         actualHours: maxSubjectHours,
-         completedAt: new Date().toISOString()
+        blockId: block.id,
+        timetableId: 'draft',
+        userId: 'local-demo',
+        date: getLocalDateStr(),
+        dayOfWeek: block.day,
+        subject: block.subject,
+        subjectType: block.subjectType ?? '',
+        scheduledStart: block.startTime,
+        scheduledEnd: block.endTime,
+        scheduledHours: maxSubjectHours,
+        status: 'completed',
+        actualHours: maxSubjectHours,
+        completedAt: new Date().toISOString()
       });
       syncEvents();
       closeSkipModal();
@@ -92,10 +92,10 @@ export function CompletionTrackerModal() {
     }
 
     updateBlock(block.id, {
-      status, 
+      status,
       skippedAt: new Date().toISOString(),
       skipReason: finalReason,
-      partialHours: status === 'partial' ? partialHours : null 
+      partialHours: status === 'partial' ? partialHours : null
     });
 
     const timetableId = useGridStore.getState().id;
@@ -124,22 +124,22 @@ export function CompletionTrackerModal() {
     }
 
     queueEvent({
-       blockId: block.id,
-       timetableId: 'draft',
-       userId: 'local-demo',
-       date: getLocalDateStr(),
-       dayOfWeek: block.day,
-       subject: block.subject,
-       subjectType: block.subjectType ?? '',
-       scheduledStart: block.startTime,
-       scheduledEnd: block.endTime, 
-       scheduledHours: maxSubjectHours,
-       status,
-       actualHours: partialHours,
-       skipReason: finalReason,
-       skippedAt: new Date().toISOString()
+      blockId: block.id,
+      timetableId: 'draft',
+      userId: 'local-demo',
+      date: getLocalDateStr(),
+      dayOfWeek: block.day,
+      subject: block.subject,
+      subjectType: block.subjectType ?? '',
+      scheduledStart: block.startTime,
+      scheduledEnd: block.endTime,
+      scheduledHours: maxSubjectHours,
+      status,
+      actualHours: partialHours,
+      skipReason: finalReason,
+      skippedAt: new Date().toISOString()
     });
-    
+
     syncEvents();
     closeSkipModal();
   };
@@ -147,7 +147,7 @@ export function CompletionTrackerModal() {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4">
       <div className="w-full max-w-[320px] bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl relative overflow-hidden font-sans">
-        
+
         <div className="p-4 border-b border-white/5 flex justify-between items-center bg-slate-800/50">
           <h3 className="font-bold text-slate-100 text-[15px] tracking-tight">Why are you skipping this? 😅</h3>
           <button onClick={closeSkipModal} className="text-slate-400 hover:text-white transition-colors">
@@ -162,20 +162,20 @@ export function CompletionTrackerModal() {
                 key={chip.label}
                 onClick={() => setSelectedReason(chip.label)}
                 className={`px-3 py-1.5 rounded-full text-[11px] font-medium flex items-center gap-1.5 transition-colors border
-                  ${selectedReason === chip.label 
-                    ? 'bg-orange-500/20 border-orange-500 text-orange-200' 
+                  ${selectedReason === chip.label
+                    ? 'bg-orange-500/20 border-orange-500 text-orange-200'
                     : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'
                   }
                 `}
               >
-                <span className="text-[13px]">{chip.icon}</span> 
+                <span className="text-[13px]">{chip.icon}</span>
                 {chip.label}
               </button>
             ))}
           </div>
 
           {selectedReason === 'Write my own reason...' && (
-            <input 
+            <input
               autoFocus
               className="w-full bg-slate-950/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-orange-500/50"
               placeholder="Be honest with yourself..."
@@ -185,21 +185,21 @@ export function CompletionTrackerModal() {
           )}
 
           <div className="p-4 bg-slate-950/60 rounded-xl border border-white/5 space-y-3">
-             <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">How much did you actually study?</label>
-             <input 
-               type="range" 
-               min="0" max="100" step="25"
-               value={partialPercentage}
-               onChange={e => setPartialPercentage(parseInt(e.target.value))}
-               className="w-full h-1.5 bg-slate-700 rounded-full appearance-none flex cursor-pointer"
-             />
-             <div className="flex justify-between text-[10px] text-slate-500 font-mono">
-                <span>0%</span>
-                <span>25%</span>
-                <span>50%</span>
-                <span>75%</span>
-                <span>100%</span>
-             </div>
+            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">How much did you actually study?</label>
+            <input
+              type="range"
+              min="0" max="100" step="25"
+              value={partialPercentage}
+              onChange={e => setPartialPercentage(parseInt(e.target.value))}
+              className="w-full h-1.5 bg-slate-700 rounded-full appearance-none flex cursor-pointer"
+            />
+            <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+              <span>0%</span>
+              <span>25%</span>
+              <span>50%</span>
+              <span>75%</span>
+              <span>100%</span>
+            </div>
           </div>
         </div>
 
