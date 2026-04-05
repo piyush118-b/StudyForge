@@ -8,6 +8,11 @@ import { useAuth } from '@/lib/auth-context'
 import { DashboardHUD } from '@/components/dashboard/DashboardHUD'
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar'
 import { DashboardStatusBar } from '@/components/dashboard/DashboardStatusBar'
+import { useBlockReminder } from '@/hooks/useBlockReminder'
+import { ReminderSettingsPanel } from '@/components/reminders/ReminderSettingsPanel'
+import { useMemo } from 'react'
+import type { ReminderBlock } from '@/types/reminder.types'
+import { ReminderPermissionCard } from '@/components/reminders/ReminderPermissionCard'
 
 interface LiveWorkspaceShellProps {
   children: React.ReactNode
@@ -27,6 +32,8 @@ export function LiveWorkspaceShell({ children }: LiveWorkspaceShellProps) {
   const { loadTodayBlocks } = useTrackingStore()
   
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [reminderSettingsOpen, setReminderSettingsOpen] = useState(false)
+  const [showPermissionCard, setShowPermissionCard] = useState(false)
   
   // LocalStorage persistence for sidebar
   useEffect(() => {
@@ -51,6 +58,58 @@ export function LiveWorkspaceShell({ children }: LiveWorkspaceShellProps) {
   
   const activeTimetable = allTimetables.find(t => t.isActive) || null
   
+  const reminderBlocks = useMemo(() => {
+    if (!currentTimetable?.grid_data) return []
+    // Blocks are stored FLAT at root of grid_data (not under a .blocks key).
+    // The only non-block key is _metadata_. Filter it out.
+    const rawGridData = currentTimetable.grid_data as Record<string, Record<string, unknown>>
+    const blockEntries = Object.entries(rawGridData).filter(([key]) => key !== '_metadata_')
+    
+    return blockEntries.map(([, block]) => {
+      // Blocks from grid-store use `dayId` (e.g. "col_saturday"), but the reminder 
+      // scheduler needs the human-readable `day` string (e.g. "Saturday").
+      const rawDay = (block.day as string) || ''
+      const rawDayId = (block.dayId as string) || ''
+      const resolvedDay = rawDay || (rawDayId
+        ? rawDayId.replace('col_', '').charAt(0).toUpperCase() + rawDayId.replace('col_', '').slice(1).toLowerCase()
+        : '')
+      return {
+        id: block.id as string,
+        subject: block.subject as string,
+        subjectType: (block.subjectType as string) || 'Study',
+        day: resolvedDay,
+        startTime: block.startTime as string,
+        endTime: block.endTime as string,
+        color: (block.color as string) || '#6366f1',
+        priority: (block.priority as 'High' | 'Medium' | 'Low' | null) || null,
+        notes: block.notes as string | undefined
+      }
+    })
+  }, [currentTimetable])
+
+  const { permission } = useBlockReminder({
+    blocks: reminderBlocks,
+    studentName: user?.user_metadata?.full_name || 'Student',
+    enabled: true
+  })
+  
+  // Show permission card after a timetable exists
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (activeTimetable && permission === 'default' && !localStorage.getItem('sf_permission_dismissed')) {
+      // Small delay so it doesn't pop up instantly jarringly
+      const timer = setTimeout(() => setShowPermissionCard(true), 2000)
+      return () => clearTimeout(timer)
+    } else {
+      setShowPermissionCard(false)
+    }
+  }, [activeTimetable, permission])
+  
+  const handleDismissPermission = useCallback(() => {
+    localStorage.setItem('sf_permission_dismissed', 'true')
+    setShowPermissionCard(false)
+  }, [])
+  
   // Initial sync when active timetable is known but currentTimetable missing
   useEffect(() => {
     if (activeTimetable?.id && currentTimetable?.id !== activeTimetable.id) {
@@ -71,7 +130,7 @@ export function LiveWorkspaceShell({ children }: LiveWorkspaceShellProps) {
   }, [activeTimetable?.id, user?.id, switchActiveTimetable])
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-[#0A0C14] overflow-hidden z-[50]">
+    <div className="fixed inset-0 flex flex-col bg-forge-base overflow-hidden z-[50]">
       {/* HUD: Persistent Header */}
       <DashboardHUD
         timetable={activeTimetable}
@@ -79,6 +138,7 @@ export function LiveWorkspaceShell({ children }: LiveWorkspaceShellProps) {
         onSwitchTimetable={handleSwitchTimetable}
         saveStatus={saveStatus}
         userId={user?.id}
+        onOpenReminderSettings={() => setReminderSettingsOpen(true)}
       />
       
       {/* Main Layout Area */}
@@ -102,6 +162,23 @@ export function LiveWorkspaceShell({ children }: LiveWorkspaceShellProps) {
       {/* Bottom Status Bar */}
       <DashboardStatusBar
         activeTimetable={activeTimetable}
+      />
+
+      {/* Floating Permission Card for Reminders */}
+      {showPermissionCard && (
+        <div className="fixed bottom-12 right-6 z-[100] w-[340px]">
+          <ReminderPermissionCard 
+            onDismissed={handleDismissPermission}
+            onGranted={handleDismissPermission}
+          />
+        </div>
+      )}
+
+      <ReminderSettingsPanel 
+        open={reminderSettingsOpen}
+        onClose={() => setReminderSettingsOpen(false)}
+        blocks={reminderBlocks}
+        studentName={user?.user_metadata?.full_name || 'Student'}
       />
     </div>
   )

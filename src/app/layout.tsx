@@ -54,7 +54,23 @@ export default function RootLayout({
             {children}
             <PomodoroTimer />
             <PwaRegistration />
-            <Toaster position="bottom-right" theme="dark" richColors />
+            <Toaster
+              theme="dark"
+              position="bottom-right"
+              toastOptions={{
+                classNames: {
+                  toast:        'bg-[#1A1A1A] border border-[#2A2A2A] text-[#F0F0F0] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)]',
+                  title:        'text-sm font-semibold text-[#F0F0F0]',
+                  description:  'text-xs text-[#A0A0A0]',
+                  success:      'border-l-4 border-l-[#10B981]',
+                  error:        'border-l-4 border-l-[#EF4444]',
+                  warning:      'border-l-4 border-l-[#F59E0B]',
+                  info:         'border-l-4 border-l-[#3B82F6]',
+                  actionButton: 'bg-[#10B981] text-[#0A0A0A] text-xs font-bold rounded-lg',
+                  cancelButton: 'bg-[#222222] border border-[#2A2A2A] text-[#A0A0A0] text-xs rounded-lg',
+                },
+              }}
+            />
           </AuthProvider>
         </StudyForgeProvider>
       </body>

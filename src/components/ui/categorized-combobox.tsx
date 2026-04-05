@@ -56,22 +56,22 @@ export function CategorizedCombobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between bg-slate-900/50 border-white/5 text-white font-medium hover:bg-indigo-500/10 hover:border-indigo-500/30 transition-all rounded-2xl h-14 md:h-16 px-6 text-lg"
+          className="w-full justify-between bg-forge-elevated border-forge-border text-forge-text-primary font-medium hover:bg-forge-overlay hover:border-forge-muted transition-all h-11 px-4 text-sm shadow-sm"
         >
           <span className="truncate">{selectedDisplay ? selectedDisplay : placeholder}</span>
-          <ChevronsUpDown className="ml-2 h-5 w-5 shrink-0 opacity-40 group-hover:opacity-100" />
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50 group-hover:opacity-100" />
         </Button>
       } />
-      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 bg-[#0F172A] border-white/10 shadow-2xl rounded-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        <Command className="bg-[#0F172A] text-white">
-          <CommandInput placeholder={placeholder} className="text-white h-12" />
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 bg-forge-elevated border-forge-border shadow-forge-xl rounded-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <Command className="bg-transparent text-forge-text-primary">
+          <CommandInput placeholder={placeholder} className="text-forge-text-primary h-11" />
           <CommandList className="max-h-[350px] custom-scrollbar focus:ring-0">
-            <CommandEmpty className="py-8 text-center text-sm text-slate-500">
+            <CommandEmpty className="py-8 text-center text-sm text-forge-text-muted">
               {emptyText}
             </CommandEmpty>
-            <div className="p-2 space-y-1">
+            <div className="p-1.5 space-y-1">
               {categories.map((group) => (
-                <CommandGroup key={group.category} heading={group.category} className="text-slate-400">
+                <CommandGroup key={group.category} heading={group.category} className="text-forge-text-secondary">
                   {group.options.map((opt) => (
                     <CommandItem
                       key={opt}
@@ -80,11 +80,11 @@ export function CategorizedCombobox({
                         onChange(opt)
                         setOpen(false)
                       }}
-                      className="text-white hover:bg-indigo-500/10 cursor-pointer rounded-xl h-11 px-3 mt-1"
+                      className="text-forge-text-primary hover:bg-forge-overlay cursor-pointer rounded-lg h-10 px-3 mt-1"
                     >
                       <Check
                         className={cn(
-                          "mr-2 h-4 w-4 text-indigo-400",
+                          "mr-2 h-4 w-4 text-forge-accent",
                           value === opt ? "opacity-100" : "opacity-0"
                         )}
                       />
@@ -94,13 +94,13 @@ export function CategorizedCombobox({
                 </CommandGroup>
               ))}
               {onCustomAdd && customAddText && (
-                <CommandGroup className="mt-2 border-t border-white/5 pt-2">
+                <CommandGroup className="mt-2 border-t border-forge-border pt-2">
                   <CommandItem
                     onSelect={() => {
                       onCustomAdd()
                       setOpen(false)
                     }}
-                    className="text-indigo-400 font-bold cursor-pointer hover:bg-indigo-500/10 rounded-xl h-11 px-3"
+                    className="text-forge-accent font-semibold flex items-center justify-center cursor-pointer hover:bg-forge-overlay rounded-lg h-10 px-3"
                   >
                     {customAddText}
                   </CommandItem>

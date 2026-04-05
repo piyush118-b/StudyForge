@@ -1,10 +1,7 @@
 "use client";
 
 import { supabase } from '@/lib/supabase';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -48,42 +45,52 @@ export default function SignupPage() {
         toast.info("Check your email to confirm your account!");
         router.push('/auth/login');
       }
-    } catch (err: any) {
-      toast.error(err.message || "Failed to sign up.");
+    } catch (err: unknown) {
+      toast.error((err as Error).message || "Failed to sign up.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Background Ornaments */}
-      <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/10 blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/10 blur-[120px] rounded-full pointer-events-none" />
+    <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center px-4 py-16 relative overflow-hidden">
 
-      <Link href="/" className="flex items-center gap-2 mb-8 group z-10 transition-transform hover:scale-105">
-        <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:shadow-indigo-500/40 transition-shadow">
-          <BookOpen className="w-5 h-5 text-white" />
-        </div>
-        <span className="text-2xl font-bold text-white tracking-tight">StudyForge <span className="text-indigo-400">AI</span></span>
-      </Link>
+      {/* Background glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#10B981]/5 blur-[120px] rounded-full pointer-events-none" />
 
-      <Card className="w-full max-w-md bg-slate-900/50 backdrop-blur-xl border-slate-800 shadow-2xl z-10">
-        <CardHeader className="space-y-1 pb-6">
-          <CardTitle className="text-2xl text-center text-white font-bold tracking-tight">Create an Account</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      {/* Dot grid */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle,#1F1F1F_1px,transparent_1px)] bg-[size:28px_28px] opacity-40 pointer-events-none" />
+
+      {/* Auth Card */}
+      <div className="relative z-10 w-full max-w-md">
+        <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.6),0_8px_16px_rgba(0,0,0,0.5)] p-8">
+
+          {/* Logo + Heading */}
+          <div className="text-center mb-8">
+            <Link href="/" className="inline-flex items-center gap-2.5 mb-5 group">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.3)] group-hover:shadow-[0_0_30px_rgba(16,185,129,0.4)] transition-all">
+                <BookOpen className="w-5 h-5 text-white" />
+              </div>
+            </Link>
+            <h1 className="text-2xl font-bold text-[#F0F0F0] mb-1 tracking-tight">Create your account</h1>
+            <p className="text-sm text-[#A0A0A0]">Start your AI-powered academic journey</p>
+          </div>
+
+          {/* Form */}
           <form onSubmit={handleSignUp} className="space-y-4">
-            
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-slate-300">Full Name</Label>
+
+            {/* Full Name */}
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-widest text-[#606060] mb-1.5 block">
+                Full Name
+              </label>
               <div className="relative">
-                <User className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
-                <Input 
-                  id="name" 
-                  type="text" 
+                <User className="absolute left-3 top-[0.6rem] h-4 w-4 text-[#606060]" />
+                <Input
+                  id="name"
+                  type="text"
                   placeholder="Rahul Kumar"
-                  className="pl-9 bg-slate-900/50 border-slate-800 text-white placeholder:text-slate-600 focus:border-indigo-500 focus:ring-indigo-500 transition-colors h-11"
+                  className="pl-9 h-11 bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] placeholder:text-[#606060] rounded-lg hover:border-[#333333] focus-visible:ring-[#10B981]/70 focus-visible:border-[#10B981]/50 transition-all"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
@@ -91,15 +98,18 @@ export default function SignupPage() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-slate-300">Email Address</Label>
+            {/* Email */}
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-widest text-[#606060] mb-1.5 block">
+                Email
+              </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
-                <Input 
-                  id="email" 
-                  type="email" 
+                <Mail className="absolute left-3 top-[0.6rem] h-4 w-4 text-[#606060]" />
+                <Input
+                  id="email"
+                  type="email"
                   placeholder="name@example.com"
-                  className="pl-9 bg-slate-900/50 border-slate-800 text-white placeholder:text-slate-600 focus:border-indigo-500 focus:ring-indigo-500 transition-colors h-11"
+                  className="pl-9 h-11 bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] placeholder:text-[#606060] rounded-lg hover:border-[#333333] focus-visible:ring-[#10B981]/70 focus-visible:border-[#10B981]/50 transition-all"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -107,15 +117,18 @@ export default function SignupPage() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-slate-300">Password</Label>
+            {/* Password */}
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-widest text-[#606060] mb-1.5 block">
+                Password
+              </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
-                <Input 
-                  id="password" 
+                <Lock className="absolute left-3 top-[0.6rem] h-4 w-4 text-[#606060]" />
+                <Input
+                  id="password"
                   type="password"
                   placeholder="••••••••"
-                  className="pl-9 bg-slate-900/50 border-slate-800 text-white placeholder:text-slate-600 focus:border-indigo-500 focus:ring-indigo-500 transition-colors h-11"
+                  className="pl-9 h-11 bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] placeholder:text-[#606060] rounded-lg hover:border-[#333333] focus-visible:ring-[#10B981]/70 focus-visible:border-[#10B981]/50 transition-all"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -124,15 +137,18 @@ export default function SignupPage() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-slate-300">Confirm Password</Label>
+            {/* Confirm Password */}
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-widest text-[#606060] mb-1.5 block">
+                Confirm Password
+              </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
-                <Input 
-                  id="confirmPassword" 
+                <Lock className="absolute left-3 top-[0.6rem] h-4 w-4 text-[#606060]" />
+                <Input
+                  id="confirmPassword"
                   type="password"
                   placeholder="••••••••"
-                  className="pl-9 bg-slate-900/50 border-slate-800 text-white placeholder:text-slate-600 focus:border-indigo-500 focus:ring-indigo-500 transition-colors h-11"
+                  className="pl-9 h-11 bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] placeholder:text-[#606060] rounded-lg hover:border-[#333333] focus-visible:ring-[#10B981]/70 focus-visible:border-[#10B981]/50 transition-all"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
@@ -140,25 +156,33 @@ export default function SignupPage() {
               </div>
             </div>
 
-            <Button 
-              type="submit" 
-              className="w-full h-11 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/25 transition-all text-base font-medium mt-2"
+            {/* Submit */}
+            <button
+              type="submit"
               disabled={isLoading}
+              className="w-full mt-6 h-11 bg-[#10B981] text-[#0A0A0A] font-bold rounded-lg hover:bg-[#34D399] shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_20px_rgba(16,185,129,0.15)] hover:shadow-[0_0_0_1px_rgba(16,185,129,0.5),0_0_40px_rgba(16,185,129,0.25)] transition-all duration-150 active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign Up"}
-            </Button>
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Creating account...
+                </>
+              ) : "Create Account"}
+            </button>
           </form>
-          
-        </CardContent>
-        <CardFooter className="flex justify-center border-t border-slate-800/50 pt-4">
-          <div className="text-sm text-center text-slate-400">
-            Already have an account?{" "}
-            <Link href="/auth/login" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
-              Log in
-            </Link>
+
+          {/* Switch link */}
+          <div className="border-t border-[#2A2A2A] mt-6 pt-6">
+            <p className="text-center text-sm text-[#606060]">
+              Already have an account?{" "}
+              <Link href="/auth/login" className="text-[#10B981] hover:text-[#34D399] font-medium transition-colors duration-150">
+                Sign in →
+              </Link>
+            </p>
           </div>
-        </CardFooter>
-      </Card>
+
+        </div>
+      </div>
     </div>
   );
 }

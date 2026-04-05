@@ -163,7 +163,7 @@ export default function AnalyticsPage() {
     setStats(computeWeeklyStats(uniqueEvents as any[], startStr));
   }, [historicalEvents]);
 
-  if (!stats || subscriptionLoading) return <div className="p-8 flex items-center justify-center min-h-[400px]"><div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" /></div>;
+  if (!stats || subscriptionLoading) return <div className="p-8 flex items-center justify-center min-h-[400px]"><div className="w-8 h-8 border-2 border-[#10B981] border-t-transparent rounded-full animate-spin" /></div>;
 
 
 
@@ -173,10 +173,10 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white flex items-center gap-3">
-            Deep Analytics <TrendingUp className="w-8 h-8 text-indigo-400" />
+          <h1 className="text-xl font-bold tracking-tight text-[#F0F0F0] flex items-center gap-2">
+            Analytics <TrendingUp className="w-5 h-5 text-[#10B981]" />
           </h1>
-          <p className="text-slate-400 mt-1">Visualize your study patterns and efficiency.</p>
+          <p className="text-sm text-[#A0A0A0] mt-0.5">Visualize your study patterns and efficiency.</p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -185,31 +185,31 @@ export default function AnalyticsPage() {
             size="sm" 
             onClick={handleManualSync}
             disabled={isSyncing}
-            className="bg-slate-900 border-slate-800 text-slate-300 hover:text-white gap-2"
+            className="bg-[#1A1A1A] border-[#2A2A2A] text-[#A0A0A0] hover:text-[#F0F0F0] hover:bg-[#222222] gap-2"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
             {isSyncing ? 'Syncing...' : 'Sync Data'}
           </Button>
 
-          <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-lg p-1">
+          <div className="flex items-center gap-1 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-1">
             <Button 
               variant="ghost" 
               size="sm" 
-              className={`text-xs ${timeRange === '7d' ? 'bg-slate-800 text-white' : 'text-slate-400'}`}
+              className={`text-xs rounded-md ${timeRange === '7d' ? 'bg-[#222222] text-[#F0F0F0]' : 'text-[#606060] hover:text-[#A0A0A0]'}`}
               onClick={() => setTimeRange('7d')}
             >
               7 Days
             </Button>
             
             <ProGate feature="advanced_analytics" fallback={
-              <Button variant="ghost" size="sm" className="text-xs text-slate-500 opacity-50 cursor-not-allowed">
+              <Button variant="ghost" size="sm" className="text-xs text-[#3A3A3A] opacity-50 cursor-not-allowed">
                 <Lock className="w-3 h-3 mr-1 inline" /> 30 Days
               </Button>
             }>
                <Button 
                   variant="ghost" 
                   size="sm" 
-                  className={`text-xs ${timeRange === '30d' ? 'bg-slate-800 text-white' : 'text-slate-400'}`}
+                  className={`text-xs rounded-md ${timeRange === '30d' ? 'bg-[#222222] text-[#F0F0F0]' : 'text-[#606060] hover:text-[#A0A0A0]'}`}
                   onClick={() => setTimeRange('30d')}
                >
                   30 Days
@@ -217,14 +217,14 @@ export default function AnalyticsPage() {
             </ProGate>
 
             <ProGate feature="advanced_analytics" fallback={
-               <Button variant="ghost" size="sm" className="text-xs text-slate-500 opacity-50 cursor-not-allowed">
+               <Button variant="ghost" size="sm" className="text-xs text-[#3A3A3A] opacity-50 cursor-not-allowed">
                  <Lock className="w-3 h-3 mr-1 inline" /> All Time
                </Button>
             }>
                <Button 
                   variant="ghost" 
                   size="sm" 
-                  className={`text-xs ${timeRange === 'all' ? 'bg-slate-800 text-white' : 'text-slate-400'}`}
+                  className={`text-xs rounded-md ${timeRange === 'all' ? 'bg-[#222222] text-[#F0F0F0]' : 'text-[#606060] hover:text-[#A0A0A0]'}`}
                   onClick={() => setTimeRange('all')}
                >
                   All Time
@@ -235,11 +235,11 @@ export default function AnalyticsPage() {
       </div>
 
       {!isPro && timeRange === '7d' && (
-        <div className="bg-indigo-900/20 border border-indigo-500/30 rounded-xl p-4 flex items-start sm:items-center gap-4">
-           <div className="bg-indigo-500/20 p-2 rounded-lg"><Sparkles className="w-5 h-5 text-indigo-400" /></div>
+        <div className="bg-[rgba(16,185,129,0.06)] border border-[#10B981]/20 rounded-xl p-4 flex items-start sm:items-center gap-4">
+           <div className="bg-[rgba(16,185,129,0.12)] p-2 rounded-lg"><Sparkles className="w-5 h-5 text-[#10B981]" /></div>
            <div className="flex-1">
-             <h4 className="text-sm font-semibold text-indigo-200">Unlock Multi-Month Trends</h4>
-             <p className="text-xs text-indigo-300/70 mt-1">Free users can view 7-day stats. Upgrade to Pro to track your consistency across your entire semester with 30-day and all-time analytics.</p>
+             <h4 className="text-sm font-semibold text-[#F0F0F0]">Unlock Multi-Month Trends</h4>
+             <p className="text-xs text-[#A0A0A0] mt-1">Free users can view 7-day stats. Upgrade to Pro to track your consistency across your entire semester with 30-day and all-time analytics.</p>
            </div>
         </div>
       )}
@@ -248,52 +248,52 @@ export default function AnalyticsPage() {
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {/* Streak */}
-          <div className="bg-[#0A0C14] border border-white/5 rounded-xl p-4 flex items-center gap-3 hover:border-orange-500/20 transition-colors">
-            <div className="w-9 h-9 rounded-lg bg-orange-500/10 flex items-center justify-center shrink-0">
+          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-4 flex items-center gap-3 hover:border-[#F97316]/20 transition-colors">
+            <div className="w-9 h-9 rounded-lg bg-[rgba(249,115,22,0.1)] flex items-center justify-center shrink-0">
               <Flame className="w-4 h-4 text-orange-400" />
             </div>
             <div>
-              <p className="text-[11px] text-slate-500 font-medium uppercase tracking-wider">Streak</p>
-              <p className="text-xl font-black text-white leading-none mt-0.5">
-                {stats.streakDays}<span className="text-[13px] text-slate-500 font-medium ml-0.5">days</span>
+              <p className="text-[10px] text-[#606060] font-semibold uppercase tracking-wider">Streak</p>
+              <p className="text-xl font-black text-[#F0F0F0] leading-none mt-0.5">
+                {stats.streakDays}<span className="text-[13px] text-[#606060] font-medium ml-0.5">days</span>
               </p>
             </div>
           </div>
 
           {/* Weekly Completion Rate */}
-          <div className="bg-[#0A0C14] border border-white/5 rounded-xl p-4 flex items-center gap-3 hover:border-indigo-500/20 transition-colors">
-            <div className="w-9 h-9 rounded-lg bg-indigo-500/10 flex items-center justify-center shrink-0">
-              <Target className="w-4 h-4 text-indigo-400" />
+          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-4 flex items-center gap-3 hover:border-[#3B82F6]/20 transition-colors">
+            <div className="w-9 h-9 rounded-lg bg-[rgba(59,130,246,0.1)] flex items-center justify-center shrink-0">
+              <Target className="w-4 h-4 text-[#3B82F6]" />
             </div>
             <div>
-              <p className="text-[11px] text-slate-500 font-medium uppercase tracking-wider">This Week</p>
-              <p className="text-xl font-black text-white leading-none mt-0.5">
-                {Math.round(stats.overallCompletionRate)}<span className="text-[13px] text-slate-500 font-medium ml-0.5">%</span>
+              <p className="text-[10px] text-[#606060] font-semibold uppercase tracking-wider">This Week</p>
+              <p className="text-xl font-black text-[#F0F0F0] leading-none mt-0.5">
+                {Math.round(stats.overallCompletionRate)}<span className="text-[13px] text-[#606060] font-medium ml-0.5">%</span>
               </p>
             </div>
           </div>
 
           {/* Hours Completed */}
-          <div className="bg-[#0A0C14] border border-white/5 rounded-xl p-4 flex items-center gap-3 hover:border-emerald-500/20 transition-colors">
-            <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
-              <TrendingUp className="w-4 h-4 text-emerald-400" />
+          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-4 flex items-center gap-3 hover:border-[#10B981]/20 transition-colors">
+            <div className="w-9 h-9 rounded-lg bg-[rgba(16,185,129,0.1)] flex items-center justify-center shrink-0">
+              <TrendingUp className="w-4 h-4 text-[#10B981]" />
             </div>
             <div>
-              <p className="text-[11px] text-slate-500 font-medium uppercase tracking-wider">Hours Done</p>
-              <p className="text-xl font-black text-white leading-none mt-0.5">
-                {stats.totalCompleted.toFixed(1)}<span className="text-[13px] text-slate-500 font-medium ml-0.5">h</span>
+              <p className="text-[10px] text-[#606060] font-semibold uppercase tracking-wider">Hours Done</p>
+              <p className="text-xl font-black text-[#F0F0F0] leading-none mt-0.5">
+                {stats.totalCompleted.toFixed(1)}<span className="text-[13px] text-[#606060] font-medium ml-0.5">h</span>
               </p>
             </div>
           </div>
 
           {/* Most Skipped */}
-          <div className="bg-[#0A0C14] border border-white/5 rounded-xl p-4 flex items-center gap-3 hover:border-rose-500/20 transition-colors">
-            <div className="w-9 h-9 rounded-lg bg-rose-500/10 flex items-center justify-center shrink-0">
-              <TrendingDown className="w-4 h-4 text-rose-400" />
+          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-4 flex items-center gap-3 hover:border-[#EF4444]/20 transition-colors">
+            <div className="w-9 h-9 rounded-lg bg-[rgba(239,68,68,0.1)] flex items-center justify-center shrink-0">
+              <TrendingDown className="w-4 h-4 text-[#EF4444]" />
             </div>
             <div className="min-w-0">
-              <p className="text-[11px] text-slate-500 font-medium uppercase tracking-wider">Needs Focus</p>
-              <p className="text-[15px] font-black text-white leading-none mt-0.5 truncate">
+              <p className="text-[10px] text-[#606060] font-semibold uppercase tracking-wider">Needs Focus</p>
+              <p className="text-[15px] font-black text-[#F0F0F0] leading-none mt-0.5 truncate">
                 {stats.mostSkippedSubject === 'None' ? '—' : stats.mostSkippedSubject}
               </p>
             </div>
@@ -312,20 +312,22 @@ export default function AnalyticsPage() {
       <SubjectChart refreshKey={chartRefreshKey} />
 
         {/* AI Insight Card */}
-        <Card className="bg-[#0A0C14] border-white/5 shadow-2xl overflow-hidden">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
-              <Brain className="w-4 h-4 text-violet-400" />
-              AI Study Insight
-              <span className="ml-auto text-[10px] font-normal text-violet-400 bg-violet-500/10 px-2 py-0.5 rounded-full">Live</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
+        <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl overflow-hidden">
+          <div className="p-5 border-b border-[#2A2A2A]">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-md bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center">
+                <Brain className="w-3.5 h-3.5 text-white" />
+              </div>
+              <h3 className="text-sm font-semibold text-[#F0F0F0]">AI Study Insight</h3>
+              <span className="ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded bg-[rgba(16,185,129,0.12)] text-[#10B981] border border-[#10B981]/20 uppercase tracking-wider">Gemini</span>
+            </div>
+          </div>
+          <div className="p-5 space-y-3">
             {stats ? (
               <>
                 {/* Primary insight */}
-                <div className="bg-violet-500/5 border border-violet-500/15 rounded-lg p-3">
-                  <p className="text-sm text-slate-200 leading-relaxed">
+                <div className="bg-[rgba(16,185,129,0.05)] border border-[#10B981]/15 rounded-lg p-3">
+                  <p className="text-sm text-[#A0A0A0] leading-relaxed">
                     {stats.overallCompletionRate >= 80
                       ? `🔥 Outstanding week! You completed ${Math.round(stats.overallCompletionRate)}% of scheduled study. Keep this momentum going!`
                       : stats.overallCompletionRate >= 50
@@ -341,31 +343,31 @@ export default function AnalyticsPage() {
                 <div className="space-y-2">
                   {stats.mostCompletedSubject !== 'None' && (
                     <div className="flex items-start gap-2 text-xs">
-                      <span className="w-4 h-4 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                        <span className="text-emerald-400 text-[9px]">✓</span>
+                      <span className="w-4 h-4 rounded-full bg-[rgba(16,185,129,0.15)] flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="text-[#10B981] text-[9px]">✓</span>
                       </span>
-                      <span className="text-slate-400">
-                        <span className="text-emerald-400 font-semibold">{stats.mostCompletedSubject}</span> is your strongest subject this week.
+                      <span className="text-[#606060]">
+                        <span className="text-[#10B981] font-semibold">{stats.mostCompletedSubject}</span> is your strongest subject this week.
                       </span>
                     </div>
                   )}
                   {stats.mostSkippedSubject !== 'None' && (
                     <div className="flex items-start gap-2 text-xs">
-                      <span className="w-4 h-4 rounded-full bg-rose-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                        <span className="text-rose-400 text-[9px]">!</span>
+                      <span className="w-4 h-4 rounded-full bg-[rgba(239,68,68,0.15)] flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="text-[#EF4444] text-[9px]">!</span>
                       </span>
-                      <span className="text-slate-400">
-                        <span className="text-rose-400 font-semibold">{stats.mostSkippedSubject}</span> has the most skips — try splitting it into shorter 30-min sessions.
+                      <span className="text-[#606060]">
+                        <span className="text-[#EF4444] font-semibold">{stats.mostSkippedSubject}</span> has the most skips — try splitting it into shorter 30-min sessions.
                       </span>
                     </div>
                   )}
                   {stats.bestDay && stats.bestDay !== 'None' && (
                     <div className="flex items-start gap-2 text-xs">
-                      <span className="w-4 h-4 rounded-full bg-indigo-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                        <span className="text-indigo-400 text-[9px]">★</span>
+                      <span className="w-4 h-4 rounded-full bg-[rgba(59,130,246,0.15)] flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="text-[#3B82F6] text-[9px]">★</span>
                       </span>
-                      <span className="text-slate-400">
-                        Your best study day was <span className="text-indigo-300 font-semibold">{new Date(stats.bestDay + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'long' })}</span>. Try to replicate that schedule.
+                      <span className="text-[#606060]">
+                        Your best study day was <span className="text-[#3B82F6] font-semibold">{new Date(stats.bestDay + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'long' })}</span>. Try to replicate that schedule.
                       </span>
                     </div>
                   )}
@@ -373,12 +375,12 @@ export default function AnalyticsPage() {
               </>
             ) : (
               <div className="flex flex-col items-center justify-center h-[140px] gap-2 text-center">
-                <Sparkles className="w-8 h-8 text-slate-600" />
-                <p className="text-slate-500 text-sm">Start tracking blocks to unlock AI insights.</p>
+                <Sparkles className="w-8 h-8 text-[#606060]" />
+                <p className="text-[#606060] text-sm">Start tracking blocks to unlock AI insights.</p>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
       </div>
     </div>

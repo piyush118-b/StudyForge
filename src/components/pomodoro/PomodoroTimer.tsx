@@ -4,7 +4,7 @@ import { usePomodoro, playAlertSound, triggerFocusConfetti } from '@/hooks/usePo
 import { useAuth } from '@/lib/auth-context';
 import { useEffect, useRef, useState } from 'react';
 import Draggable from 'react-draggable';
-import { Settings, Play, Pause, SkipForward, RotateCcw, Maximize2, MoreVertical, Link2, X } from 'lucide-react';
+import { Settings, Play, Pause, SkipForward, RotateCcw, Maximize2, Link2, X } from 'lucide-react';
 import { PomodoroSettings } from './PomodoroSettings';
 import { FocusMode } from './FocusMode';
 import { useTaskStore } from '@/store/task-store';
@@ -15,8 +15,7 @@ export function PomodoroTimer() {
   const { tasks } = useTaskStore();
   const [showSettings, setShowSettings] = useState(false);
   const [showTaskLink, setShowTaskLink] = useState(false);
-  
-  // Need a wrapper reference for Draggable bounds to work smoothly in React 18 strict mode
+
   const nodeRef = useRef(null);
 
   // Re-trigger sound on 0 inside component context for safety
@@ -37,14 +36,15 @@ export function PomodoroTimer() {
   };
 
   const pct = store.totalSeconds > 0 ? ((store.totalSeconds - store.secondsRemaining) / store.totalSeconds) * 100 : 0;
-  
-  const phaseStyles = {
-    focus: { text: "text-indigo-400", bg: "bg-indigo-500/10", border: "border-indigo-500/30", stroke: "#6366f1", label: "🍅 FOCUS" },
-    short_break: { text: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/30", stroke: "#10b981", label: "☕ SHORT BREAK" },
-    long_break: { text: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/30", stroke: "#3b82f6", label: "🛋 LONG BREAK" },
-    idle: { text: "text-slate-400", bg: "bg-slate-800", border: "border-slate-700", stroke: "#475569", label: "🍅 POMODORO" }
+  const circumference = 2 * Math.PI * 54;
+
+  const phaseColors = {
+    focus:       { stroke: '#10B981', border: 'border-[#10B981]/30', label: '🍅 FOCUS',       text: 'text-[#10B981]' },
+    short_break: { stroke: '#3B82F6', border: 'border-[#3B82F6]/30', label: '☕ SHORT BREAK', text: 'text-[#3B82F6]' },
+    long_break:  { stroke: '#6366F1', border: 'border-[#6366F1]/30', label: '🛋 LONG BREAK',  text: 'text-[#6366F1]' },
+    idle:        { stroke: '#2A2A2A', border: 'border-[#2A2A2A]',    label: '🍅 POMODORO',   text: 'text-[#606060]' },
   };
-  const ps = phaseStyles[store.phase];
+  const pc = phaseColors[store.phase];
 
   const currentTask = store.currentTaskId ? tasks.find(t => t.id === store.currentTaskId) : null;
 
@@ -52,97 +52,115 @@ export function PomodoroTimer() {
     <>
       <Draggable handle=".drag-handle" nodeRef={nodeRef} bounds="parent"
         defaultPosition={{ x: window.innerWidth - 320, y: window.innerHeight - 440 }}>
-        
-        <div ref={nodeRef} className={`fixed z-[100] w-72 bg-slate-950/95 backdrop-blur-xl border ${ps.border} rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-colors duration-500 shadow-indigo-500/5`}>
-          
-          {/* Header (Draggable Area) */}
-          <div className={`drag-handle flex items-center justify-between px-4 py-3 cursor-move bg-slate-900/40 border-b border-slate-800/60`}>
-            <span className={`text-xs font-bold tracking-widest flex items-center gap-1.5 ${ps.text}`}>
-              {ps.label}
+
+        <div ref={nodeRef} className={`fixed z-[100] w-72 bg-[#1A1A1A]/95 backdrop-blur-xl border ${pc.border} rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden transition-colors duration-500`}>
+
+          {/* Header — drag handle */}
+          <div className={`drag-handle flex items-center justify-between px-4 py-3 cursor-move bg-[#0A0A0A]/40 border-b ${pc.border}`}>
+            <span className={`text-xs font-bold tracking-widest flex items-center gap-1.5 ${pc.text}`}>
+              {pc.label}
             </span>
             <div className="flex items-center gap-1">
-              <button onClick={() => setShowSettings(true)} className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
+              <button onClick={() => setShowSettings(true)} className="p-1.5 rounded-lg text-[#606060] hover:text-[#F0F0F0] hover:bg-[#222222] transition-all duration-150">
                 <Settings className="w-3.5 h-3.5" />
               </button>
-              <button onClick={() => store.toggleVisibility()} className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
+              <button onClick={() => store.toggleVisibility()} className="p-1.5 rounded-lg text-[#606060] hover:text-[#F0F0F0] hover:bg-[#222222] transition-all duration-150">
                 <X className="w-4 h-4" />
               </button>
             </div>
           </div>
 
-          {/* Timer Display */}
+          {/* Timer display — SVG ring */}
           <div className="flex flex-col items-center py-8 relative">
-            <svg viewBox="0 0 120 120" className="w-40 h-40 transform -rotate-90 filter drop-shadow-md">
-              <circle cx="60" cy="60" r="54" className="stroke-slate-800 fill-none" strokeWidth="6" />
-              <circle cx="60" cy="60" r="54" className="fill-none transition-all duration-1000 ease-linear"
-                stroke={ps.stroke} strokeWidth="6" strokeLinecap="round"
-                strokeDasharray={339.29} strokeDashoffset={339.29 - (pct / 100) * 339.29} 
-              />
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-2">
-              <span className="text-4xl font-extrabold font-mono text-white tracking-tight">{formatTime(store.secondsRemaining)}</span>
-              
-              {/* Session Dots */}
-              {store.phase !== 'long_break' && (
-                <div className="flex items-center gap-1.5 mt-3">
-                  {Array.from({ length: store.config.sessionsBeforeLongBreak }).map((_, i) => (
-                    <div key={i} className={`w-2 h-2 rounded-full transition-colors ${i < store.sessionCount ? ps.text.replace('text-', 'bg-') : 'bg-slate-700'}`} />
-                  ))}
-                </div>
-              )}
+            <div className="relative w-40 h-40">
+              <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
+                {/* Track */}
+                <circle cx="60" cy="60" r="54" fill="none" stroke="#1E1E1E" strokeWidth="6" />
+                {/* Progress */}
+                <circle cx="60" cy="60" r="54" fill="none"
+                  stroke={pc.stroke} strokeWidth="6" strokeLinecap="round"
+                  strokeDasharray={circumference}
+                  strokeDashoffset={circumference - (pct / 100) * circumference}
+                  className="transition-all duration-1000 ease-linear"
+                />
+              </svg>
+
+              {/* Center */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-4xl font-black font-mono text-[#F0F0F0] tracking-tight tabular-nums leading-none">
+                  {formatTime(store.secondsRemaining)}
+                </span>
+
+                {/* Session dots */}
+                {store.phase !== 'long_break' && (
+                  <div className="flex items-center gap-1.5 mt-2">
+                    {Array.from({ length: store.config.sessionsBeforeLongBreak }).map((_, i) => (
+                      <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${i < store.sessionCount ? 'bg-[#10B981] shadow-[0_0_5px_rgba(16,185,129,0.6)]' : 'bg-[#2A2A2A]'}`} />
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Controls */}
-          <div className="flex items-center justify-center gap-4 px-6 pb-6">
-            <button onClick={store.reset} className="p-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors bg-slate-900/50">
-              <RotateCcw className="w-5 h-5" />
-            </button>
-            
-            <button onClick={store.isRunning ? store.pause : store.start} 
-              className={`p-4 rounded-2xl flex items-center justify-center transition-all ${store.isRunning ? 'bg-orange-500/20 text-orange-400 hover:bg-orange-500/30' : 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-500/20'}`}>
-              {store.isRunning ? <Pause className="w-7 h-7 fill-current" /> : <Play className="w-7 h-7 fill-current translate-x-0.5" />}
+          <div className="flex items-center justify-center gap-3 px-6 pb-6">
+            <button onClick={store.reset}
+              className="w-11 h-11 rounded-xl flex items-center justify-center border border-[#2A2A2A] bg-[#1A1A1A] text-[#A0A0A0] hover:text-[#F0F0F0] hover:bg-[#222222] hover:border-[#333333] transition-all duration-150 active:scale-[0.95]">
+              <RotateCcw className="w-4 h-4" />
             </button>
 
-            <button onClick={store.skip} className="p-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors bg-slate-900/50">
-              <SkipForward className="w-5 h-5" />
+            <button onClick={store.isRunning ? store.pause : store.start}
+              className={`w-28 h-11 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-150 active:scale-[0.97] ${
+                store.isRunning
+                  ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30 hover:bg-orange-500/30'
+                  : 'bg-[#10B981] text-[#0A0A0A] shadow-[0_0_0_1px_rgba(16,185,129,0.4),0_0_24px_rgba(16,185,129,0.2)] hover:bg-[#34D399] hover:shadow-[0_0_0_1px_rgba(16,185,129,0.6),0_0_40px_rgba(16,185,129,0.3)]'
+              }`}>
+              {store.isRunning ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current translate-x-0.5" />}
+              {store.isRunning ? 'Pause' : 'Start'}
+            </button>
+
+            <button onClick={store.skip}
+              className="w-11 h-11 rounded-xl flex items-center justify-center border border-[#2A2A2A] bg-[#1A1A1A] text-[#A0A0A0] hover:text-[#F0F0F0] hover:bg-[#222222] hover:border-[#333333] transition-all duration-150 active:scale-[0.95]">
+              <SkipForward className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Linked Task / Focus Mode */}
-          <div className="px-4 py-3 border-t border-slate-800/80 bg-slate-900/40 mt-auto">
+          {/* Linked task + Focus Mode */}
+          <div className="px-4 py-3 border-t border-[#2A2A2A] bg-[#0A0A0A]/40 mt-auto space-y-2">
             {currentTask ? (
               <div className="flex justify-between items-center group relative">
                 <div className="flex flex-col min-w-0 flex-1 pr-2">
-                  <span className="text-[10px] uppercase font-bold text-slate-500">Working on</span>
-                  <span className="text-xs text-slate-200 truncate">{currentTask.title}</span>
+                  <span className="text-[10px] uppercase font-bold text-[#606060] tracking-widest">Working on</span>
+                  <span className="text-xs text-[#F0F0F0] truncate">{currentTask.title}</span>
                 </div>
-                <button onClick={store.unlinkAll} className="opacity-0 group-hover:opacity-100 p-1 text-slate-500 hover:text-red-400 transition-opacity">
+                <button onClick={store.unlinkAll} className="opacity-0 group-hover:opacity-100 p-1 text-[#606060] hover:text-[#EF4444] transition-all">
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
             ) : (
               <div className="relative">
-                <button onClick={() => setShowTaskLink(!showTaskLink)} className="w-full flex items-center justify-center gap-1.5 py-1.5 text-xs text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-md transition-colors border border-transparent hover:border-indigo-500/20">
+                <button onClick={() => setShowTaskLink(!showTaskLink)}
+                  className="w-full flex items-center justify-center gap-1.5 py-1.5 text-xs text-[#606060] hover:text-[#10B981] hover:bg-[rgba(16,185,129,0.08)] rounded-lg transition-all duration-150 border border-transparent hover:border-[#10B981]/20">
                   <Link2 className="w-3.5 h-3.5" /> Link Task
                 </button>
-                
-                {/* Mini Dropdown Picker */}
+
                 {showTaskLink && (
-                  <div className="absolute bottom-full left-0 right-0 mb-1 bg-slate-900 border border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto z-50 p-1">
+                  <div className="absolute bottom-full left-0 right-0 mb-1 bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] max-h-48 overflow-y-auto z-50 p-1">
                     {tasks.filter(t => t.status !== 'completed' && t.status !== 'cancelled').map(t => (
                       <button key={t.id} onClick={() => { store.linkToTask(t.id, t.subject || undefined); setShowTaskLink(false); }}
-                        className="w-full text-left px-3 py-2 text-xs text-slate-300 hover:bg-indigo-600/20 rounded hover:text-white truncate">
+                        className="w-full text-left px-3 py-2 text-xs text-[#A0A0A0] hover:bg-[rgba(16,185,129,0.1)] hover:text-[#F0F0F0] rounded-lg transition-all duration-100 truncate">
                         {t.title}
                       </button>
                     ))}
-                    {tasks.length === 0 && <div className="p-3 text-xs text-slate-500 text-center">No active tasks</div>}
+                    {tasks.length === 0 && <div className="p-3 text-xs text-[#606060] text-center">No active tasks</div>}
                   </div>
                 )}
               </div>
             )}
 
-            <button onClick={() => store.setFocusMode(true)} className="w-full mt-2 py-2 flex items-center justify-center gap-2 text-xs font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 hover:text-white rounded-lg transition-colors shadow-inner">
+            <button onClick={() => store.setFocusMode(true)}
+              className="w-full py-2 flex items-center justify-center gap-2 text-xs font-semibold text-[#A0A0A0] bg-[#222222] hover:bg-[#2A2A2A] hover:text-[#F0F0F0] rounded-xl transition-all duration-150 border border-[#2A2A2A]">
               <Maximize2 className="w-3.5 h-3.5" /> FOCUS MODE
             </button>
           </div>

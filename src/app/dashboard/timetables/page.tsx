@@ -142,14 +142,21 @@ export default function MyTimetablesPage() {
   const archivedTimetables = timetables.filter(t => !t.is_active)
 
   return (
-    <div className="max-w-5xl mx-auto p-8 md:p-12 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex border-b border-white/5 pb-6">
+    <div className="max-w-5xl mx-auto p-6 md:p-8 space-y-6">
+      <div className="flex items-center justify-between border-b border-[#2A2A2A] pb-5">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">My Timetables</h1>
-          <p className="text-slate-500 mt-1">
+          <h1 className="text-xl font-bold tracking-tight text-[#F0F0F0]">My Timetables</h1>
+          <p className="text-sm text-[#A0A0A0] mt-0.5">
             {timetables.length} timetable{timetables.length !== 1 ? 's' : ''} saved
           </p>
         </div>
+        <a
+          href="/create"
+          className="inline-flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#10B981] text-[#0A0A0A] text-sm font-bold shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_16px_rgba(16,185,129,0.15)] hover:bg-[#34D399] transition-all duration-150 active:scale-[0.97]"
+        >
+          <Plus className="w-4 h-4" />
+          New Timetable
+        </a>
       </div>
 
       {loading ? (
@@ -157,23 +164,33 @@ export default function MyTimetablesPage() {
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       ) : timetables.length === 0 ? (
-        <div className="flex flex-col items-center justify-center text-center p-12 lg:p-24 border rounded-xl border-dashed bg-muted/20">
+        <div className="flex flex-col items-center justify-center text-center p-12 lg:p-24 border border-dashed border-[#2A2A2A] rounded-xl bg-[#1A1A1A]/30">
           <div className="text-5xl mb-4">📅</div>
-          <h2 className="text-2xl font-semibold tracking-tight">No timetables yet!</h2>
-          <p className="text-muted-foreground mt-2 max-w-sm mb-6">
+          <h2 className="text-xl font-semibold tracking-tight text-[#F0F0F0]">No timetables yet!</h2>
+          <p className="text-[#A0A0A0] mt-2 max-w-sm mb-6 text-sm">
             Create your first timetable to start tracking your study progress and visualize your classes.
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
-            <Button onClick={() => router.push('/create/ai')}>Create with AI ✨</Button>
-            <Button variant="outline" onClick={() => router.push('/create')}>Build Manually</Button>
+            <button
+              onClick={() => router.push('/create/ai')}
+              className="h-10 px-6 rounded-lg bg-[#10B981] text-[#0A0A0A] text-sm font-bold shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_16px_rgba(16,185,129,0.15)] hover:bg-[#34D399] transition-all"
+            >
+              Create with AI ✨
+            </button>
+            <button
+              onClick={() => router.push('/create')}
+              className="h-10 px-6 rounded-lg border border-[#2A2A2A] bg-transparent text-sm font-medium text-[#A0A0A0] hover:bg-[#222222] hover:text-[#F0F0F0] hover:border-[#333333] transition-all"
+            >
+              Build Manually
+            </button>
           </div>
         </div>
       ) : (
         <Tabs defaultValue="all" className="w-full">
-          <TabsList>
-            <TabsTrigger value="all">All ({timetables.length})</TabsTrigger>
-            <TabsTrigger value="active">Active ({activeTimetables.length})</TabsTrigger>
-            <TabsTrigger value="archived">Archived</TabsTrigger>
+          <TabsList className="bg-[#1A1A1A] border border-[#2A2A2A] p-1 rounded-lg">
+            <TabsTrigger value="all" className="text-[#A0A0A0] data-[state=active]:bg-[#222222] data-[state=active]:text-[#F0F0F0] rounded-md text-sm">All ({timetables.length})</TabsTrigger>
+            <TabsTrigger value="active" className="text-[#A0A0A0] data-[state=active]:bg-[#222222] data-[state=active]:text-[#F0F0F0] rounded-md text-sm">Active ({activeTimetables.length})</TabsTrigger>
+            <TabsTrigger value="archived" className="text-[#A0A0A0] data-[state=active]:bg-[#222222] data-[state=active]:text-[#F0F0F0] rounded-md text-sm">Archived</TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="mt-6 border-none p-0">
@@ -187,7 +204,7 @@ export default function MyTimetablesPage() {
           <TabsContent value="active" className="mt-6 border-none p-0">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {activeTimetables.length === 0 ? (
-                <p className="text-muted-foreground">No active timetable. Set one to active to see it here.</p>
+                <p className="text-[#606060] col-span-3 text-sm">No active timetable. Set one to active to see it here.</p>
               ) : (
                 activeTimetables.map(t => (
                   <TimetableCard key={t.id} timetable={t} onSetActive={handleSetActive} onDelete={handleDelete} />
@@ -199,7 +216,7 @@ export default function MyTimetablesPage() {
           <TabsContent value="archived" className="mt-6 border-none p-0">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {archivedTimetables.length === 0 ? (
-                <p className="text-muted-foreground">No archived timetables.</p>
+                <p className="text-[#606060] col-span-3 text-sm">No archived timetables.</p>
               ) : (
                 archivedTimetables.map(t => (
                   <TimetableCard key={t.id} timetable={t} onSetActive={handleSetActive} onDelete={handleDelete} />

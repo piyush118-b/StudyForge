@@ -97,9 +97,9 @@ export function TaskForm({ open, onClose, editTask, defaultStatus = 'pending' }:
 
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent side="right" className="w-full max-w-[480px] bg-slate-950 border-slate-800 overflow-y-auto p-6">
+      <SheetContent side="right" className="w-full max-w-[480px] bg-[#0A0A0A] border-[#2A2A2A] overflow-y-auto p-6">
         <SheetHeader className="mb-6">
-          <SheetTitle className="text-xl font-bold text-white">
+          <SheetTitle className="text-xl font-bold text-[#F0F0F0]">
             {isEditing ? '✏️ Edit Task' : '➕ New Task'}
           </SheetTitle>
         </SheetHeader>
@@ -107,30 +107,30 @@ export function TaskForm({ open, onClose, editTask, defaultStatus = 'pending' }:
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Title */}
           <div className="space-y-1.5">
-            <Label className="text-slate-300">Title *</Label>
+            <label className="text-xs font-semibold uppercase tracking-widest text-[#606060] block">Title *</label>
             <Input
               autoFocus
               placeholder="What needs to get done?"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="bg-slate-900 border-slate-800 text-white h-11 text-base focus:border-indigo-500"
+              className="bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] h-10 text-sm focus:ring-2 focus:ring-[#10B981]/70 focus:border-[#10B981]/50 hover:border-[#333333] transition-all placeholder:text-[#606060]"
             />
           </div>
 
           {/* Subject */}
           <div className="space-y-1.5">
-            <Label className="text-slate-300">Subject</Label>
+            <label className="text-xs font-semibold uppercase tracking-widest text-[#606060] block">Subject</label>
             <Input
               placeholder="e.g. Data Structures, DBMS..."
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              className="bg-slate-900 border-slate-800 text-white focus:border-indigo-500"
+              className="bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] focus:ring-2 focus:ring-[#10B981]/70 focus:border-[#10B981]/50 hover:border-[#333333] transition-all placeholder:text-[#606060]"
             />
           </div>
 
           {/* Priority */}
           <div className="space-y-1.5">
-            <Label className="text-slate-300">Priority</Label>
+            <label className="text-xs font-semibold uppercase tracking-widest text-[#606060] block">Priority</label>
             <div className="flex gap-2">
               {PRIORITY_OPTIONS.map((opt) => (
                 <button
@@ -138,7 +138,7 @@ export function TaskForm({ open, onClose, editTask, defaultStatus = 'pending' }:
                   type="button"
                   data-active={priority === opt.value}
                   onClick={() => setPriority(opt.value)}
-                  className={`flex-1 py-2 text-sm font-medium rounded-lg border transition-all ${opt.color} ${priority === opt.value ? 'ring-1 ring-offset-1 ring-offset-slate-950' : 'opacity-70 hover:opacity-100'}`}
+                  className={`flex-1 py-2 text-sm font-medium rounded-lg border transition-all ${opt.color} ${priority === opt.value ? 'ring-1 ring-offset-1 ring-offset-[#0A0A0A]' : 'opacity-70 hover:opacity-100'}`}
                 >
                   {opt.label}
                 </button>
@@ -148,12 +148,12 @@ export function TaskForm({ open, onClose, editTask, defaultStatus = 'pending' }:
 
           {/* Due Date */}
           <div className="space-y-1.5">
-            <Label className="text-slate-300">Due Date</Label>
+            <label className="text-xs font-semibold uppercase tracking-widest text-[#606060] block">Due Date</label>
             <Input
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="bg-slate-900 border-slate-800 text-white focus:border-indigo-500"
+              className="bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] focus:ring-2 focus:ring-[#10B981]/70 hover:border-[#333333] transition-all"
             />
             <div className="flex gap-2 flex-wrap">
               {[
@@ -166,7 +166,7 @@ export function TaskForm({ open, onClose, editTask, defaultStatus = 'pending' }:
                   key={label}
                   type="button"
                   onClick={() => quickDate(offset)}
-                  className="text-xs text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 px-2.5 py-1 rounded-full transition-colors"
+                  className="text-xs text-[#10B981] hover:text-[#34D399] bg-[rgba(16,185,129,0.1)] hover:bg-[rgba(16,185,129,0.15)] px-2.5 py-1 rounded-full transition-colors"
                 >
                   {label}
                 </button>
@@ -177,42 +177,42 @@ export function TaskForm({ open, onClose, editTask, defaultStatus = 'pending' }:
           {/* Due Time (only shows if due date is set) */}
           {dueDate && (
             <div className="space-y-1.5">
-              <Label className="text-slate-300">Due Time</Label>
+              <label className="text-xs font-semibold uppercase tracking-widest text-[#606060] block">Due Time</label>
               <Input
                 type="time"
                 value={dueTime}
                 onChange={(e) => setDueTime(e.target.value)}
-                className="bg-slate-900 border-slate-800 text-white focus:border-indigo-500"
+                className="bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] font-mono focus:ring-2 focus:ring-[#10B981]/70 hover:border-[#333333] transition-all"
               />
             </div>
           )}
 
           {/* Estimated Hours */}
           <div className="space-y-1.5">
-            <Label className="text-slate-300">Estimated Hours</Label>
+            <label className="text-xs font-semibold uppercase tracking-widest text-[#606060] block">Estimated Hours</label>
             <div className="flex items-center gap-3">
               <button type="button" onClick={() => setEstimatedHours(Math.max(0.25, estimatedHours - 0.25))}
-                className="w-8 h-8 rounded-lg bg-slate-800 text-white hover:bg-slate-700 text-lg font-bold transition-colors">−</button>
-              <span className="text-white font-mono min-w-[60px] text-center">
+                className="w-8 h-8 rounded-lg bg-[#222222] border border-[#2A2A2A] text-[#F0F0F0] hover:bg-[#2A2A2A] text-lg font-bold transition-colors">−</button>
+              <span className="text-[#F0F0F0] font-mono min-w-[60px] text-center">
                 {estimatedHours >= 1
                   ? `${Math.floor(estimatedHours)}h ${estimatedHours % 1 ? `${(estimatedHours % 1) * 60}m` : ''}`
                   : `${estimatedHours * 60}m`}
               </span>
               <button type="button" onClick={() => setEstimatedHours(Math.min(24, estimatedHours + 0.25))}
-                className="w-8 h-8 rounded-lg bg-slate-800 text-white hover:bg-slate-700 text-lg font-bold transition-colors">+</button>
+                className="w-8 h-8 rounded-lg bg-[#222222] border border-[#2A2A2A] text-[#F0F0F0] hover:bg-[#2A2A2A] text-lg font-bold transition-colors">+</button>
             </div>
           </div>
 
           {/* Tags */}
           <div className="space-y-2">
-            <Label className="text-slate-300">Tags</Label>
+            <label className="text-xs font-semibold uppercase tracking-widest text-[#606060] block">Tags</label>
             <div className="flex flex-wrap gap-2">
               {COMMON_TAGS.map((tag) => (
                 <button
                   key={tag}
                   type="button"
                   onClick={() => toggleTag(tag)}
-                  className={`text-xs px-2.5 py-1 rounded-full border transition-all ${tags.includes(tag) ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300' : 'border-slate-700 text-slate-500 hover:border-slate-600 hover:text-slate-400'}`}
+                  className={`text-xs px-2.5 py-1 rounded-full border transition-all ${tags.includes(tag) ? 'bg-[rgba(16,185,129,0.15)] border-[#10B981]/40 text-[#10B981]' : 'border-[#2A2A2A] text-[#606060] hover:border-[#333333] hover:text-[#A0A0A0]'}`}
                 >
                   {tag}
                 </button>
@@ -224,11 +224,11 @@ export function TaskForm({ open, onClose, editTask, defaultStatus = 'pending' }:
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustomTag(); } }}
-                className="bg-slate-900 border-slate-800 text-white text-sm focus:border-indigo-500"
+                className="bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] text-sm focus:ring-2 focus:ring-[#10B981]/70 hover:border-[#333333] transition-all placeholder:text-[#606060]"
               />
             </div>
             {tags.filter((t) => !COMMON_TAGS.includes(t)).map((tag) => (
-              <span key={tag} className="inline-flex items-center gap-1 text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-full mr-1">
+              <span key={tag} className="inline-flex items-center gap-1 text-xs bg-[#222222] border border-[#2A2A2A] text-[#A0A0A0] px-2.5 py-1 rounded-full mr-1">
                 {tag}
                 <button type="button" onClick={() => setTags((prev) => prev.filter((t) => t !== tag))}>
                   <X className="w-3 h-3 hover:text-red-400" />
@@ -239,11 +239,11 @@ export function TaskForm({ open, onClose, editTask, defaultStatus = 'pending' }:
 
           {/* Reminder */}
           <div className="space-y-1.5">
-            <Label className="text-slate-300">Reminder</Label>
+            <label className="text-xs font-semibold uppercase tracking-widest text-[#606060] block">Reminder</label>
             <select
               value={reminderMinutes}
               onChange={(e) => setReminderMinutes(Number(e.target.value))}
-              className="w-full bg-slate-900 border border-slate-800 text-white rounded-md h-10 px-3 text-sm focus:outline-none focus:border-indigo-500"
+              className="w-full bg-[#222222] border border-[#2A2A2A] text-[#F0F0F0] rounded-lg h-9 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/70 hover:border-[#333333] transition-all"
             >
               <option value={15}>15 min before</option>
               <option value={30}>30 min before</option>
@@ -255,24 +255,24 @@ export function TaskForm({ open, onClose, editTask, defaultStatus = 'pending' }:
 
           {/* Notes */}
           <div className="space-y-1.5">
-            <Label className="text-slate-300">Notes</Label>
+            <label className="text-xs font-semibold uppercase tracking-widest text-[#606060] block">Notes</label>
             <textarea
               rows={3}
               placeholder="Add any extra details, links, or formulas..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-800 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 resize-none placeholder:text-slate-600"
+              className="w-full bg-[#222222] border border-[#2A2A2A] text-[#F0F0F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/70 hover:border-[#333333] transition-all resize-none placeholder:text-[#606060]"
             />
           </div>
 
           {/* Actions */}
           <div className="flex gap-3 pt-2">
-            <Button type="button" variant="ghost" onClick={onClose} className="flex-1 text-slate-400 hover:text-white">
+            <button type="button" onClick={onClose} className="flex-1 h-9 rounded-lg border border-[#2A2A2A] bg-transparent text-sm font-medium text-[#A0A0A0] hover:bg-[#222222] hover:text-[#F0F0F0] hover:border-[#333333] transition-all active:scale-[0.97]">
               Cancel
-            </Button>
-            <Button type="submit" disabled={loading} className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold">
+            </button>
+            <button type="submit" disabled={loading} className="flex-1 h-9 rounded-lg bg-[#10B981] text-[#0A0A0A] text-sm font-bold shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_16px_rgba(16,185,129,0.15)] hover:bg-[#34D399] transition-all active:scale-[0.97] disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : isEditing ? 'Update Task →' : 'Save Task →'}
-            </Button>
+            </button>
           </div>
         </form>
       </SheetContent>

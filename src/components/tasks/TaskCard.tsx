@@ -56,15 +56,15 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
   const statusIcon = () => {
     if (task.status === 'completed') return <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />;
     if (task.status === 'in_progress') return <Zap className="w-5 h-5 text-indigo-400 shrink-0" />;
-    if (task.status === 'cancelled') return <ChevronRight className="w-5 h-5 text-slate-500 shrink-0" />;
-    return <Circle className="w-5 h-5 text-slate-500 shrink-0 hover:text-indigo-400 transition-colors" />;
+    if (task.status === 'cancelled') return <ChevronRight className="w-5 h-5 text-forge-text-muted shrink-0" />;
+    return <Circle className="w-5 h-5 text-forge-text-secondary shrink-0 hover:text-forge-accent transition-colors" />;
   };
 
   const barColor = task.completionPercentage === 100
     ? 'bg-emerald-500'
     : task.completionPercentage > 0
-      ? 'bg-indigo-500'
-      : 'bg-slate-700';
+      ? 'bg-forge-accent'
+      : 'bg-forge-overlay/50';
 
   async function handleToggleComplete() {
     if (task.status === 'completed') {
@@ -100,8 +100,8 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
   }
 
   return (
-    <div className={`group relative bg-slate-900/60 border rounded-xl p-4 transition-all hover:border-slate-700 hover:bg-slate-900/80
-      ${task.status === 'completed' ? 'opacity-60 border-slate-800' : 'border-slate-800'}
+    <div className={`group relative bg-forge-base/60 backdrop-blur-sm border rounded-xl p-4 transition-all hover:border-forge-border hover:bg-forge-elevated/80 shadow-sm hover:shadow-forge-md
+      ${task.status === 'completed' ? 'opacity-60 border-forge-border/50' : 'border-forge-border'}
       ${deleting ? 'opacity-0 scale-95 -translate-x-4 pointer-events-none' : ''}
     `}
       style={{ transition: 'opacity 0.3s ease, transform 0.3s ease, border-color 0.15s ease' }}
@@ -114,7 +114,7 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <h3 className={`font-semibold text-sm leading-snug ${task.status === 'completed' ? 'line-through text-slate-500' : 'text-slate-100'}`}>
+            <h3 className={`font-semibold text-sm leading-snug ${task.status === 'completed' ? 'line-through text-forge-text-secondary' : 'text-forge-text-primary'}`}>
               {task.title}
             </h3>
             <div className="flex items-center gap-1.5 shrink-0">
@@ -124,20 +124,20 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
               <div className="relative">
                 <button
                   onClick={() => setShowMenu(!showMenu)}
-                  className="p-1 rounded-md text-slate-500 hover:text-slate-300 hover:bg-slate-800 transition-colors"
+                  className="p-1 rounded-md text-forge-text-secondary hover:text-forge-text-primary hover:bg-forge-overlay transition-colors"
                 >
                   <MoreHorizontal className="w-4 h-4" />
                 </button>
                 {showMenu && (
-                  <div className="absolute right-0 top-full mt-1 z-50 w-40 bg-slate-900 border border-slate-800 rounded-lg shadow-xl overflow-hidden">
+                  <div className="absolute right-0 top-full mt-1 z-50 w-40 bg-forge-elevated border border-forge-border rounded-lg shadow-forge-xl overflow-hidden">
                     {onEdit && (
                       <button onClick={() => { onEdit(task); setShowMenu(false); }}
-                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 transition-colors">
+                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-forge-text-primary hover:bg-forge-overlay transition-colors">
                         <Edit2 className="w-3.5 h-3.5" /> Edit
                       </button>
                     )}
                     <button onClick={() => { handleDelete(); setShowMenu(false); }}
-                      className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors">
+                      className="flex items-center gap-2 w-full px-3 py-2 text-sm text-forge-error hover:bg-forge-error/10 transition-colors">
                       <Trash2 className="w-3.5 h-3.5" /> Delete
                     </button>
                   </div>
@@ -147,13 +147,13 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
           </div>
 
           {task.description && (
-            <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{task.description}</p>
+            <p className="text-xs text-forge-text-muted mt-0.5 line-clamp-1">{task.description}</p>
           )}
 
           {/* Meta Row */}
           <div className="flex flex-wrap items-center gap-3 mt-2">
             {task.subject && (
-              <span className="flex items-center gap-1 text-xs text-slate-400">
+              <span className="flex items-center gap-1 text-xs text-forge-text-secondary">
                 <BookOpen className="w-3 h-3" /> {task.subject}
               </span>
             )}
@@ -163,12 +163,12 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
               </span>
             )}
             {task.estimatedHours && (
-              <span className="flex items-center gap-1 text-xs text-slate-500">
+              <span className="flex items-center gap-1 text-xs text-forge-text-muted">
                 <Clock className="w-3 h-3" /> {task.estimatedHours}h est.
               </span>
             )}
             {task.tags.length > 0 && task.tags.slice(0, 2).map((tag) => (
-              <span key={tag} className="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">
+              <span key={tag} className="text-xs bg-forge-overlay text-forge-text-secondary px-2 py-0.5 rounded-full border border-forge-border">
                 {tag}
               </span>
             ))}
@@ -177,11 +177,11 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
           {/* Progress Bar */}
           <div className="mt-3">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] text-slate-500">
+              <span className="text-[10px] text-forge-text-secondary">
                 {task.completionPercentage === 0 ? 'Not started' : `${task.completionPercentage}% complete`}
               </span>
             </div>
-            <div className="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+            <div className="w-full h-1 bg-forge-overlay rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all ${barColor}`}
                 style={{ width: `${task.completionPercentage}%` }}
@@ -191,7 +191,7 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
 
           {/* Notes Expansion */}
           {showNotes && task.notes && (
-            <div className="mt-3 bg-slate-800/50 rounded-lg p-3 text-xs text-slate-400 leading-relaxed border border-slate-700/50">
+            <div className="mt-3 bg-forge-overlay/30 rounded-lg p-3 text-xs text-forge-text-secondary leading-relaxed border border-forge-border/50">
               {task.notes}
             </div>
           )}
@@ -199,14 +199,14 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
       </div>
 
       {/* Action Row — shows on hover */}
-      <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-800/50 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-orange-400 transition-colors px-2 py-1 rounded-md hover:bg-orange-500/10">
+      <div className="flex items-center gap-2 mt-3 pt-3 border-t border-forge-border/50 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button className="flex items-center gap-1.5 text-xs text-forge-text-secondary hover:text-orange-400 transition-colors px-2 py-1 rounded-md hover:bg-orange-500/10">
           <Timer className="w-3.5 h-3.5" /> Start Pomodoro
         </button>
         {task.notes && (
           <button
             onClick={() => setShowNotes(!showNotes)}
-            className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-indigo-400 transition-colors px-2 py-1 rounded-md hover:bg-indigo-500/10"
+            className="flex items-center gap-1.5 text-xs text-forge-text-secondary hover:text-forge-accent transition-colors px-2 py-1 rounded-md hover:bg-forge-accent/10"
           >
             <FileText className="w-3.5 h-3.5" /> {showNotes ? 'Hide' : 'Notes'}
           </button>

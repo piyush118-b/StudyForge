@@ -289,7 +289,7 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
       />
 
       {/* Feature 7: Inline Top Time Pill (Visible during resize or hover) */}
-      <div className={`absolute -top-6 left-1/2 -translate-x-1/2 bg-slate-900 text-slate-100 text-[10px] font-bold px-2 py-0.5 rounded shadow-lg opacity-0 transition-opacity ${isResizingTop || isResizingBottom || 'group-hover:opacity-100'}`}>
+      <div className={`absolute -top-6 left-1/2 -translate-x-1/2 bg-forge-elevated text-forge-text-primary border border-forge-border text-[10px] font-bold px-2 py-0.5 rounded shadow-forge-md opacity-0 transition-opacity ${isResizingTop || isResizingBottom || 'group-hover:opacity-100'}`}>
         {to12HourShort(previewStartTimeStr)}
       </div>
 
@@ -339,7 +339,7 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
       />
 
       {/* Feature 7: Inline Bottom Time Pill */}
-      <div className={`absolute -bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-slate-100 text-[10px] font-bold px-2 py-0.5 rounded shadow-lg opacity-0 transition-opacity ${isResizingTop || isResizingBottom || 'group-hover:opacity-100'}`}>
+      <div className={`absolute -bottom-6 left-1/2 -translate-x-1/2 bg-forge-elevated text-forge-text-primary border border-forge-border text-[10px] font-bold px-2 py-0.5 rounded shadow-forge-md opacity-0 transition-opacity ${isResizingTop || isResizingBottom || 'group-hover:opacity-100'}`}>
         {to12HourShort(previewEndTimeStr)}
       </div>
 

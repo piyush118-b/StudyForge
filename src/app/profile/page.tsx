@@ -3,12 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { CategorizedCombobox } from '@/components/ui/categorized-combobox';
 import { INDIAN_COLLEGES, BRANCHES, SEMESTERS } from '@/lib/constants';
-import { BookOpen, ArrowRight, X, Sparkles, Loader2 } from 'lucide-react';
+import { ArrowRight, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth-context';
 
@@ -89,136 +87,172 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
+      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-[#10B981] animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Background */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/10 blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-teal-500/10 blur-[120px] rounded-full pointer-events-none" />
+    <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center px-4 py-16 relative overflow-hidden">
 
-      {/* Logo */}
-      <div className="flex items-center gap-2.5 mb-8 z-10">
-        <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
-          <BookOpen className="w-5 h-5 text-white" />
+      {/* Subtle top glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-[#10B981]/5 blur-[100px] rounded-full pointer-events-none" />
+
+      <div className="relative z-10 w-full max-w-xl">
+
+        {/* Logo mark */}
+        <div className="flex items-center justify-center gap-2 mb-8">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#10B981] to-[#059669] shadow-[0_0_12px_rgba(16,185,129,0.4)]" />
+          <span className="font-bold text-[#F0F0F0] tracking-tight">StudyForge</span>
         </div>
-        <span className="text-2xl font-bold text-white tracking-tight">StudyForge <span className="text-indigo-400">AI</span></span>
-      </div>
 
-      {/* Profile Card */}
-      <div className="w-full max-w-lg bg-slate-900/60 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl z-10 overflow-hidden">
-        <div className="p-8">
-          {/* Header */}
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-teal-500 rounded-xl flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">Let&apos;s get to know you 👋</h1>
-          </div>
-          <p className="text-slate-400 text-sm mb-8 ml-[52px]">Help us tweak the AI to match your academic level.</p>
+        {/* Main card */}
+        <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.5)] overflow-hidden">
 
-          {/* Form */}
-          <div className="space-y-5">
-            <div className="space-y-2">
-              <Label className="text-slate-300 text-sm">What should we call you?</Label>
-              <Input 
-                placeholder="E.g. Rahul" 
-                className="bg-slate-950 border-slate-700 text-white rounded-xl h-12 focus:border-indigo-500"
-                value={name}
-                onChange={e => setName(e.target.value)}
-              />
+          <div className="p-8">
+            {/* Header */}
+            <div className="mb-8">
+              <p className="text-xs font-semibold uppercase tracking-widest text-[#10B981] mb-2">
+                Profile Setup
+              </p>
+              <h2 className="text-2xl font-bold text-[#F0F0F0] tracking-tight mb-1">
+                Let&apos;s get to know you 👋
+              </h2>
+              <p className="text-sm text-[#A0A0A0]">
+                Help us tweak the AI to match your academic level.
+              </p>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-slate-300 text-sm">College / University</Label>
-              {!showCustomCollege ? (
-                <CategorizedCombobox 
-                  categories={INDIAN_COLLEGES}
-                  value={college}
-                  onChange={setCollege}
-                  placeholder="Search your college..."
-                  emptyText="College not listed."
-                  customAddText="+ Add my college"
-                  onCustomAdd={() => { setShowCustomCollege(true); setCollege(''); }}
+            <div className="border-t border-[#2A2A2A] mb-6" />
+
+            {/* Form */}
+            <div className="space-y-5">
+
+              {/* Name */}
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-widest text-[#606060] mb-1.5 block">
+                  What should we call you?
+                </label>
+                <Input
+                  placeholder="E.g. Rahul"
+                  className="h-10 bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] placeholder:text-[#606060] rounded-lg hover:border-[#333333] focus-visible:ring-[#10B981]/70 focus-visible:border-[#10B981]/50 transition-all"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
                 />
-              ) : (
-                <div className="flex gap-2 relative">
-                  <Input 
-                    placeholder="Type your college name" 
-                    className="bg-slate-950 border-indigo-500/50 text-white rounded-xl h-12 w-full pr-12"
+              </div>
+
+              {/* College */}
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-widest text-[#606060] mb-1.5 block">
+                  College / University
+                </label>
+                {!showCustomCollege ? (
+                  <CategorizedCombobox
+                    categories={INDIAN_COLLEGES}
                     value={college}
-                    autoFocus
-                    onChange={e => setCollege(e.target.value)}
+                    onChange={setCollege}
+                    placeholder="Search your college..."
+                    emptyText="College not listed."
+                    customAddText="+ Add my college"
+                    onCustomAdd={() => { setShowCustomCollege(true); setCollege(''); }}
                   />
-                  <Button variant="ghost" size="icon" className="absolute right-2 top-2 text-slate-400 hover:text-white" onClick={() => setShowCustomCollege(false)}>
-                    <X className="w-4 h-4"/>
-                  </Button>
-                </div>
-              )}
-            </div>
+                ) : (
+                  <div className="flex gap-2 relative">
+                    <Input
+                      placeholder="Type your college name"
+                      className="h-10 w-full pr-12 bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] placeholder:text-[#606060] rounded-lg hover:border-[#333333] focus-visible:ring-[#10B981]/70 focus-visible:border-[#10B981]/50 transition-all"
+                      value={college}
+                      autoFocus
+                      onChange={e => setCollege(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-1 top-1 h-8 w-8 rounded flex items-center justify-center text-[#606060] hover:text-[#F0F0F0] hover:bg-[#333333] transition-all"
+                      onClick={() => setShowCustomCollege(false)}
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
 
-            <div className="space-y-2">
-              <Label className="text-slate-300 text-sm">Semester / Year</Label>
-              <Select value={semester} onValueChange={val => setSemester(val || '')}>
-                <SelectTrigger className="bg-slate-950 border-slate-700 text-white rounded-xl h-12">
-                  <SelectValue placeholder="Select your current semester" />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-slate-700 text-white max-h-[300px]">
-                  {SEMESTERS.map(sem => (
-                    <SelectItem key={sem} value={sem} className="hover:bg-slate-800 cursor-pointer">{sem}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              {/* Semester */}
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-widest text-[#606060] mb-1.5 block">
+                  Semester / Year
+                </label>
+                <Select value={semester} onValueChange={val => setSemester(val || '')}>
+                  <SelectTrigger className="h-10 w-full bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] rounded-lg hover:border-[#333333] focus:ring-[#10B981]/70 transition-all">
+                    <SelectValue placeholder="Select your current semester" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#1A1A1A] border-[#2A2A2A] text-[#F0F0F0] max-h-[300px]">
+                    {SEMESTERS.map(sem => (
+                      <SelectItem key={sem} value={sem} className="cursor-pointer hover:bg-[#222222] focus:bg-[#222222]">{sem}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div className="space-y-2">
-              <Label className="text-slate-300 text-sm">Branch / Stream</Label>
-              {!showCustomBranch ? (
-                <CategorizedCombobox 
-                  categories={BRANCHES}
-                  value={branch}
-                  onChange={setBranch}
-                  placeholder="Search your stream..."
-                  emptyText="Stream not listed."
-                  customAddText="+ My stream isn&apos;t listed"
-                  onCustomAdd={() => { setShowCustomBranch(true); setBranch(''); }}
-                />
-              ) : (
-                <div className="flex gap-2 relative">
-                  <Input 
-                    placeholder="Type your stream name" 
-                    className="bg-slate-950 border-indigo-500/50 text-white rounded-xl h-12 w-full pr-12"
+              {/* Branch */}
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-widest text-[#606060] mb-1.5 block">
+                  Branch / Stream
+                </label>
+                {!showCustomBranch ? (
+                  <CategorizedCombobox
+                    categories={BRANCHES}
                     value={branch}
-                    autoFocus
-                    onChange={e => setBranch(e.target.value)}
+                    onChange={setBranch}
+                    placeholder="Search your stream..."
+                    emptyText="Stream not listed."
+                    customAddText="+ My stream isn't listed"
+                    onCustomAdd={() => { setShowCustomBranch(true); setBranch(''); }}
                   />
-                  <Button variant="ghost" size="icon" className="absolute right-2 top-2 text-slate-400 hover:text-white" onClick={() => setShowCustomBranch(false)}>
-                    <X className="w-4 h-4"/>
-                  </Button>
-                </div>
-              )}
+                ) : (
+                  <div className="flex gap-2 relative">
+                    <Input
+                      placeholder="Type your stream name"
+                      className="h-10 w-full pr-12 bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] placeholder:text-[#606060] rounded-lg hover:border-[#333333] focus-visible:ring-[#10B981]/70 focus-visible:border-[#10B981]/50 transition-all"
+                      value={branch}
+                      autoFocus
+                      onChange={e => setBranch(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-1 top-1 h-8 w-8 rounded flex items-center justify-center text-[#606060] hover:text-[#F0F0F0] hover:bg-[#333333] transition-all"
+                      onClick={() => setShowCustomBranch(false)}
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
+
             </div>
           </div>
-        </div>
 
-        {/* Submit */}
-        <div className="px-8 py-5 border-t border-slate-800/50 bg-slate-900/40 flex justify-end">
-          <Button 
-            onClick={handleSubmit}
-            disabled={!isValid || saving}
-            className="bg-indigo-600 hover:bg-indigo-500 text-white px-8 h-12 rounded-xl text-base font-semibold shadow-lg shadow-indigo-500/25 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed group"
-          >
-            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : (
-              <>
-                Continue to Dashboard
-                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-              </>
-            )}
-          </Button>
+          {/* Submit footer */}
+          <div className="flex justify-between items-center px-8 py-5 border-t border-[#2A2A2A] bg-[#111111]/40">
+            <span className="text-xs text-[#606060]">
+              {isValid ? '✓ Ready to go' : 'Fill in all fields to continue'}
+            </span>
+            <button
+              onClick={handleSubmit}
+              disabled={!isValid || saving}
+              className="h-10 px-6 rounded-lg text-sm font-bold bg-[#10B981] text-[#0A0A0A] hover:bg-[#34D399] shadow-[0_0_0_1px_rgba(16,185,129,0.4),0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[0_0_0_1px_rgba(16,185,129,0.6),0_0_40px_rgba(16,185,129,0.3)] transition-all duration-150 active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {saving ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  Continue to Dashboard
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </div>
+
         </div>
       </div>
     </div>

@@ -49,7 +49,7 @@ export default function TimetableStudioPage() {
     initGrid('draft', cols, "07:00", "23:00");
 
     // If we have AI-generated data, import it into the interactive Studio Store
-    if (ttData && !isImported.current) {
+    if (ttData?.grid && !isImported.current) {
       isImported.current = true;
       Object.entries(ttData.grid).forEach(([dayName, slots]) => {
         const day = dayName.charAt(0).toUpperCase() + dayName.slice(1).toLowerCase() as any; // Ensure 'Monday' format
@@ -73,37 +73,36 @@ export default function TimetableStudioPage() {
   }, [initGrid, addBlock]);
 
   return (
-    <div className="w-full h-screen bg-[#13141A] flex flex-col overflow-hidden">
+    <div className="w-full h-screen bg-[#0A0A0A] flex flex-col overflow-hidden">
       {/* Studio Header (Integrated with Advanced Editor) */}
-      <header className="h-16 flex items-center justify-between px-6 bg-[#1A1B24]/80 backdrop-blur-xl border-b border-white/5 z-[200] relative">
-        <div className="flex items-center gap-6">
-           <Button variant="ghost" size="icon" onClick={() => router.push('/create')} className="text-slate-400 hover:text-white group">
-             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-           </Button>
+      <header className="h-14 flex items-center justify-between px-4 bg-[#111111] border-b border-[#2A2A2A] z-[200] relative flex-shrink-0">
+        <div className="flex items-center gap-3">
+           <button onClick={() => router.push('/create')} className="w-9 h-9 rounded-lg flex items-center justify-center text-[#A0A0A0] hover:text-[#F0F0F0] hover:bg-[#222222] transition-all">
+             <ArrowLeft className="w-4 h-4" />
+           </button>
            
-           <div className="h-8 w-px bg-white/10" />
+           <div className="w-px h-5 bg-[#2A2A2A]" />
 
            <div>
-              <div className="flex items-center gap-2 mb-0.5">
-                 <h1 className="text-sm font-bold text-slate-100 tracking-wide uppercase">{data?.title || "Draft Timetable"}</h1>
-                 <span className="text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-1.5 py-0.5 rounded uppercase tracking-widest">
+              <div className="flex items-center gap-2">
+                 <h1 className="text-sm font-bold text-[#F0F0F0] tracking-wide">{data?.title || "Draft Timetable"}</h1>
+                 <span className="text-[10px] font-bold bg-[rgba(16,185,129,0.1)] text-[#10B981] border border-[#10B981]/20 px-1.5 py-0.5 rounded uppercase tracking-widest">
                    Studio
                  </span>
               </div>
-              <p className="text-[11px] text-slate-500 font-medium">Auto-saving to temporary session...</p>
+              <p className="text-[11px] text-[#606060] font-medium">Auto-saving to temporary session...</p>
            </div>
         </div>
 
-        <div className="flex items-center gap-3">
-           <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white hover:bg-white/5 font-semibold text-xs tracking-wide">
-             Draft Tools
-           </Button>
-           
-           <div className="flex items-center gap-2 bg-white/5 p-1 rounded-xl border border-white/5">
+        <div className="flex items-center gap-2">
+           <div className="flex items-center gap-2">
              <ExportButton targetId="timetable-studio-container" />
-             <Button variant="secondary" size="sm" className="font-bold text-xs" onClick={() => setIsSaveModalOpen(true)}>
-               <Save className="w-3.5 h-3.5 mr-2" /> Save Timetable
-             </Button>
+             <button
+               onClick={() => setIsSaveModalOpen(true)}
+               className="h-9 px-4 rounded-lg text-sm font-bold bg-[#10B981] text-[#0A0A0A] shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_16px_rgba(16,185,129,0.15)] hover:bg-[#34D399] transition-all duration-150 active:scale-[0.97] flex items-center gap-1.5"
+             >
+               <Save className="w-3.5 h-3.5" /> Save Timetable
+             </button>
            </div>
         </div>
       </header>

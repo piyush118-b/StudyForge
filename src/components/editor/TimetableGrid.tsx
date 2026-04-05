@@ -133,10 +133,10 @@ export function TimetableGrid() {
       style={{
         width: `${Math.max(window.innerWidth * 2, totalWidth)}px`,
         height: `${Math.max(window.innerHeight * 2, totalHeight)}px`,
-        backgroundColor: "#202124",
-        backgroundImage: 'radial-gradient(rgba(255,255,255,0.15) 1px, transparent 0)',
+        backgroundColor: "var(--color-forge-base)",
+        backgroundImage: 'radial-gradient(rgba(255,255,255,0.08) 1px, transparent 0)',
         backgroundSize: '24px 24px',
-        "--grid-line": "rgba(255,255,255,0.06)"
+        "--grid-line": "var(--color-forge-border)"
       } as any}
     >
       {/* Visual Lines (Faint Structure Overlay) */}
@@ -156,7 +156,8 @@ export function TimetableGrid() {
             left: TIME_LABEL_WIDTH, right: 0, width: totalWidth - TIME_LABEL_WIDTH,
             top: crosshairY + DAY_HEADER_HEIGHT,
             height: 1,
-            background: 'rgba(99,102,241,0.4)',
+            background: 'var(--color-forge-accent)',
+            opacity: 0.4,
             pointerEvents: 'none',
             zIndex: 5
           }} />
@@ -164,8 +165,8 @@ export function TimetableGrid() {
             position: 'absolute',
             left: TIME_LABEL_WIDTH - 60,
             top: crosshairY + DAY_HEADER_HEIGHT - 10,
-            background: '#6366f1',
-            color: 'white',
+            background: 'var(--color-forge-accent)',
+            color: 'var(--color-forge-base)',
             fontSize: 10,
             padding: '2px 6px',
             borderRadius: 10,
@@ -185,7 +186,7 @@ export function TimetableGrid() {
       {dayColumns.map((col, i) => (
         <div 
           key={col.id} 
-          className="absolute flex items-center justify-center font-bold text-[#E8EAED] tracking-wide text-[14px] z-30 pointer-events-none"
+          className="absolute flex items-center justify-center font-bold text-forge-text-primary tracking-wide text-[14px] z-30 pointer-events-none"
           style={{ left: columnLefts[i], top: 0, width: col.widthPx, height: DAY_HEADER_HEIGHT }}
         >
           {col.label}
@@ -210,7 +211,7 @@ export function TimetableGrid() {
               fontSize: lbl.isHour ? 13 : 11,
               fontWeight: lbl.isHour ? 600 : 500,
               opacity: lbl.isHour ? 0.9 : 0.6,
-              color: '#9AA0A6',
+              color: 'var(--color-forge-text-muted)',
               pointerEvents: 'none',
             }}
           >
@@ -250,16 +251,16 @@ export function TimetableGrid() {
            {/* Drag Preview Ghost Overlay */}
            {dragCreate?.day === col.id && (
              <div 
-               className="absolute left-[4px] right-[4px] bg-indigo-500/25 border-2 border-dashed border-indigo-400 rounded-lg pointer-events-none flex flex-col items-center justify-center shadow-lg backdrop-blur-[2px]"
+               className="absolute left-[4px] right-[4px] bg-forge-accent/25 border-2 border-dashed border-forge-accent/80 rounded-lg pointer-events-none flex flex-col items-center justify-center shadow-lg backdrop-blur-[2px]"
                style={{
                  top: dragCreate.startY,
                  height: dragCreate.currentY - dragCreate.startY
                }}
              >
-               <span className="text-indigo-200 font-bold text-xs drop-shadow-md bg-indigo-900/60 px-2 py-0.5 rounded-full">
+               <span className="text-forge-accent font-bold text-xs drop-shadow-md bg-forge-elevated/80 px-2 py-0.5 rounded-full border border-forge-accent/20">
                  {to12HourShort(dragCreate.startTime)} – {to12HourShort(dragCreate.endTime)}
                </span>
-               <span className="text-indigo-300 font-mono text-[10px] mt-1 shadow-sm font-semibold">
+               <span className="text-forge-text-primary font-mono text-[10px] mt-1 shadow-sm font-semibold">
                  ({Math.floor(timeDiffMinutes(dragCreate.startTime, dragCreate.endTime) / 60)}h {timeDiffMinutes(dragCreate.startTime, dragCreate.endTime) % 60}m)
                </span>
              </div>

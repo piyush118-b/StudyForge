@@ -1,47 +1,52 @@
 import Link from "next/link";
 import {
-  ArrowRight, Zap, ShieldCheck, GraduationCap, BookOpen,
-  Brain, CheckSquare, Timer, BarChart3, Camera, Bell,
-  Sparkles, ChevronRight, Star
+  ArrowRight, Brain, CheckSquare, Timer,
+  BarChart3, Camera, Bell, BookOpen, ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const features = [
   {
     icon: Brain,
+    tag: "AI",
     title: "AI Timetable Generator",
     description: "Answer a few questions about your schedule, subjects, and energy patterns. Gemini builds you a clash-free, optimized weekly plan in 60 seconds.",
-    gradient: "from-indigo-500 to-purple-500",
+    gradient: "from-indigo-500 to-violet-600",
   },
   {
     icon: CheckSquare,
+    tag: "Productivity",
     title: "Smart Task Board",
     description: "A full Kanban board with drag-and-drop, priority labels, due dates, and filters. Track every assignment, exam, and study goal.",
-    gradient: "from-emerald-500 to-teal-500",
+    gradient: "from-orange-500 to-amber-600",
   },
   {
     icon: Timer,
+    tag: "Focus",
     title: "Pomodoro Focus Mode",
     description: "Built-in 25-minute focus timer with immersive full-screen mode, ambient sounds, and session stats to keep you in the zone.",
-    gradient: "from-orange-500 to-amber-500",
+    gradient: "from-red-500 to-rose-600",
   },
   {
     icon: BarChart3,
+    tag: "Analytics",
     title: "Analytics Dashboard",
     description: "GitHub-style contribution heatmap, daily streaks, subject breakdown charts, and weekly progress reports to keep you accountable.",
-    gradient: "from-blue-500 to-cyan-500",
+    gradient: "from-blue-500 to-cyan-600",
   },
   {
     icon: Camera,
-    title: "Photo → Tasks (OCR)",
+    tag: "OCR",
+    title: "Photo → Tasks",
     description: "Snap a photo of your whiteboard or syllabus. Gemini Vision reads the handwriting and converts it into structured, actionable tasks.",
-    gradient: "from-pink-500 to-rose-500",
+    gradient: "from-emerald-500 to-teal-600",
   },
   {
     icon: Bell,
+    tag: "Reminders",
     title: "Smart Notifications",
     description: "Get nudged before deadlines hit. Smart reminders adapt to your schedule and notify you at the right moment.",
-    gradient: "from-violet-500 to-fuchsia-500",
+    gradient: "from-purple-500 to-fuchsia-600",
   },
 ];
 
@@ -53,25 +58,34 @@ const steps = [
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-slate-950 text-white overflow-x-hidden">
+    <div className="min-h-screen bg-[#0A0A0A] text-[#F0F0F0] overflow-x-hidden">
 
-      {/* ─── NAVBAR ─── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-950/80 backdrop-blur-xl border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      {/* ── NAVBAR ── */}
+      <nav className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-[#2A2A2A]/60 bg-[#0A0A0A]/85 backdrop-blur-xl">
+        <div className="max-w-6xl mx-auto h-full px-6 flex items-center justify-between">
+
+          {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center shadow-[0_0_12px_rgba(16,185,129,0.4)]">
               <BookOpen className="w-4 h-4 text-white" />
             </div>
-            <span className="text-lg font-bold tracking-tight">StudyForge <span className="text-indigo-400">AI</span></span>
+            <span className="font-bold text-[#F0F0F0] tracking-tight text-sm">
+              StudyForge
+            </span>
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-[rgba(16,185,129,0.12)] text-[#10B981] border border-[#10B981]/25">
+              AI
+            </span>
           </Link>
-          <div className="flex items-center gap-3">
-            <Link href="/auth/login">
-              <Button variant="ghost" className="text-slate-300 hover:text-white hover:bg-white/5 hidden sm:inline-flex">
-                Log In
+
+          {/* CTAs */}
+          <div className="flex items-center gap-2">
+            <Link href="/auth/login" className="hidden sm:block">
+              <Button variant="ghost" size="sm" className="text-[#A0A0A0] hover:text-[#F0F0F0] hover:bg-[#222222]">
+                Sign In
               </Button>
             </Link>
             <Link href="/auth/signup">
-              <Button className="bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/25 px-5">
+              <Button size="sm" className="bg-[#10B981] hover:bg-[#34D399] text-[#0A0A0A] font-bold shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_20px_rgba(16,185,129,0.15)] hover:shadow-[0_0_0_1px_rgba(16,185,129,0.5),0_0_30px_rgba(16,185,129,0.25)] transition-all px-5">
                 Get Started Free
               </Button>
             </Link>
@@ -79,119 +93,139 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* ─── HERO ─── */}
-      <section className="relative pt-32 pb-20 md:pt-44 md:pb-32 px-6">
-        {/* Background blurs */}
-        <div className="absolute top-[10%] left-[-5%] w-[500px] h-[500px] bg-indigo-500/15 blur-[150px] rounded-full pointer-events-none" />
-        <div className="absolute bottom-[0%] right-[-5%] w-[400px] h-[400px] bg-teal-500/10 blur-[130px] rounded-full pointer-events-none" />
+      {/* ── HERO ── */}
+      <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-16 overflow-hidden">
 
-        <div className="max-w-5xl mx-auto text-center relative z-10">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm font-medium text-teal-300 backdrop-blur-sm shadow-xl shadow-teal-900/10 mb-8">
-            <Sparkles className="w-4 h-4 text-amber-400" />
-            <span>Powered by Gemini 2.5 Flash</span>
+        {/* Emerald glow blob */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-[#10B981]/6 blur-[140px] rounded-full pointer-events-none select-none" />
+
+        {/* Dot grid */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle,#2A2A2A_1px,transparent_1px)] bg-[size:32px_32px] opacity-35 pointer-events-none select-none" />
+
+        {/* Gradient fade over grid */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A] via-transparent to-[#0A0A0A] pointer-events-none select-none" />
+
+        {/* Hero content */}
+        <div className="relative z-10 text-center max-w-4xl mx-auto">
+
+          {/* Announcement badge */}
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1A1A1A] border border-[#2A2A2A] text-xs font-medium text-[#A0A0A0] mb-8 shadow-[0_1px_3px_rgba(0,0,0,0.5)]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] shadow-[0_0_6px_rgba(16,185,129,0.8)] animate-pulse" />
+            Built with Gemini 2.5 Flash · Free to start · 200+ colleges
           </div>
 
-          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight leading-[1.05]">
-            <span className="bg-clip-text text-transparent bg-gradient-to-br from-white via-white/90 to-white/50">
-              Your semester,
-            </span>
+          {/* Main headline */}
+          <h1 className="text-5xl md:text-7xl font-black tracking-tight leading-[1.02] text-[#F0F0F0] mb-6">
+            Your semester,
             <br />
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-teal-400 to-emerald-400">
+            <span className="bg-gradient-to-r from-[#10B981] via-[#34D399] to-[#14B8A6] bg-clip-text text-transparent">
               perfectly planned.
             </span>
           </h1>
 
-          <p className="mt-6 text-lg md:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
+          {/* Subheadline */}
+          <p className="text-lg md:text-xl text-[#A0A0A0] max-w-2xl mx-auto leading-relaxed mb-10">
             The AI-powered study suite that builds your timetable, tracks your tasks,
             and keeps you focused — so you can stop planning and start achieving.
           </p>
 
-          {/* CTA */}
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-16">
             <Link href="/auth/signup">
-              <Button size="lg" className="h-14 px-10 rounded-2xl text-lg font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-2xl shadow-indigo-600/30 transition-all hover:scale-105 active:scale-95 group">
-                Start Free — No Card Required
+              <Button size="xl" className="w-full sm:w-auto h-14 px-10 text-lg font-bold bg-[#10B981] hover:bg-[#34D399] text-[#0A0A0A] shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_20px_rgba(16,185,129,0.15)] hover:shadow-[0_0_0_1px_rgba(16,185,129,0.5),0_0_40px_rgba(16,185,129,0.25)] transition-all group">
+                Start Free
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
             <Link href="/dashboard">
-              <Button variant="ghost" size="lg" className="h-14 px-8 rounded-2xl text-lg text-slate-400 hover:text-white hover:bg-white/5 group">
+              <Button variant="secondary" size="xl" className="w-full sm:w-auto h-14 px-8 text-lg font-semibold bg-[#1A1A1A] border border-[#2A2A2A] text-[#A0A0A0] hover:bg-[#222222] hover:text-[#F0F0F0] hover:border-[#333333] group">
                 Explore as Guest
                 <ChevronRight className="ml-1 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
           </div>
 
-          {/* Trust */}
-          <div className="mt-16 flex flex-col items-center gap-3">
-            <div className="flex items-center">
-              {[1,2,3,4,5].map((i) => (
-                <div key={i} className="w-10 h-10 rounded-full border-2 border-slate-950 bg-gradient-to-br from-indigo-400 to-teal-400 ml-[-10px] first:ml-0 flex items-center justify-center text-xs font-bold shadow-sm">
-                  S{i}
-                </div>
-              ))}
-              <span className="ml-4 text-sm font-medium text-slate-400">
-                Loved by <span className="text-white font-semibold">10,000+</span> students
-              </span>
-            </div>
-            <div className="flex items-center gap-1">
-              {[1,2,3,4,5].map(i => <Star key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />)}
-              <span className="text-sm text-slate-500 ml-1">4.9/5 rating</span>
-            </div>
-          </div>
+          {/* Social proof */}
+          <p className="text-sm text-[#606060]">
+            Used by students at IITs, NITs, IIITs &amp; 200+ colleges across India
+          </p>
         </div>
       </section>
 
-      {/* ─── FEATURES ─── */}
-      <section className="py-20 md:py-32 px-6 relative">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-sm font-semibold text-indigo-400 uppercase tracking-widest mb-3">Everything You Need</p>
-            <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">
-              One app to rule your semester
-            </h2>
-            <p className="mt-4 text-slate-400 max-w-xl mx-auto">
-              From AI-generated timetables to photo-based task import — everything a college student needs, in one place.
-            </p>
-          </div>
+      {/* ── STATS BAR ── */}
+      <div className="border-y border-[#2A2A2A] bg-[#111111]/60 py-8">
+        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 px-6">
+          {[
+            { value: "200+", label: "Colleges Supported" },
+            { value: "50K+", label: "Blocks Tracked" },
+            { value: "150+", label: "Branches & Streams" },
+            { value: "Free", label: "To Get Started" },
+          ].map(({ value, label }) => (
+            <div key={label} className="text-center">
+              <p className="text-2xl font-black text-[#F0F0F0] mb-1">{value}</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-[#606060]">{label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature) => (
-              <div
-                key={feature.title}
-                className="group relative bg-slate-900/50 border border-slate-800/50 rounded-2xl p-6 hover:border-slate-700 transition-all hover:bg-slate-900/80 hover:-translate-y-1"
-              >
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-5 shadow-lg group-hover:scale-110 transition-transform`}>
-                  <feature.icon className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">{feature.title}</h3>
-                <p className="text-sm text-slate-400 leading-relaxed">{feature.description}</p>
+      {/* ── FEATURES ── */}
+      <section id="features" className="py-24 px-6 relative bg-[#111111]/30">
+
+        <div className="text-center mb-16 max-w-3xl mx-auto">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[#606060] mb-3">
+            Why StudyForge
+          </p>
+          <h2 className="text-3xl md:text-4xl font-black text-[#F0F0F0] tracking-tight mb-4">
+            Everything you need to{" "}
+            <span className="text-[#10B981]">actually study</span>
+          </h2>
+          <p className="text-[#A0A0A0] leading-relaxed">
+            One platform to replace your planner, calendar, task list, and timer.
+            Built for how Indian students actually study.
+          </p>
+        </div>
+
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {features.map(({ icon: Icon, tag, gradient, title, description }) => (
+            <div
+              key={title}
+              className="group bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6 cursor-default transition-all duration-200 hover:-translate-y-0.5 hover:border-[#333333] hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
+            >
+              <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center mb-4 shadow-[0_2px_8px_rgba(0,0,0,0.3)]`}>
+                <Icon className="w-5 h-5 text-white" />
               </div>
-            ))}
-          </div>
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-[#222222] border border-[#2A2A2A] text-[#606060] mb-3">
+                {tag}
+              </span>
+              <h3 className="text-base font-semibold text-[#F0F0F0] tracking-tight mb-2 group-hover:text-[#10B981] transition-colors">
+                {title}
+              </h3>
+              <p className="text-sm text-[#A0A0A0] leading-relaxed">{description}</p>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* ─── HOW IT WORKS ─── */}
-      <section className="py-20 md:py-32 px-6 bg-slate-900/30 border-y border-slate-800/30">
+      {/* ── HOW IT WORKS ── */}
+      <section className="py-24 md:py-32 px-6 border-t border-[#2A2A2A]/50 bg-[#1A1A1A]/20">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-sm font-semibold text-teal-400 uppercase tracking-widest mb-3">Simple as 1-2-3</p>
-            <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">
+          <div className="text-center mb-20">
+            <p className="text-xs font-semibold uppercase tracking-widest text-[#606060] mb-3">Simple as 1-2-3</p>
+            <h2 className="text-3xl md:text-5xl font-black tracking-tight text-[#F0F0F0]">
               Get started in minutes
             </h2>
           </div>
 
-          <div className="space-y-8">
-            {steps.map((s, idx) => (
-              <div key={s.step} className="flex items-start gap-6 group">
-                <div className="shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-teal-500/20 border border-indigo-500/20 flex items-center justify-center text-xl font-extrabold text-indigo-400 group-hover:scale-110 transition-transform">
+          <div className="space-y-10 pl-4 md:pl-0">
+            {steps.map((s) => (
+              <div key={s.step} className="flex items-start gap-6 md:gap-8 group">
+                <div className="shrink-0 w-16 h-16 rounded-2xl bg-[#10B981]/10 border border-[#10B981]/30 flex items-center justify-center text-xl font-black text-[#10B981] shadow-[0_0_15px_rgba(16,185,129,0.15)] group-hover:bg-[#10B981] group-hover:text-[#0A0A0A] transition-all duration-300">
                   {s.step}
                 </div>
-                <div className="pt-1">
-                  <h3 className="text-xl font-bold text-white mb-1">{s.title}</h3>
-                  <p className="text-slate-400">{s.description}</p>
+                <div className="pt-2">
+                  <h3 className="text-2xl font-bold text-[#F0F0F0] mb-2 group-hover:text-[#10B981] transition-colors">{s.title}</h3>
+                  <p className="text-lg text-[#A0A0A0] leading-relaxed">{s.description}</p>
                 </div>
               </div>
             ))}
@@ -199,44 +233,77 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ─── FINAL CTA ─── */}
-      <section className="py-24 md:py-36 px-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-indigo-500/5 to-transparent pointer-events-none" />
-        <div className="max-w-3xl mx-auto text-center relative z-10">
-          <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-6">
-            Ready to ace this semester?
+      {/* ── BOTTOM CTA ── */}
+      <section className="relative py-24 px-6 overflow-hidden border-t border-[#2A2A2A]/50">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-[#10B981]/8 blur-[100px] rounded-full pointer-events-none" />
+
+        <div className="relative z-10 max-w-2xl mx-auto text-center">
+          <h2 className="text-3xl md:text-5xl font-black text-[#F0F0F0] tracking-tight mb-4">
+            Ready to own your semester?
           </h2>
-          <p className="text-lg text-slate-400 mb-10 max-w-lg mx-auto">
-            Join thousands of students who stopped stressing about schedules and started achieving their goals.
+          <p className="text-[#A0A0A0] mb-8 leading-relaxed">
+            Join thousands of Indian students who&apos;ve replaced 5 scattered apps
+            with one AI-powered Academic OS.
           </p>
-          <Link href="/auth/signup">
-            <Button size="lg" className="h-16 px-12 rounded-2xl text-lg font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-2xl shadow-indigo-600/30 transition-all hover:scale-105 active:scale-95 group">
-              Start Your Journey
-              <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link href="/auth/signup">
+              <Button size="xl" className="h-14 px-10 text-lg font-bold bg-[#10B981] hover:bg-[#34D399] text-[#0A0A0A] shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_20px_rgba(16,185,129,0.15)] hover:shadow-[0_0_0_1px_rgba(16,185,129,0.5),0_0_40px_rgba(16,185,129,0.25)] transition-all group">
+                Start Your Journey
+                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* ─── FOOTER ─── */}
-      <footer className="border-t border-slate-800/50 py-12 px-6">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center">
-              <BookOpen className="w-3.5 h-3.5 text-white" />
+      {/* ── FOOTER ── */}
+      <footer className="border-t border-[#2A2A2A] bg-[#111111] py-12 px-6">
+        <div className="max-w-5xl mx-auto">
+
+          {/* Top row */}
+          <div className="flex flex-col md:flex-row justify-between gap-10 mb-10">
+            <div className="max-w-xs">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-6 h-6 rounded-md bg-gradient-to-br from-[#10B981] to-[#059669]" />
+                <span className="font-bold text-[#F0F0F0] text-sm tracking-tight">StudyForge AI</span>
+              </div>
+              <p className="text-sm text-[#606060] leading-relaxed">
+                The Academic OS for Indian college students.
+                Built with ❤️ by students, for students.
+              </p>
             </div>
-            <span className="text-sm font-bold">StudyForge <span className="text-indigo-400">AI</span></span>
+
+            <div className="flex gap-16">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-[#3A3A3A] mb-3">Product</p>
+                <div className="space-y-2">
+                  <Link href="/dashboard" className="block text-sm text-[#606060] hover:text-[#A0A0A0] transition-colors duration-150">Dashboard</Link>
+                  <Link href="/pricing" className="block text-sm text-[#606060] hover:text-[#A0A0A0] transition-colors duration-150">Pricing</Link>
+                  <Link href="/auth/signup" className="block text-sm text-[#606060] hover:text-[#A0A0A0] transition-colors duration-150">Sign Up</Link>
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-[#3A3A3A] mb-3">Account</p>
+                <div className="space-y-2">
+                  <Link href="/auth/login" className="block text-sm text-[#606060] hover:text-[#A0A0A0] transition-colors duration-150">Login</Link>
+                  <Link href="/auth/signup" className="block text-sm text-[#606060] hover:text-[#A0A0A0] transition-colors duration-150">Create Account</Link>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-6 text-sm text-slate-500">
-            <Link href="/auth/login" className="hover:text-white transition-colors">Login</Link>
-            <Link href="/auth/signup" className="hover:text-white transition-colors">Sign Up</Link>
-            <Link href="/dashboard" className="hover:text-white transition-colors">Dashboard</Link>
+
+          {/* Bottom row */}
+          <div className="border-t border-[#2A2A2A] pt-6 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <p className="text-xs text-[#606060]">© 2026 StudyForge AI. Made in India 🇮🇳</p>
+            <div className="flex items-center gap-6">
+              <Link href="/auth/login" className="text-xs text-[#606060] hover:text-[#A0A0A0] transition-colors">Login</Link>
+              <Link href="/auth/signup" className="text-xs text-[#606060] hover:text-[#A0A0A0] transition-colors">Sign Up</Link>
+              <Link href="/dashboard" className="text-xs text-[#606060] hover:text-[#A0A0A0] transition-colors">Dashboard</Link>
+            </div>
           </div>
-          <p className="text-xs text-slate-600">
-            © 2026 StudyForge AI. Built for students, by students.
-          </p>
         </div>
       </footer>
+
     </div>
   );
 }

@@ -68,29 +68,29 @@ export default function ProfileSettingsPage() {
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center bg-[#080C14]">
-        <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
+      <div className="flex h-full items-center justify-center bg-forge-base">
+        <Loader2 className="w-8 h-8 text-forge-accent animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-full bg-[#080C14] p-6 md:p-12">
+    <div className="min-h-full bg-forge-base p-6 md:p-12">
       <div className="max-w-3xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
         
         {/* User Card */}
-        <div className="bg-[#0F172A]/40 border border-white/5 rounded-[28px] p-6 md:p-8 flex items-center gap-6 backdrop-blur-xl shadow-2xl relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="bg-forge-elevated/40 border border-forge-border rounded-[28px] p-6 md:p-8 flex items-center gap-6 backdrop-blur-xl shadow-forge-2xl relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-forge-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           
-          <div className="relative w-16 h-16 md:w-20 md:h-20 bg-indigo-500/10 rounded-full flex items-center justify-center border border-indigo-500/20 shadow-inner">
-            <User className="w-8 h-8 md:w-10 md:h-10 text-indigo-400" />
+          <div className="relative w-16 h-16 md:w-20 md:h-20 bg-forge-accent/10 rounded-full flex items-center justify-center border border-forge-accent/20 shadow-inner">
+            <User className="w-8 h-8 md:w-10 md:h-10 text-forge-accent" />
           </div>
           
           <div className="flex-1 relative">
-            <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight">
+            <h2 className="text-xl md:text-2xl font-bold text-forge-text-primary tracking-tight">
               {profile?.full_name || name || 'Student Name'}
             </h2>
-            <div className="flex items-center gap-2 mt-1.5 text-slate-400">
+            <div className="flex items-center gap-2 mt-1.5 text-forge-text-secondary">
               <Mail className="w-4 h-4 opacity-60" />
               <span className="text-sm md:text-base font-medium">{user?.email || 'guest@studyforge.ai'}</span>
             </div>
@@ -104,24 +104,24 @@ export default function ProfileSettingsPage() {
         </div>
 
         {/* Academic Profile Form */}
-        <div className="bg-[#0F172A]/40 border border-white/5 rounded-[32px] overflow-hidden backdrop-blur-xl shadow-2xl">
-          <div className="px-8 py-7 flex items-center gap-4 border-b border-white/5">
-            <div className="w-12 h-12 bg-indigo-500/10 rounded-2xl flex items-center justify-center border border-indigo-500/20 shadow-lg">
-              <GraduationCap className="w-6 h-6 text-indigo-400" />
+        <div className="bg-forge-elevated/40 border border-forge-border rounded-[32px] overflow-hidden backdrop-blur-xl shadow-forge-2xl">
+          <div className="px-8 py-7 flex items-center gap-4 border-b border-forge-border">
+            <div className="w-12 h-12 bg-forge-accent/10 rounded-2xl flex items-center justify-center border border-forge-accent/20 shadow-forge-lg">
+              <GraduationCap className="w-6 h-6 text-forge-accent" />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-white tracking-tight">Academic Profile</h3>
-              <p className="text-sm text-slate-500 mt-0.5">Saved to your account — used for AI timetable generation.</p>
+              <h3 className="text-xl font-bold text-forge-text-primary tracking-tight">Academic Profile</h3>
+              <p className="text-sm text-forge-text-muted mt-0.5">Saved to your account — used for AI timetable generation.</p>
             </div>
           </div>
 
           <div className="p-8 space-y-8">
             {/* Name field */}
             <div className="space-y-3">
-              <Label className="text-slate-300 text-sm font-semibold tracking-wide ml-1">Your Name</Label>
+              <Label className="text-forge-text-secondary text-sm font-semibold tracking-wide ml-1">Your Name</Label>
               <Input 
                 placeholder="E.g. Piyush Bagdi" 
-                className="bg-slate-900/50 border-white/5 focus:border-indigo-500/50 focus:ring-indigo-500/20 text-white rounded-2xl h-14 md:h-16 px-6 text-lg transition-all"
+                className="bg-forge-overlay/50 border-forge-border focus:border-forge-accent/50 focus:ring-forge-accent/20 text-forge-text-primary rounded-2xl h-14 md:h-16 px-6 text-lg transition-all"
                 value={name}
                 onChange={e => setName(e.target.value)}
               />
@@ -129,7 +129,7 @@ export default function ProfileSettingsPage() {
 
             {/* College field */}
             <div className="space-y-3">
-              <Label className="text-slate-300 text-sm font-semibold tracking-wide ml-1">College / University</Label>
+              <Label className="text-forge-text-secondary text-sm font-semibold tracking-wide ml-1">College / University</Label>
               {!showCustomCollege ? (
                 <CategorizedCombobox 
                   categories={INDIAN_COLLEGES}
@@ -144,12 +144,12 @@ export default function ProfileSettingsPage() {
                 <div className="flex gap-3 animate-in slide-in-from-right-4 duration-300">
                   <Input 
                     placeholder="Type your college name" 
-                    className="bg-slate-900/50 border-white/5 focus:border-indigo-500/50 text-white rounded-2xl h-14 md:h-16 px-6 text-lg flex-1"
+                    className="bg-forge-overlay/50 border-forge-border focus:border-forge-accent/50 text-forge-text-primary rounded-2xl h-14 md:h-16 px-6 text-lg flex-1"
                     value={college}
                     autoFocus
                     onChange={e => setCollege(e.target.value)}
                   />
-                  <Button variant="outline" className="border-white/10 text-slate-400 h-14 md:h-16 rounded-2xl px-6" onClick={() => setShowCustomCollege(false)}>
+                  <Button variant="outline" className="border-forge-border text-forge-text-secondary h-14 md:h-16 rounded-2xl px-6" onClick={() => setShowCustomCollege(false)}>
                     Back
                   </Button>
                 </div>
@@ -159,21 +159,21 @@ export default function ProfileSettingsPage() {
             {/* Row: Sem & Branch */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-3">
-                <Label className="text-slate-300 text-sm font-semibold tracking-wide ml-1">Semester / Year</Label>
+                <Label className="text-forge-text-secondary text-sm font-semibold tracking-wide ml-1">Semester / Year</Label>
                 <Select value={semester} onValueChange={val => setSemester(val || '')}>
-                  <SelectTrigger className="bg-slate-900/50 border-white/5 focus:border-indigo-500/50 text-white rounded-2xl h-14 md:h-16 px-6 text-lg">
+                  <SelectTrigger className="bg-forge-overlay/50 border-forge-border focus:border-forge-accent/50 text-forge-text-primary rounded-2xl h-14 md:h-16 px-6 text-lg">
                     <SelectValue placeholder="Select semester" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#121826] border-white/10 text-white">
+                  <SelectContent className="bg-forge-elevated border-forge-border text-forge-text-primary">
                     {SEMESTERS.map(sem => (
-                      <SelectItem key={sem} value={sem} className="hover:bg-indigo-500/10 focus:bg-indigo-500/20 cursor-pointer rounded-xl h-10">{sem}</SelectItem>
+                      <SelectItem key={sem} value={sem} className="hover:bg-forge-accent/10 focus:bg-forge-accent/20 cursor-pointer rounded-xl h-10">{sem}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-3">
-                <Label className="text-slate-300 text-sm font-semibold tracking-wide ml-1">Branch / Stream</Label>
+                <Label className="text-forge-text-secondary text-sm font-semibold tracking-wide ml-1">Branch / Stream</Label>
                 {!showCustomBranch ? (
                   <CategorizedCombobox 
                     categories={BRANCHES}
@@ -188,12 +188,12 @@ export default function ProfileSettingsPage() {
                   <div className="flex gap-3 animate-in slide-in-from-right-4 duration-300">
                     <Input 
                       placeholder="Type stream" 
-                      className="bg-slate-900/50 border-white/5 focus:border-indigo-500/50 text-white rounded-2xl h-14 md:h-16 px-6 text-lg flex-1"
+                      className="bg-forge-overlay/50 border-forge-border focus:border-forge-accent/50 text-forge-text-primary rounded-2xl h-14 md:h-16 px-6 text-lg flex-1"
                       value={branch}
                       autoFocus
                       onChange={e => setBranch(e.target.value)}
                     />
-                    <Button variant="outline" className="border-white/10 text-slate-400 h-14 md:h-16 rounded-2xl px-6" onClick={() => setShowCustomBranch(false)}>
+                    <Button variant="outline" className="border-forge-border text-forge-text-secondary h-14 md:h-16 rounded-2xl px-6" onClick={() => setShowCustomBranch(false)}>
                       Back
                     </Button>
                   </div>
@@ -202,11 +202,11 @@ export default function ProfileSettingsPage() {
             </div>
           </div>
 
-          <div className="px-8 py-6 bg-white/[0.02] border-t border-white/5 flex justify-end">
+          <div className="px-8 py-6 bg-forge-elevated/20 border-t border-forge-border flex justify-end">
             <Button 
               onClick={handleSave} 
               disabled={!isValid || saving}
-              className={`gap-3 px-10 h-14 rounded-2xl font-bold text-base transition-all active:scale-95 shadow-2xl ${saved ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-600/40 hover:shadow-indigo-600/60'}`}
+              className={`gap-3 px-10 h-14 rounded-2xl font-bold text-base transition-all active:scale-95 shadow-forge-2xl ${saved ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-forge-accent hover:bg-forge-accent-bright shadow-forge-accent/40 hover:shadow-forge-accent/60'}`}
             >
               {saving ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -219,7 +219,7 @@ export default function ProfileSettingsPage() {
           </div>
         </div>
 
-        <p className="text-center text-slate-600 text-xs font-medium tracking-wide pb-12">
+        <p className="text-center text-forge-text-muted text-xs font-medium tracking-wide pb-12">
           Profile is stored securely in your account and used by the AI timetable generator.
         </p>
       </div>

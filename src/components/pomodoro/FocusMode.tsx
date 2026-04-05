@@ -3,9 +3,8 @@
 import { usePomodoro, playAlertSound, triggerFocusConfetti } from '@/hooks/usePomodoro';
 import { useAuth } from '@/lib/auth-context';
 import { useEffect, useState } from 'react';
-import { Play, Pause, X, Zap } from 'lucide-react';
+import { Play, Pause, X } from 'lucide-react';
 import { useTaskStore } from '@/store/task-store';
-import { Button } from '@/components/ui/button';
 
 const QUOTES = [
   "बड़े काम के लिए बड़ी मेहनत लगती है। — Keep going!",
@@ -23,7 +22,7 @@ export function FocusMode() {
   const { user } = useAuth();
   const { tasks } = useTaskStore();
   const [quote] = useState(() => QUOTES[Math.floor(Math.random() * QUOTES.length)]);
-  
+
   // Exit full screen with ESC key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -45,86 +44,95 @@ export function FocusMode() {
 
   const currentTask = store.currentTaskId ? tasks.find(t => t.id === store.currentTaskId) : null;
   const isFocus = store.phase === 'focus';
+  const progressPct = store.totalSeconds > 0 ? (1 - store.secondsRemaining / store.totalSeconds) * 100 : 0;
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-[#090d18] text-white flex flex-col items-center justify-center p-8 overflow-hidden select-none">
-      
-      {/* Background Gradient Orbs */}
-      <div className={`absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full blur-[150px] opacity-20 pointer-events-none transition-colors duration-1000 ${isFocus ? 'bg-indigo-600' : 'bg-emerald-600'}`} />
-      <div className={`absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full blur-[120px] opacity-20 pointer-events-none transition-colors duration-1000 ${isFocus ? 'bg-purple-600' : 'bg-blue-600'}`} />
+    <div className="fixed inset-0 z-[9999] bg-[#0A0A0A] flex flex-col items-center justify-center p-8 overflow-hidden select-none">
 
-      {/* Top Bar Navigation */}
-      <button onClick={() => store.setFocusMode(false)} className="absolute top-8 right-8 p-3 rounded-xl bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-all backdrop-blur-sm group">
-        <X className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
+      {/* Ambient background glow */}
+      <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+                       w-[600px] h-[600px] rounded-full blur-[120px] opacity-[0.04] pointer-events-none transition-colors duration-1000
+                       ${isFocus ? 'bg-[#10B981]' : 'bg-[#3B82F6]'}`} />
+
+      {/* Exit button */}
+      <button
+        onClick={() => store.setFocusMode(false)}
+        className="absolute top-6 right-6 h-9 px-4 rounded-xl border border-[#2A2A2A] bg-transparent text-sm font-medium text-[#A0A0A0] hover:bg-[#1A1A1A] hover:text-[#F0F0F0] transition-all duration-150">
+        Exit Focus Mode
       </button>
 
-      {/* Main Content Group */}
-      <div className="relative z-10 flex flex-col items-center max-w-2xl w-full text-center space-y-12">
-        
-        {/* Phase Indicator */}
-        <div className="flex items-center gap-3 animate-fade-in-down">
-          <span className={`px-4 py-1.5 rounded-full border border-white/10 text-sm font-bold tracking-widest uppercase shadow-lg backdrop-blur-md ${isFocus ? 'bg-indigo-500/20 text-indigo-300' : 'bg-emerald-500/20 text-emerald-300'}`}>
+      {/* Main group */}
+      <div className="relative z-10 flex flex-col items-center max-w-2xl w-full text-center space-y-10">
+
+        {/* Phase badge */}
+        <div className="flex items-center gap-3">
+          <span className={`px-4 py-1.5 rounded-full border text-xs font-bold tracking-widest uppercase backdrop-blur-md
+            ${isFocus
+              ? 'bg-[rgba(16,185,129,0.12)] border-[#10B981]/30 text-[#10B981]'
+              : 'bg-[rgba(59,130,246,0.12)] border-[#3B82F6]/30 text-[#3B82F6]'}`}>
             {store.phase.replace('_', ' ')}
           </span>
           {isFocus && store.sessionCount > 0 && (
-            <span className="text-white/40 text-sm font-medium">Session {store.sessionCount + 1}/{store.config.sessionsBeforeLongBreak}</span>
+            <span className="text-[#606060] text-sm font-medium">Session {store.sessionCount + 1}/{store.config.sessionsBeforeLongBreak}</span>
           )}
         </div>
 
-        {/* Task Title / Focus Goal */}
+        {/* Task / goal */}
         <div className="flex flex-col items-center gap-2">
           {currentTask ? (
             <>
-              {currentTask.subject && <span className="text-indigo-400 font-semibold tracking-wide uppercase text-sm">{currentTask.subject}</span>}
-              <h1 className="text-3xl md:text-5xl font-bold text-white/90 leading-tight">
-                {currentTask.title}
-              </h1>
+              {currentTask.subject && <span className="text-[#10B981] font-semibold tracking-wide uppercase text-sm">{currentTask.subject}</span>}
+              <h1 className="text-3xl md:text-5xl font-bold text-[#F0F0F0] leading-tight">{currentTask.title}</h1>
             </>
           ) : (
-            <h1 className="text-2xl md:text-4xl font-semibold text-white/60 font-serif italic">
+            <h1 className="text-2xl md:text-4xl font-semibold text-[#A0A0A0] font-serif italic">
               "Deep work is the superpower of the 21st century."
             </h1>
           )}
         </div>
 
-        {/* THE CLOCK */}
-        <div className="relative group perspective-1000">
-          <div className={`text-[120px] md:text-[200px] font-black tracking-tighter tabular-nums leading-none transition-all duration-300 ${store.isRunning ? 'text-white' : 'text-white/40'} ${store.secondsRemaining < 60 ? 'text-rose-400' : ''}`} style={{ fontVariantNumeric: 'tabular-nums' }}>
-            {formatTime(store.secondsRemaining)}
-          </div>
-          
-          {/* Progress Bar (Underneath) */}
-          <div className="h-2 w-full max-w-md mx-auto bg-white/5 rounded-full overflow-hidden mt-8 shadow-inner shadow-black/50">
-             <div className="h-full bg-white/40 rounded-full transition-all duration-1000 ease-linear"
-               style={{ width: `${(1 - store.secondsRemaining / store.totalSeconds) * 100}%` }}
-             />
-          </div>
+        {/* Giant clock */}
+        <div className={`text-[110px] md:text-[180px] font-black tracking-tighter tabular-nums leading-none transition-all duration-300
+          ${store.isRunning ? 'text-[#F0F0F0]' : 'text-[#F0F0F0]/40'}
+          ${store.secondsRemaining < 60 ? '!text-[#EF4444]' : ''}`}
+          style={{ fontVariantNumeric: 'tabular-nums' }}>
+          {formatTime(store.secondsRemaining)}
         </div>
 
-        {/* Controls Panel */}
-        <div className="flex items-center gap-6 mt-8">
-          <Button variant="ghost" size="lg" className="h-14 px-8 rounded-full text-white/50 hover:text-white hover:bg-white/10 text-lg transition-all" onClick={store.skip}>
-            Skip Phase
-          </Button>
+        {/* Progress bar */}
+        <div className="h-1.5 w-full max-w-md mx-auto bg-[#1A1A1A] rounded-full overflow-hidden">
+          <div className={`h-full rounded-full transition-all duration-1000 ease-linear ${isFocus ? 'bg-[#10B981]' : 'bg-[#3B82F6]'}`}
+            style={{ width: `${progressPct}%` }} />
+        </div>
 
-          <button onClick={store.isRunning ? store.pause : store.start} 
-            className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 shadow-2xl hover:scale-105 active:scale-95 ${store.isRunning ? 'bg-orange-500 hover:bg-orange-400 text-white shadow-orange-500/20' : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-500/40'}`}>
+        {/* Controls */}
+        <div className="flex items-center gap-6">
+          <button onClick={store.skip}
+            className="h-12 px-8 rounded-full text-[#A0A0A0] hover:text-[#F0F0F0] hover:bg-[#1A1A1A] border border-[#2A2A2A] text-sm font-semibold transition-all duration-150">
+            Skip Phase
+          </button>
+
+          <button onClick={store.isRunning ? store.pause : store.start}
+            className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 shadow-2xl
+              ${store.isRunning
+                ? 'bg-orange-500 hover:bg-orange-400 text-white shadow-orange-500/20'
+                : 'bg-[#10B981] hover:bg-[#34D399] text-[#0A0A0A] shadow-[0_0_40px_rgba(16,185,129,0.4)]'}`}>
             {store.isRunning ? <Pause className="w-8 h-8 fill-current" /> : <Play className="w-8 h-8 fill-current translate-x-1" />}
           </button>
 
-          <Button variant="ghost" size="lg" className="h-14 px-8 rounded-full text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 text-lg transition-all" onClick={store.reset}>
+          <button onClick={store.reset}
+            className="h-12 px-8 rounded-full text-[#EF4444] hover:text-red-300 hover:bg-[rgba(239,68,68,0.08)] border border-[#2A2A2A] hover:border-[#EF4444]/30 text-sm font-semibold transition-all duration-150">
             Reset
-          </Button>
+          </button>
         </div>
 
-        {/* Motivational Footnote */}
+        {/* Motivational quote */}
         {isFocus && (
-          <div className="mt-16 animate-fade-in text-white/40 text-lg font-medium tracking-wide">
+          <div className="mt-6 text-[#606060] text-base font-medium tracking-wide">
             {quote}
           </div>
         )}
       </div>
-      
     </div>
   );
 }

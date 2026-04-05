@@ -5,24 +5,24 @@ import { Camera, Sparkles } from 'lucide-react';
 
 export default function ScannerPage() {
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-8 animate-in fade-in zoom-in-95 duration-500">
-      
+    <div className="max-w-2xl mx-auto px-6 py-6 space-y-6 bg-[#0A0A0A] min-h-full">
+
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-white flex items-center gap-3">
-          <div className="bg-indigo-500/10 p-2 rounded-xl border border-indigo-500/20">
-            <Camera className="w-8 h-8 text-indigo-400" />
+      <div className="mb-6">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-9 h-9 bg-[rgba(16,185,129,0.1)] rounded-xl border border-[#10B981]/20 flex items-center justify-center">
+            <Camera className="w-5 h-5 text-[#10B981]" />
           </div>
-          Photo Tasks Scanner
-        </h1>
-        <p className="text-slate-400 mt-3 text-lg flex items-center gap-2">
-          Point your camera at a whiteboard or syllabus and let AI extract the text.
-          <Sparkles className="w-5 h-5 inline text-amber-500" />
+          <h1 className="text-xl font-bold text-[#F0F0F0] tracking-tight">OCR Scanner</h1>
+        </div>
+        <p className="text-sm text-[#A0A0A0] mt-1 pl-0">
+          Snap a photo of your whiteboard, notes, or syllabus →{' '}
+          tasks appear automatically <span className="text-[#10B981]">✨</span>
         </p>
       </div>
 
       <ImageScanner />
-      
+
     </div>
   );
 }

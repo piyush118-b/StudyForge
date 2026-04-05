@@ -64,33 +64,33 @@ export default function PricingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-forge-base text-forge-text-primary font-sans relative overflow-hidden">
       {/* Background glows */}
-      <div className="absolute top-[-10%] left-[20%] w-[600px] h-[600px] bg-indigo-600/8 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute top-[-10%] left-[20%] w-[600px] h-[600px] bg-forge-accent/8 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-[10%] right-[10%] w-[400px] h-[400px] bg-teal-500/5 blur-[100px] rounded-full pointer-events-none" />
 
       <div className="max-w-5xl mx-auto px-4 py-20 relative z-10">
 
         {/* Header */}
         <div className="text-center mb-14 space-y-5">
-          <div className="inline-block px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-semibold">
+          <div className="inline-block px-4 py-1.5 rounded-full bg-forge-accent/10 border border-forge-accent/20 text-forge-accent text-sm font-semibold">
             Simple, Student-Friendly Pricing 🎓
           </div>
-          <h1 className="text-5xl font-bold tracking-tight bg-gradient-to-br from-white to-slate-400 bg-clip-text text-transparent">
+          <h1 className="text-5xl font-bold tracking-tight bg-gradient-to-br from-forge-text-primary to-forge-text-muted bg-clip-text text-transparent">
             Invest in Your Studies
           </h1>
-          <p className="text-slate-400 text-lg max-w-md mx-auto">
+          <p className="text-forge-text-secondary text-lg max-w-md mx-auto">
             Less than a movie ticket per month. Worth every rupee.
           </p>
 
           {/* Billing Toggle */}
-          <div className="inline-flex items-center gap-1 bg-slate-900 border border-slate-800 rounded-xl p-1">
+          <div className="inline-flex items-center gap-1 bg-forge-elevated border border-forge-border rounded-xl p-1">
             <button
               onClick={() => setBilling('monthly')}
               className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
                 billing === 'monthly'
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-forge-accent text-forge-base shadow-lg shadow-forge-accent/30'
+                  : 'text-forge-text-secondary hover:text-forge-text-primary'
               }`}
             >
               Monthly
@@ -99,8 +99,8 @@ export default function PricingPage() {
               onClick={() => setBilling('yearly')}
               className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
                 billing === 'yearly'
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-forge-accent text-forge-base shadow-lg shadow-forge-accent/30'
+                  : 'text-forge-text-secondary hover:text-forge-text-primary'
               }`}
             >
               Yearly
@@ -115,26 +115,26 @@ export default function PricingPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
 
           {/* Free Card */}
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-8 flex flex-col">
+          <div className="bg-forge-elevated/60 border border-forge-border rounded-2xl p-8 flex flex-col">
             <div className="mb-6">
-              <h2 className="text-xl font-bold text-slate-300">Free</h2>
-              <p className="text-slate-500 text-sm mt-1">{PLANS[0].description}</p>
+              <h2 className="text-xl font-bold text-forge-text-primary">Free</h2>
+              <p className="text-forge-text-muted text-sm mt-1">{PLANS[0].description}</p>
               <div className="mt-4 flex items-baseline gap-1">
-                <span className="text-5xl font-bold text-white">₹0</span>
-                <span className="text-slate-500 text-sm">/month</span>
+                <span className="text-5xl font-bold text-forge-text-primary">₹0</span>
+                <span className="text-forge-text-muted text-sm">/month</span>
               </div>
             </div>
 
             <ul className="space-y-3 flex-1 mb-8">
               {PLANS[0].features.map((f) => (
-                <li key={f} className="flex items-start gap-3 text-sm text-slate-300">
+                <li key={f} className="flex items-start gap-3 text-sm text-forge-text-secondary">
                   <Check className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
                   {f}
                 </li>
               ))}
               {PLANS[0].notIncluded.map((f) => (
-                <li key={f} className="flex items-start gap-3 text-sm text-slate-600 line-through">
-                  <X className="w-4 h-4 text-slate-700 mt-0.5 shrink-0" />
+                <li key={f} className="flex items-start gap-3 text-sm text-forge-text-muted opacity-50 line-through">
+                  <X className="w-4 h-4 text-forge-text-muted mt-0.5 shrink-0" />
                   {f}
                 </li>
               ))}
@@ -143,51 +143,51 @@ export default function PricingPage() {
             {!user || subscription?.plan === 'free' ? (
               <Link
                 href="/create"
-                className="block text-center py-3 rounded-xl border border-slate-700 text-slate-400 font-semibold hover:bg-slate-800 transition-colors"
+                className="block text-center py-3 rounded-xl border border-forge-border text-forge-text-secondary font-semibold hover:bg-forge-overlay transition-colors"
               >
                 {!user ? 'Get Started Free' : 'Your Current Plan'}
               </Link>
             ) : (
-              <div className="block text-center py-3 rounded-xl border border-slate-700 text-slate-500 font-semibold cursor-not-allowed">
+              <div className="block text-center py-3 rounded-xl border border-forge-border text-forge-text-muted font-semibold cursor-not-allowed">
                 Downgrade to Free
               </div>
             )}
           </div>
 
           {/* Pro Card */}
-          <div className="relative bg-slate-900/80 border-2 border-indigo-500/60 rounded-2xl p-8 flex flex-col shadow-[0_0_40px_rgba(99,102,241,0.15)]">
+          <div className="relative bg-forge-elevated/80 border-2 border-forge-accent/60 rounded-2xl p-8 flex flex-col shadow-forge-2xl">
             {/* Most Popular Badge */}
-            <div className="absolute -top-3.5 right-6 bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+            <div className="absolute -top-3.5 right-6 bg-forge-accent text-forge-base text-xs font-bold px-3 py-1 rounded-full shadow-lg">
               Most Popular ✨
             </div>
 
             <div className="mb-6">
-              <h2 className="text-xl font-bold text-white">Pro</h2>
-              <p className="text-slate-400 text-sm mt-1">{PLANS[1].description}</p>
+              <h2 className="text-xl font-bold text-forge-text-primary">Pro</h2>
+              <p className="text-forge-text-secondary text-sm mt-1">{PLANS[1].description}</p>
               <div className="mt-4 flex items-baseline gap-2 flex-wrap">
                 {billing === 'yearly' ? (
                   <>
-                    <span className="text-5xl font-bold text-white">₹799</span>
-                    <span className="text-slate-400 text-sm">/year</span>
-                    <span className="text-slate-500 text-sm line-through ml-1">₹{PLANS[1].price.monthly * 12}</span>
+                    <span className="text-5xl font-bold text-forge-text-primary">₹799</span>
+                    <span className="text-forge-text-secondary text-sm">/year</span>
+                    <span className="text-forge-text-muted text-sm line-through ml-1">₹{PLANS[1].price.monthly * 12}</span>
                     <span className="bg-emerald-500/15 text-emerald-400 text-xs font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
                       Save ₹{proSavings}
                     </span>
                   </>
                 ) : (
                   <>
-                    <span className="text-5xl font-bold text-white">₹99</span>
-                    <span className="text-slate-400 text-sm">/month</span>
+                    <span className="text-5xl font-bold text-forge-text-primary">₹99</span>
+                    <span className="text-forge-text-secondary text-sm">/month</span>
                   </>
                 )}
               </div>
-              <p className="text-indigo-400 text-xs mt-2 font-medium">✨ 7-day free trial included</p>
+              <p className="text-forge-accent text-xs mt-2 font-medium">✨ 7-day free trial included</p>
             </div>
 
             <ul className="space-y-3 flex-1 mb-8">
               {PLANS[1].features.map((f) => (
-                <li key={f} className="flex items-start gap-3 text-sm text-slate-200">
-                  <Check className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" />
+                <li key={f} className="flex items-start gap-3 text-sm text-forge-text-primary">
+                  <Check className="w-4 h-4 text-forge-accent mt-0.5 shrink-0" />
                   {f}
                 </li>
               ))}
@@ -206,7 +206,7 @@ export default function PricingPage() {
                   handleUpgrade(priceId, 'pro');
                 }}
                 disabled={loadingPlan === 'pro'}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold transition-all shadow-lg shadow-indigo-500/30 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-forge-accent to-forge-accent-bright hover:shadow-forge-xl text-forge-base font-bold transition-all shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {loadingPlan === 'pro' ? 'Redirecting to Stripe...' : 'Upgrade to Pro ✨'}
               </button>
@@ -215,17 +215,17 @@ export default function PricingPage() {
         </div>
 
         {/* Trust Signals */}
-        <div className="flex flex-wrap justify-center gap-6 text-sm text-slate-500 mb-16">
+        <div className="flex flex-wrap justify-center gap-6 text-sm text-forge-text-muted mb-16">
           <div className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-indigo-400" />
+            <Shield className="w-4 h-4 text-forge-accent" />
             Secure payment via Stripe
           </div>
           <div className="flex items-center gap-2">
-            <RefreshCw className="w-4 h-4 text-indigo-400" />
+            <RefreshCw className="w-4 h-4 text-forge-accent" />
             Cancel anytime, no questions
           </div>
           <div className="flex items-center gap-2">
-            <Zap className="w-4 h-4 text-indigo-400" />
+            <Zap className="w-4 h-4 text-forge-accent" />
             Student discount? Email us
           </div>
         </div>
@@ -235,18 +235,18 @@ export default function PricingPage() {
           <h2 className="text-2xl font-bold text-center mb-8">Frequently Asked Questions</h2>
           <div className="space-y-3">
             {FAQ.map((faq, i) => (
-              <div key={i} className="bg-slate-900/60 border border-slate-800 rounded-xl overflow-hidden">
+              <div key={i} className="bg-forge-elevated/60 border border-forge-border rounded-xl overflow-hidden">
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-slate-800/40 transition-colors"
+                  className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-forge-overlay/40 transition-colors"
                 >
-                  <span className="font-semibold text-slate-200 text-sm">{faq.q}</span>
+                  <span className="font-semibold text-forge-text-primary text-sm">{faq.q}</span>
                   {openFaq === i
-                    ? <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" />
-                    : <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />}
+                    ? <ChevronUp className="w-4 h-4 text-forge-text-secondary shrink-0" />
+                    : <ChevronDown className="w-4 h-4 text-forge-text-secondary shrink-0" />}
                 </button>
                 {openFaq === i && (
-                  <div className="px-5 pb-4 text-slate-400 text-sm leading-relaxed border-t border-slate-800 pt-3">
+                  <div className="px-5 pb-4 text-forge-text-secondary text-sm leading-relaxed border-t border-forge-border pt-3">
                     {faq.a}
                   </div>
                 )}
