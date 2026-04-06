@@ -50,14 +50,14 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
     }
     if (isToday(date)) return { text: '📅 Due today', color: 'text-orange-400' };
     if (isTomorrow(date)) return { text: '📅 Tomorrow', color: 'text-amber-400' };
-    return { text: `📅 ${format(date, 'EEE, MMM d')}`, color: 'text-slate-400' };
+    return { text: `📅 ${format(date, 'EEE, MMM d')}`, color: 'text-[#A0A0A0]' };
   }, [task.dueDate, task.status, now]);
 
   const statusIcon = () => {
     if (task.status === 'completed') return <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />;
-    if (task.status === 'in_progress') return <Zap className="w-5 h-5 text-indigo-400 shrink-0" />;
+    if (task.status === 'in_progress') return <Zap className="w-5 h-5 text-[#10B981] shrink-0" />;
     if (task.status === 'cancelled') return <ChevronRight className="w-5 h-5 text-forge-text-muted shrink-0" />;
-    return <Circle className="w-5 h-5 text-forge-text-secondary shrink-0 hover:text-forge-accent transition-colors" />;
+    return <Circle className="w-5 h-5 text-forge-text-secondary shrink-0 hover:text-forge-accent transition-all duration-150-colors" />;
   };
 
   const barColor = task.completionPercentage === 100
@@ -100,7 +100,7 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
   }
 
   return (
-    <div className={`group relative bg-forge-base/60 backdrop-blur-sm border rounded-xl p-4 transition-all hover:border-forge-border hover:bg-forge-elevated/80 shadow-sm hover:shadow-forge-md
+    <div className={`group relative bg-forge-base/60 backdrop-blur-sm border rounded-xl p-4 transition-all duration-150-all hover:border-forge-border hover:bg-forge-elevated/80 shadow-sm hover:shadow-forge-md
       ${task.status === 'completed' ? 'opacity-60 border-forge-border/50' : 'border-forge-border'}
       ${deleting ? 'opacity-0 scale-95 -translate-x-4 pointer-events-none' : ''}
     `}
@@ -108,7 +108,7 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
     >
       {/* Header Row */}
       <div className="flex items-start gap-3">
-        <button onClick={handleToggleComplete} className="mt-0.5 transition-transform hover:scale-110">
+        <button onClick={handleToggleComplete} className="mt-0.5 transition-all duration-150-transform hover:scale-110 active:scale-[0.97]">
           {statusIcon()}
         </button>
 
@@ -124,7 +124,7 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
               <div className="relative">
                 <button
                   onClick={() => setShowMenu(!showMenu)}
-                  className="p-1 rounded-md text-forge-text-secondary hover:text-forge-text-primary hover:bg-forge-overlay transition-colors"
+                  className="p-1 rounded-md text-forge-text-secondary hover:text-forge-text-primary hover:bg-forge-overlay transition-all duration-150-colors"
                 >
                   <MoreHorizontal className="w-4 h-4" />
                 </button>
@@ -132,12 +132,12 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
                   <div className="absolute right-0 top-full mt-1 z-50 w-40 bg-forge-elevated border border-forge-border rounded-lg shadow-forge-xl overflow-hidden">
                     {onEdit && (
                       <button onClick={() => { onEdit(task); setShowMenu(false); }}
-                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-forge-text-primary hover:bg-forge-overlay transition-colors">
+                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-forge-text-primary hover:bg-forge-overlay transition-all duration-150-colors">
                         <Edit2 className="w-3.5 h-3.5" /> Edit
                       </button>
                     )}
                     <button onClick={() => { handleDelete(); setShowMenu(false); }}
-                      className="flex items-center gap-2 w-full px-3 py-2 text-sm text-forge-error hover:bg-forge-error/10 transition-colors">
+                      className="flex items-center gap-2 w-full px-3 py-2 text-sm text-forge-error hover:bg-forge-error/10 transition-all duration-150-colors">
                       <Trash2 className="w-3.5 h-3.5" /> Delete
                     </button>
                   </div>
@@ -183,7 +183,7 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
             </div>
             <div className="w-full h-1 bg-forge-overlay rounded-full overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all ${barColor}`}
+                className={`h-full rounded-full transition-all duration-150-all ${barColor}`}
                 style={{ width: `${task.completionPercentage}%` }}
               />
             </div>
@@ -199,14 +199,14 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
       </div>
 
       {/* Action Row — shows on hover */}
-      <div className="flex items-center gap-2 mt-3 pt-3 border-t border-forge-border/50 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button className="flex items-center gap-1.5 text-xs text-forge-text-secondary hover:text-orange-400 transition-colors px-2 py-1 rounded-md hover:bg-orange-500/10">
+      <div className="flex items-center gap-2 mt-3 pt-3 border-t border-forge-border/50 opacity-0 group-hover:opacity-100 transition-all duration-150-opacity">
+        <button className="flex items-center gap-1.5 text-xs text-forge-text-secondary hover:text-orange-400 transition-all duration-150-colors px-2 py-1 rounded-md hover:bg-orange-500/10 active:scale-[0.97]">
           <Timer className="w-3.5 h-3.5" /> Start Pomodoro
         </button>
         {task.notes && (
           <button
             onClick={() => setShowNotes(!showNotes)}
-            className="flex items-center gap-1.5 text-xs text-forge-text-secondary hover:text-forge-accent transition-colors px-2 py-1 rounded-md hover:bg-forge-accent/10"
+            className="flex items-center gap-1.5 text-xs text-forge-text-secondary hover:text-forge-accent transition-all duration-150-colors px-2 py-1 rounded-md hover:bg-forge-accent/10"
           >
             <FileText className="w-3.5 h-3.5" /> {showNotes ? 'Hide' : 'Notes'}
           </button>

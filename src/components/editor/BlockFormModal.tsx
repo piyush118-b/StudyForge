@@ -145,7 +145,7 @@ export function BlockFormModal() {
             </h2>
             <span className="text-[11px] font-bold text-[#10B981] bg-[rgba(16,185,129,0.1)] px-2.5 py-1 rounded-full border border-[#10B981]/20">{dayName}</span>
           </div>
-          <button onClick={closeBlockModal} className="text-[#606060] hover:text-[#F0F0F0] transition-colors bg-[#222222] p-1.5 rounded-full hover:bg-[#2A2A2A]">
+          <button onClick={closeBlockModal} className="text-[#606060] hover:text-[#F0F0F0] transition-all duration-150-colors bg-[#222222] p-1.5 rounded-full hover:bg-[#2A2A2A] active:scale-[0.97]">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -159,7 +159,7 @@ export function BlockFormModal() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#606060]" />
               <input 
                 autoFocus
-                className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-lg pl-9 pr-3 py-2.5 text-[14px] text-[#F0F0F0] focus:outline-none focus:border-[#10B981]/50 focus:ring-1 focus:ring-[#10B981]/50 hover:border-[#333333] transition-all font-medium placeholder:text-[#606060]"
+                className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-lg pl-9 pr-3 py-2.5 text-[14px] text-[#F0F0F0] focus:outline-none focus:border-[#10B981]/50 focus:ring-1 focus:ring-[#10B981]/50 hover:border-[#333333] transition-all duration-150-all font-medium placeholder:text-[#606060]"
                 placeholder="Search or type subject name..."
                 value={subject}
                 onChange={e => setSubject(e.target.value)}
@@ -178,7 +178,7 @@ export function BlockFormModal() {
                   {recentSubjects.map(s => (
                     <button 
                       key={s} 
-                      className="text-[11px] bg-[#222222] hover:bg-[#2A2A2A] text-[#A0A0A0] px-2 py-0.5 rounded cursor-pointer transition-colors border border-[#2A2A2A]"
+                      className="text-[11px] bg-[#222222] hover:bg-[#2A2A2A] text-[#A0A0A0] px-2 py-0.5 rounded cursor-pointer transition-all duration-150-colors border border-[#2A2A2A] active:scale-[0.97]"
                       onClick={() => setSubject(s)}
                     >
                       {s}
@@ -195,7 +195,7 @@ export function BlockFormModal() {
           <div className="space-y-3">
              <div className="flex gap-4 items-center">
                 <TimeInput label="Start Time" value={startTime} onChange={setStartTime} snapTo={currentSnapInterval} />
-                <span className="text-slate-500 pt-5">→</span>
+                <span className="text-[#606060] pt-5">→</span>
                 <TimeInput label="End Time" value={endTime} onChange={setEndTime} snapTo={currentSnapInterval} />
              </div>
              
@@ -208,13 +208,13 @@ export function BlockFormModal() {
 
              <div className="space-y-1.5">
                <div className="flex justify-between items-center px-1">
-                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Duration: {Math.floor(currentDuration/60)}h {currentDuration%60}m</span>
+                 <span className="text-[11px] font-bold text-[#A0A0A0] uppercase tracking-wider">Duration: {Math.floor(currentDuration/60)}h {currentDuration%60}m</span>
                </div>
                <div className="flex flex-wrap gap-1.5 px-0.5">
                   {DURATION_CHIPS.map(chip => (
                     <button 
                       key={chip.label}
-                      className={`text-xs px-2.5 py-1 rounded-md font-medium transition-colors cursor-pointer border
+                      className={`text-xs px-2.5 py-1 rounded-md font-medium transition-all duration-150-colors cursor-pointer border
                          ${currentDuration === chip.mins 
                             ? 'bg-forge-accent/20 text-forge-accent border-forge-accent/30 shadow-inner' 
                             : 'bg-forge-overlay/40 text-forge-text-secondary border-transparent hover:bg-forge-overlay hover:text-forge-text-primary'}`}
@@ -239,7 +239,7 @@ export function BlockFormModal() {
               <label className="text-xs font-bold text-[#606060] uppercase tracking-wider">Type</label>
               <div className="relative">
                 <select 
-                  className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-lg px-3 py-2 text-sm text-[#F0F0F0] focus:outline-none focus:ring-1 focus:ring-[#10B981]/50 hover:border-[#333333] transition-all appearance-none cursor-pointer"
+                  className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-lg px-3 py-2 text-sm text-[#F0F0F0] focus:outline-none focus:ring-1 focus:ring-[#10B981]/50 hover:border-[#333333] transition-all duration-150-all appearance-none cursor-pointer"
                   value={subjectType}
                   onChange={e => setSubjectType(e.target.value as TimeBlock['subjectType'])}
                 >
@@ -253,7 +253,7 @@ export function BlockFormModal() {
               <label className="text-xs font-bold text-[#606060] uppercase tracking-wider">Priority</label>
               <div className="relative">
                 <select 
-                  className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-lg px-3 py-2 text-sm text-[#F0F0F0] focus:outline-none focus:ring-1 focus:ring-[#10B981]/50 hover:border-[#333333] transition-all appearance-none cursor-pointer"
+                  className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-lg px-3 py-2 text-sm text-[#F0F0F0] focus:outline-none focus:ring-1 focus:ring-[#10B981]/50 hover:border-[#333333] transition-all duration-150-all appearance-none cursor-pointer"
                   value={priority || ""}
                   onChange={e => setPriority((e.target.value as TimeBlock['priority']) || null)}
                 >
@@ -274,7 +274,7 @@ export function BlockFormModal() {
                {COLORS.map(c => (
                  <button 
                    key={c}
-                   className={`w-6 h-6 rounded-full transition-transform hover:scale-110 shadow-sm ${color === c ? 'ring-2 ring-white ring-offset-2 ring-offset-[#1A1A1A] scale-110' : ''}`}
+                   className={`w-6 h-6 rounded-full transition-all duration-150-transform hover:scale-110 shadow-sm ${color === c ? 'ring-2 ring-white ring-offset-2 ring-offset-[#1A1A1A] scale-110' : ''}`}
                    style={{ backgroundColor: c }}
                    onClick={() => setColor(c)}
                  />
@@ -287,7 +287,7 @@ export function BlockFormModal() {
           {/* Accordions */}
           <div className="space-y-2">
             <button 
-              className="flex items-center gap-2 text-sm font-medium text-[#A0A0A0] hover:text-[#F0F0F0] transition-colors"
+              className="flex items-center gap-2 text-sm font-medium text-[#A0A0A0] hover:text-[#F0F0F0] transition-all duration-150-colors active:scale-[0.97]"
               onClick={() => setIsNotesExpanded(!isNotesExpanded)}
             >
                <span className="w-3 opacity-50 text-[10px]">{isNotesExpanded ? '▼' : '▶'}</span> Notes (optional)
@@ -295,7 +295,7 @@ export function BlockFormModal() {
             {isNotesExpanded && (
               <div className="pl-5 pr-1 animate-in slide-in-from-top-2 fade-in duration-200 mt-2">
                 <textarea 
-                  className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-xl px-4 py-3 text-sm text-[#F0F0F0] focus:outline-none focus:border-[#10B981]/50 focus:ring-1 focus:ring-[#10B981]/50 hover:border-[#333333] transition-all resize-y min-h-[80px] placeholder:text-[#606060]"
+                  className="w-full bg-[#0A0A0A] border border-[#2A2A2A] rounded-xl px-4 py-3 text-sm text-[#F0F0F0] focus:outline-none focus:border-[#10B981]/50 focus:ring-1 focus:ring-[#10B981]/50 hover:border-[#333333] transition-all duration-150-all resize-y min-h-[80px] placeholder:text-[#606060]"
                   placeholder="Syllabus links, tasks, or custom details..."
                   value={notes}
                   onChange={e => setNotes(e.target.value)}
@@ -304,7 +304,7 @@ export function BlockFormModal() {
             )}
 
             <button 
-              className="flex items-center gap-2 text-sm font-medium text-[#A0A0A0] hover:text-[#F0F0F0] transition-colors pt-2"
+              className="flex items-center gap-2 text-sm font-medium text-[#A0A0A0] hover:text-[#F0F0F0] transition-all duration-150-colors pt-2 active:scale-[0.97]"
               onClick={() => setIsStickerExpanded(!isStickerExpanded)}
             >
                <span className="w-3 opacity-50 text-[10px]">{isStickerExpanded ? '▼' : '▶'}</span> Sticker {sticker && `(${sticker})`}
@@ -316,7 +316,7 @@ export function BlockFormModal() {
                   {STICKERS.map(s => (
                     <button 
                       key={s}
-                      className={`w-10 h-10 rounded-xl hover:bg-[#222222] flex items-center justify-center text-xl transition-colors border ${sticker === s ? 'bg-[#10B981]/20 border-[#10B981]/50 shadow-inner scale-110' : 'border-transparent'}`}
+                      className={`w-10 h-10 rounded-xl hover:bg-[#222222] flex items-center justify-center text-xl transition-all duration-150-colors border ${sticker === s ? 'bg-[#10B981]/20 border-[#10B981]/50 shadow-inner scale-110' : 'border-transparent'}`}
                       onClick={() => setSticker(sticker === s ? '' : s)}
                     >
                       {s}
@@ -336,20 +336,20 @@ export function BlockFormModal() {
           {showDeleteConfirm && isEditing && (
             <div className="mb-4 p-4 rounded-2xl bg-red-500/8 border border-red-500/25 animate-in slide-in-from-bottom-2 fade-in duration-200">
               <p className="text-sm font-semibold text-red-400 mb-1">Delete this block?</p>
-              <p className="text-xs text-slate-400 mb-4">
+              <p className="text-xs text-[#A0A0A0] mb-4">
                 This removes <span className="text-slate-200 font-medium">{existingBlock?.subject}</span> from your timetable.
                 Any logged study history for this block will remain in your analytics.
               </p>
               <div className="flex gap-2">
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="flex-1 px-4 py-2 rounded-xl text-sm font-medium text-slate-300 bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
+                  className="flex-1 px-4 py-2 rounded-xl text-sm font-medium text-slate-300 bg-white/5 hover:bg-white/10 border border-white/10 transition-all duration-150-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => { deleteBlock(existingBlock!.id); closeBlockModal(); }}
-                  className="flex-1 px-4 py-2 rounded-xl text-sm font-bold text-white bg-red-600 hover:bg-red-700 shadow-[0_4px_16px_rgba(239,68,68,0.3)] transition-all"
+                  className="flex-1 px-4 py-2 rounded-xl text-sm font-bold text-white bg-red-600 hover:bg-red-700 shadow-[0_4px_16px_rgba(239,68,68,0.3)] transition-all duration-150-all"
                 >
                   🗑 Delete Block
                 </button>
@@ -362,7 +362,7 @@ export function BlockFormModal() {
               {isEditing && (
                 <button
                   onClick={() => setShowDeleteConfirm(s => !s)}
-                  className={`px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 transition-all border ${
+                  className={`px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 transition-all duration-150-all border ${
                     showDeleteConfirm
                       ? 'bg-red-500/15 text-red-400 border-red-500/30'
                       : 'text-[#A0A0A0] hover:bg-red-500/10 hover:text-red-400 border-transparent hover:border-red-500/20'
@@ -377,14 +377,14 @@ export function BlockFormModal() {
             <div className="flex gap-3">
               <button
                 onClick={closeBlockModal}
-                className="px-5 py-2.5 text-sm font-medium text-[#A0A0A0] hover:text-[#F0F0F0] hover:bg-[#222222] rounded-xl transition-colors border border-transparent"
+                className="px-5 py-2.5 text-sm font-medium text-[#A0A0A0] hover:text-[#F0F0F0] hover:bg-[#222222] rounded-xl transition-all duration-150-colors border border-transparent active:scale-[0.97]"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={!subject.trim()}
-                className="px-6 py-2.5 text-[15px] bg-[#10B981] hover:bg-[#34D399] text-[#0A0A0A] font-bold rounded-xl shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_16px_rgba(16,185,129,0.15)] border border-[#10B981]/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 active:scale-[0.97]"
+                className="px-6 py-2.5 text-[15px] bg-[#10B981] hover:bg-[#34D399] text-[#0A0A0A] font-bold rounded-xl shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_16px_rgba(16,185,129,0.15)] border border-[#10B981]/20 transition-all duration-150-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 active:scale-[0.97]"
               >
                 {isEditing ? 'Save Changes' : 'Add Block'}
               </button>
@@ -422,10 +422,10 @@ function TimeInput({ value, onChange, label, snapTo }: { value: string, onChange
 
   return (
     <div className="relative flex-1" ref={dropdownRef}>
-      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">{label}</label>
+      <label className="text-[10px] font-bold text-[#A0A0A0] uppercase tracking-wider block mb-1">{label}</label>
       
       {/* 2-Part Container for Smart Toggle */}
-      <div className="flex bg-forge-base border border-forge-border rounded-lg overflow-hidden focus-within:border-forge-accent/50 focus-within:ring-1 focus-within:ring-forge-accent/50 transition-all shadow-inner">
+      <div className="flex bg-forge-base border border-forge-border rounded-lg overflow-hidden focus-within:border-forge-accent/50 focus-within:ring-1 focus-within:ring-forge-accent/50 transition-all duration-150-all shadow-inner">
         <input
           className="w-full bg-transparent pl-3 pr-1 py-2 text-sm text-forge-text-primary focus:outline-none cursor-text tracking-wide tabular-nums"
           value={inputValue}
@@ -491,7 +491,7 @@ function TimeInput({ value, onChange, label, snapTo }: { value: string, onChange
             const newH = (h + 12) % 24;
             onChange(`${newH.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
           }}
-          className="px-2.5 py-2 text-[11px] font-bold bg-forge-overlay hover:bg-forge-elevated text-forge-accent border-l border-forge-border transition-colors uppercase tracking-widest shrink-0"
+          className="px-2.5 py-2 text-[11px] font-bold bg-forge-overlay hover:bg-forge-elevated text-forge-accent border-l border-forge-border transition-all duration-150-colors uppercase tracking-widest shrink-0"
         >
           {isPM ? 'PM' : 'AM'}
         </button>
@@ -509,7 +509,7 @@ function TimeInput({ value, onChange, label, snapTo }: { value: string, onChange
                 setInputValue(to12Hour(finalTarget).split(' ')[0]);
                 setIsOpen(false);
               }}
-              className={`block w-full text-left px-3 py-1.5 text-xs font-mono transition-colors border-l-2
+              className={`block w-full text-left px-3 py-1.5 text-xs font-mono transition-all duration-150-colors border-l-2
                  ${value === time ? 'bg-forge-accent/20 border-forge-accent text-forge-accent' : 'border-transparent text-forge-text-primary hover:bg-forge-overlay'}`
               }
             >

@@ -56,7 +56,7 @@ export function CategorizedCombobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between bg-forge-elevated border-forge-border text-forge-text-primary font-medium hover:bg-forge-overlay hover:border-forge-muted transition-all h-11 px-4 text-sm shadow-sm"
+          className="w-full justify-between bg-forge-elevated border-forge-border text-forge-text-primary font-medium hover:bg-forge-overlay hover:border-forge-muted transition-all duration-150-all h-11 px-4 text-sm shadow-sm"
         >
           <span className="truncate">{selectedDisplay ? selectedDisplay : placeholder}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50 group-hover:opacity-100" />

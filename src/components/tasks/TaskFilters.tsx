@@ -19,7 +19,7 @@ export function TaskFilters() {
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-2 mb-4">
-        <SlidersHorizontal className="w-4 h-4 text-indigo-400" />
+        <SlidersHorizontal className="w-4 h-4 text-[#10B981]" />
         <span className="text-sm font-semibold text-slate-300">Filter Tasks</span>
       </div>
 
@@ -28,10 +28,10 @@ export function TaskFilters() {
           <button
             key={f.value}
             onClick={() => setFilter(f.value)}
-            className={`text-left text-xs px-3 py-2 rounded-lg transition-colors font-medium flex items-center gap-2 ${
+            className={`text-left text-xs px-3 py-2 rounded-lg transition-all duration-150-colors font-medium flex items-center gap-2 ${
               filter === f.value
-                ? "bg-indigo-600/20 text-indigo-300 border border-indigo-500/30"
-                : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                ? "bg-[#10B981]/20 text-indigo-300 border border-[#10B981]/30"
+                : "text-[#A0A0A0] hover:bg-[#1A1A1A] hover:text-slate-200"
             }`}
           >
             <span>{f.icon}</span>

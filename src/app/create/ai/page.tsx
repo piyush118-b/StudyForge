@@ -25,13 +25,13 @@ export default function AICreatePage() {
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden">
       {/* Glow */}
-      <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-500/10 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-[#10B981]/10 blur-[120px] rounded-full pointer-events-none" />
       
       <div className="w-full max-w-xl flex flex-col items-center relative z-10">
         
         <div className="w-full flex items-center justify-between mb-8">
-           <Button variant="ghost" onClick={() => router.push('/create')} className="text-slate-400 hover:text-white group">
-             <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+           <Button variant="ghost" onClick={() => router.push('/create')} className="text-[#A0A0A0] hover:text-[#F0F0F0] group">
+             <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-all duration-150-transform" />
              Back
            </Button>
            {step < 8 && <ProgressBar currentStep={displayStep} totalSteps={totalSteps} />}

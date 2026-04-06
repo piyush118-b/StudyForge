@@ -15,7 +15,7 @@ export function DashboardEmptyState({ hasAnyTimetable }: { hasAnyTimetable: bool
           <h3 className="text-lg font-semibold text-[#F0F0F0] mb-2">No Active Timetable</h3>
           <p className="text-sm text-[#A0A0A0] mb-6">You have saved timetables, but none is set to Active.</p>
           <Link href="/dashboard/timetables">
-            <button className="px-5 py-2.5 bg-[#10B981] hover:bg-[#34D399] text-[#0A0A0A] rounded-lg text-sm font-bold shadow-[0_0_0_1px_rgba(16,185,129,0.4),0_0_20px_rgba(16,185,129,0.2)] transition-all active:scale-[0.97]">
+            <button className="px-5 py-2.5 bg-[#10B981] hover:bg-[#34D399] text-[#0A0A0A] rounded-lg text-sm font-bold shadow-[0_0_0_1px_rgba(16,185,129,0.4),0_0_20px_rgba(16,185,129,0.2)] transition-all duration-150-all active:scale-[0.97]">
               Manage Timetables &rarr;
             </button>
           </Link>
@@ -59,7 +59,7 @@ export function DashboardEmptyState({ hasAnyTimetable }: { hasAnyTimetable: bool
           </div>
           <div className="flex-1 p-2 grid grid-cols-5 gap-1.5 place-content-start bg-forge-elevated">
             {Array.from({ length: 15 }).map((_, i) => (
-              <div key={i} className="h-2 rounded-sm" style={{
+              <div key={i} className="h-2 rounded-xl" style={{
                 background: [0, 2, 5, 7, 11, 14].includes(i) ? 'var(--color-forge-accent)' : 'rgba(255,255,255,0.05)'
               }} />
             ))}
@@ -76,14 +76,14 @@ export function DashboardEmptyState({ hasAnyTimetable }: { hasAnyTimetable: bool
 
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center">
           <Link href="/create/ai">
-             <button className="flex items-center justify-center gap-2 w-full sm:w-auto inline-flex h-11 px-6 rounded-lg bg-[#10B981] text-[#0A0A0A] text-sm font-bold shadow-[0_0_0_1px_rgba(16,185,129,0.4),0_0_20px_rgba(16,185,129,0.2)] hover:bg-[#34D399] hover:shadow-[0_0_0_1px_rgba(16,185,129,0.6),0_0_40px_rgba(16,185,129,0.3)] transition-all duration-150 active:scale-[0.97]">
+             <button className="flex items-center justify-center gap-2 w-full sm:w-auto inline-flex h-11 px-6 rounded-lg bg-[#10B981] text-[#0A0A0A] text-sm font-bold shadow-[0_0_0_1px_rgba(16,185,129,0.4),0_0_20px_rgba(16,185,129,0.2)] hover:bg-[#34D399] hover:shadow-[0_0_0_1px_rgba(16,185,129,0.6),0_0_40px_rgba(16,185,129,0.3)] transition-all duration-150-all duration-150 active:scale-[0.97]">
                <Sparkles size={18} className="text-[#0A0A0A]/80" />
                Generate with AI
              </button>
           </Link>
 
           <Link href="/create/timetable">
-             <button className="flex items-center justify-center gap-2 w-full sm:w-auto h-11 px-6 rounded-lg bg-transparent border border-[#2A2A2A] text-[#A0A0A0] hover:bg-[#222222] hover:text-[#F0F0F0] hover:border-[#333333] transition-all font-medium">
+             <button className="flex items-center justify-center gap-2 w-full sm:w-auto h-11 px-6 rounded-lg bg-transparent border border-[#2A2A2A] text-[#A0A0A0] hover:bg-[#222222] hover:text-[#F0F0F0] hover:border-[#333333] transition-all duration-150-all font-medium active:scale-[0.97]">
                <PenTool size={18} className="text-[#606060]" />
                Build Manually
              </button>

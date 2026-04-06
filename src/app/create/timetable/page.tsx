@@ -77,7 +77,7 @@ export default function TimetableStudioPage() {
       {/* Studio Header (Integrated with Advanced Editor) */}
       <header className="h-14 flex items-center justify-between px-4 bg-[#111111] border-b border-[#2A2A2A] z-[200] relative flex-shrink-0">
         <div className="flex items-center gap-3">
-           <button onClick={() => router.push('/create')} className="w-9 h-9 rounded-lg flex items-center justify-center text-[#A0A0A0] hover:text-[#F0F0F0] hover:bg-[#222222] transition-all">
+           <button onClick={() => router.push('/create')} className="w-9 h-9 rounded-lg flex items-center justify-center text-[#A0A0A0] hover:text-[#F0F0F0] hover:bg-[#222222] transition-all duration-150-all">
              <ArrowLeft className="w-4 h-4" />
            </button>
            
@@ -99,7 +99,7 @@ export default function TimetableStudioPage() {
              <ExportButton targetId="timetable-studio-container" />
              <button
                onClick={() => setIsSaveModalOpen(true)}
-               className="h-9 px-4 rounded-lg text-sm font-bold bg-[#10B981] text-[#0A0A0A] shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_16px_rgba(16,185,129,0.15)] hover:bg-[#34D399] transition-all duration-150 active:scale-[0.97] flex items-center gap-1.5"
+               className="h-9 px-4 rounded-lg text-sm font-bold bg-[#10B981] text-[#0A0A0A] shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_16px_rgba(16,185,129,0.15)] hover:bg-[#34D399] transition-all duration-150-all duration-150 active:scale-[0.97] flex items-center gap-1.5"
              >
                <Save className="w-3.5 h-3.5" /> Save Timetable
              </button>

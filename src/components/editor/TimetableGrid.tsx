@@ -140,11 +140,22 @@ export function TimetableGrid() {
       } as any}
     >
       {/* Visual Lines (Faint Structure Overlay) */}
-      <svg className="absolute inset-0 w-full h-full pointer-events-none stroke-[var(--grid-line)] z-0 mix-blend-screen">
-        <line x1={TIME_LABEL_WIDTH} y1={DAY_HEADER_HEIGHT} x2={totalWidth} y2={DAY_HEADER_HEIGHT} strokeWidth={1} />
-        {/* Soft vertical guides */}
+      {gridLines.map((gl, i) => (
+        <div
+          key={`hline-${i}`}
+          className={`absolute left-[72px] right-0 pointer-events-none ${
+            gl.isMajor === true
+              ? 'h-px bg-[#1F1F1F]'
+              : 'h-px border-t border-dashed border-[#181818]'
+          }`}
+          style={{ top: `${DAY_HEADER_HEIGHT + gl.y}px` }}
+        />
+      ))}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
+        <line x1={TIME_LABEL_WIDTH} y1={DAY_HEADER_HEIGHT} x2={totalWidth} y2={DAY_HEADER_HEIGHT} stroke="#1A1A1A" strokeWidth={1} />
+        {/* Column dividers (between days) */}
         {dayColumns.map((col, i) => (
-          <line key={`v-${col.id}`} x1={columnLefts[i]} y1={DAY_HEADER_HEIGHT} x2={columnLefts[i]} y2={DAY_HEADER_HEIGHT + totalGridHeight} strokeWidth={1} />
+          <line key={`v-${col.id}`} x1={columnLefts[i]} y1={DAY_HEADER_HEIGHT} x2={columnLefts[i]} y2={DAY_HEADER_HEIGHT + totalGridHeight} stroke="#1A1A1A" strokeWidth={1} />
         ))}
       </svg>
 
@@ -194,28 +205,20 @@ export function TimetableGrid() {
       ))}
 
       {/* Axis Headers - Times / Left Rail (Y) */}
-      <div className="absolute z-20" style={{ left: 0, top: DAY_HEADER_HEIGHT, width: TIME_LABEL_WIDTH, height: totalGridHeight }} />
+      <div className="absolute z-20 sticky left-0 w-[72px] bg-[#0A0A0A] h-full" style={{ top: DAY_HEADER_HEIGHT, height: totalGridHeight }} />
       {labels.map((lbl, i) => {
-        const showMicro = zoom > 1.3;
         const showMinor = zoom > 0.8;
         if (!lbl.isHour && !showMinor) return null;
         
         return (
           <div
             key={i}
-            className="absolute z-25 text-right font-sans"
-            style={{
-              top: DAY_HEADER_HEIGHT + lbl.y - 10,
-              left: 0,
-              width: TIME_LABEL_WIDTH - 16,
-              fontSize: lbl.isHour ? 13 : 11,
-              fontWeight: lbl.isHour ? 600 : 500,
-              opacity: lbl.isHour ? 0.9 : 0.6,
-              color: 'var(--color-forge-text-muted)',
-              pointerEvents: 'none',
-            }}
+            className="absolute z-25 w-[72px] flex items-start justify-end pr-3 pt-0.5 sticky left-0 bg-[#0A0A0A]"
+            style={{ top: DAY_HEADER_HEIGHT + lbl.y }}
           >
-            {lbl.label}
+            <span className={`font-mono tabular-nums ${lbl.isHour ? 'text-[10px] font-medium text-[#3A3A3A]' : 'text-[9px] font-medium text-[#2A2A2A]'}`}>
+              {lbl.label}
+            </span>
           </div>
         );
       })}
@@ -224,7 +227,7 @@ export function TimetableGrid() {
       {dayColumns.map((col, cIdx) => (
         <div 
           key={`zone-${col.id}`}
-          className={`absolute z-10 hover:bg-white/[0.02] transition-colors ${activeTool === 'select' ? 'cursor-crosshair' : 'cursor-inherit'}`}
+          className={`absolute z-10 hover:bg-[rgba(16,185,129,0.03)] hover:cursor-cell transition-colors duration-100 group`}
           style={{ 
              left: columnLefts[cIdx],
              top: DAY_HEADER_HEIGHT,
@@ -263,6 +266,15 @@ export function TimetableGrid() {
                <span className="text-forge-text-primary font-mono text-[10px] mt-1 shadow-sm font-semibold">
                  ({Math.floor(timeDiffMinutes(dragCreate.startTime, dragCreate.endTime) / 60)}h {timeDiffMinutes(dragCreate.startTime, dragCreate.endTime) % 60}m)
                </span>
+             </div>
+           )}
+
+           {/* Plus hint — shows on hover */}
+           {!dragCreate && (
+             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none">
+               <div className="w-6 h-6 rounded-full bg-[#10B981]/20 flex items-center justify-center text-[#10B981] text-sm font-bold">
+                 +
+               </div>
              </div>
            )}
         </div>
@@ -315,17 +327,13 @@ function CurrentTimeIndicator({ dayColumns, columnLefts, gridStartTime, pxPerHou
   
   if (totalGridHeight && (y < 0 || y > totalGridHeight)) return null;
   
-  const todayDayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][now.getDay()];
-  const todayColumnIdx = dayColumns.findIndex((d: any) => d.label === todayDayName);
-  if (todayColumnIdx === -1) return null;
-  
-  const colX = columnLefts[todayColumnIdx];
-  const colWidth = dayColumns[todayColumnIdx].widthPx;
-  
   return (
-    <div className="absolute pointer-events-none z-40 transition-all duration-1000" style={{ top: y + DAY_HEADER_HEIGHT, left: colX, width: colWidth }}>
-      <div className="absolute -left-1 -top-1 w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
-      <div className="h-[2px] w-full bg-red-500 shadow-[0_0_4px_rgba(239,68,68,0.6)]" />
+    <div
+      className="absolute left-0 right-0 z-20 pointer-events-none"
+      style={{ top: `${y + DAY_HEADER_HEIGHT}px` }}
+    >
+      <div className="h-px bg-[#10B981] opacity-70" />
+      <div className="absolute left-[72px] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#10B981] shadow-[0_0_6px_rgba(16,185,129,0.8)] -translate-x-1/2" />
     </div>
   );
 }

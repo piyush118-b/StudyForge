@@ -26,6 +26,7 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { useTrackingStore } from '@/store/tracking-store'
 import { getLocalDateStr } from '@/lib/time-utils'
 import type { DailySummary } from '@/types/tracking.types'
+import { ExportModal } from '@/components/timetable/ExportModal'
 
 type Timetable = Database['public']['Tables']['timetables']['Row']
 
@@ -39,6 +40,7 @@ export function TimetableCard({ timetable, onSetActive, onDelete }: TimetableCar
   const router = useRouter()
   const [isMounted, setIsMounted] = useState(false)
   const [stats, setStats] = useState<DailySummary | null>(null)
+  const [isExportOpen, setIsExportOpen] = useState(false)
   
   useEffect(() => {
     setIsMounted(true)
@@ -86,20 +88,27 @@ export function TimetableCard({ timetable, onSetActive, onDelete }: TimetableCar
   const hasActivity = todayDoneCount > 0 || todayPartialCount > 0
 
   return (
-    <div className="bg-card w-full border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
+    <div className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:border-[#333333] hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)] group">
+      {/* Color accent top bar */}
+      <div
+        className="h-1 w-full"
+        style={{
+          background: `linear-gradient(90deg, ${timetable.color_tag || '#10B981'}, ${timetable.color_tag || '#10B981'}88, transparent)`
+        }}
+      />
       
       {/* Preview / Color Banner */}
       <div 
-        className="h-[120px] w-full relative flex flex-col justify-end p-4 border-b"
+        className="h-[120px] w-full relative flex flex-col justify-end p-4 border-b border-[#2A2A2A]"
         style={{ 
           background: timetable.preview_image_url 
             ? `url(${timetable.preview_image_url}) center/cover` 
-            : `linear-gradient(135deg, ${timetable.color_tag || '#6366f1'}88, ${timetable.color_tag || '#6366f1'}22)` 
+            : `linear-gradient(135deg, ${timetable.color_tag || '#6366f1'}33, ${timetable.color_tag || '#6366f1'}0a)` 
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         
-        <div className="relative z-10 flex justify-between items-end text-white">
+        <div className="relative z-10 flex justify-between items-end text-[#F0F0F0]">
           <div className="flex flex-col gap-1 drop-shadow-md">
             <h3 className="font-semibold text-lg leading-tight truncate max-w-[200px]" title={timetable.title}>
               {timetable.title}
@@ -143,11 +152,11 @@ export function TimetableCard({ timetable, onSetActive, onDelete }: TimetableCar
             <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
               <div className="h-full w-full relative rounded-full overflow-hidden">
                 <div
-                  className="absolute inset-y-0 left-0 rounded-full bg-green-500 transition-all duration-500"
+                  className="absolute inset-y-0 left-0 rounded-full bg-green-500 transition-all duration-150-all duration-500"
                   style={{ width: `${(todayDoneCount / Math.max(todayTotal, 1)) * 100}%` }}
                 />
                 <div
-                  className="absolute inset-y-0 rounded-full bg-amber-400 transition-all duration-500"
+                  className="absolute inset-y-0 rounded-full bg-amber-400 transition-all duration-150-all duration-500"
                   style={{
                     left: `${(todayDoneCount / Math.max(todayTotal, 1)) * 100}%`,
                     width: `${(todayPartialCount * 0.5 / Math.max(todayTotal, 1)) * 100}%`
@@ -202,11 +211,11 @@ export function TimetableCard({ timetable, onSetActive, onDelete }: TimetableCar
                     </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setIsExportOpen(true)}>
                   <Download className="mr-2 h-4 w-4" />
                   Export
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setIsExportOpen(true)}>
                   <Share className="mr-2 h-4 w-4" />
                   Share
                 </DropdownMenuItem>
@@ -224,6 +233,8 @@ export function TimetableCard({ timetable, onSetActive, onDelete }: TimetableCar
         </div>
 
       </div>
+
+      <ExportModal isOpen={isExportOpen} onOpenChange={setIsExportOpen} />
     </div>
   )
 }

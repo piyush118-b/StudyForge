@@ -62,13 +62,13 @@ export function Step5Goals({ onNext, onBack }: { onNext: () => void, onBack: () 
         
         {/* Q1: Goals */}
         <div className="space-y-3">
-          <label className="text-white/70 text-sm font-medium">1. Main Goals (Select all that apply)</label>
+          <label className="text-[#F0F0F0]/70 text-sm font-medium">1. Main Goals (Select all that apply)</label>
           <div className="flex flex-wrap gap-2">
             {GOAL_OPTIONS.map(g => (
               <Badge 
                 key={g} 
                 variant="outline"
-                className={`cursor-pointer px-3 py-1.5 border transition-all ${userData.mainGoals.includes(g) ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-900 border-white/10 hover:border-white/30 text-slate-400'}`}
+                className={`cursor-pointer px-3 py-1.5 border transition-all duration-150-all ${userData.mainGoals.includes(g) ? 'bg-[#10B981] border-[#10B981] text-[#F0F0F0]' : 'bg-[#111111] border-white/10 hover:border-white/30 text-[#A0A0A0]'}`}
                 onClick={() => toggleGoal(g)}
               >
                 {g}
@@ -78,7 +78,7 @@ export function Step5Goals({ onNext, onBack }: { onNext: () => void, onBack: () 
           <div className="flex gap-2">
             <Input 
               placeholder="Custom goal..." 
-              className="bg-slate-900 border-white/20 text-white"
+              className="bg-[#111111] border-white/20 text-[#F0F0F0]"
               value={customGoal} onChange={e => setCustomGoal(e.target.value)}
               onKeyDown={e => {
                 if(e.key === 'Enter' && customGoal) {
@@ -86,60 +86,60 @@ export function Step5Goals({ onNext, onBack }: { onNext: () => void, onBack: () 
                 }
               }}
             />
-            <Button onClick={() => { if (customGoal) { toggleGoal(customGoal); setCustomGoal(""); } }} className="bg-slate-800 hover:bg-slate-700">Add</Button>
+            <Button onClick={() => { if (customGoal) { toggleGoal(customGoal); setCustomGoal(""); } }} className="bg-[#1A1A1A] hover:bg-slate-700">Add</Button>
           </div>
         </div>
 
         {/* Q2: Deadlines */}
         <div className="space-y-3 pt-4 border-t border-white/10">
-          <label className="text-white/70 text-sm font-medium flex justify-between items-center">
+          <label className="text-[#F0F0F0]/70 text-sm font-medium flex justify-between items-center">
             2. Upcoming Deadlines
             <Button variant="ghost" size="sm" onClick={addDeadline} className="h-6 text-teal-400 hover:text-teal-300">
               <Plus className="w-4 h-4 mr-1" /> Add
             </Button>
           </label>
           {userData.deadlines.length === 0 && (
-            <div className="text-sm text-slate-500 italic">No upcoming deadlines added.</div>
+            <div className="text-sm text-[#606060] italic">No upcoming deadlines added.</div>
           )}
           <div className="space-y-3">
             {userData.deadlines.map(dl => (
-              <div key={dl.id} className="bg-slate-900 p-3 rounded-xl border border-white/10 space-y-3">
+              <div key={dl.id} className="bg-[#111111] p-3 rounded-xl border border-white/10 space-y-3">
                 <div className="flex justify-between items-start gap-4">
                   <Select value={dl.type} onValueChange={v => updateDeadline(dl.id, { type: v || "" })}>
-                    <SelectTrigger className="w-32 bg-slate-950 border-white/10 h-8 text-xs text-white">
+                    <SelectTrigger className="w-32 bg-slate-950 border-white/10 h-8 text-xs text-[#F0F0F0]">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-900 border-white/20 text-white">
+                    <SelectContent className="bg-[#111111] border-white/20 text-[#F0F0F0]">
                       {["Exam", "Assignment", "Project", "Viva", "Lab Record", "Other"].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                     </SelectContent>
                   </Select>
                   
                   <Select value={dl.subject} onValueChange={v => updateDeadline(dl.id, { subject: v || "" })}>
-                    <SelectTrigger className="flex-1 bg-slate-950 border-white/10 h-8 text-xs text-white">
+                    <SelectTrigger className="flex-1 bg-slate-950 border-white/10 h-8 text-xs text-[#F0F0F0]">
                       <SelectValue placeholder="Subject" />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-900 border-white/20 text-white">
+                    <SelectContent className="bg-[#111111] border-white/20 text-[#F0F0F0]">
                       {userData.subjects.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
 
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-red-400" onClick={() => removeDeadline(dl.id)}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-[#606060] hover:text-red-400" onClick={() => removeDeadline(dl.id)}>
                     <X className="w-4 h-4" />
                   </Button>
                 </div>
 
                 <div className="flex gap-2">
                   <div className="relative w-40">
-                    <Calendar className="absolute left-2.5 top-2 h-4 w-4 text-slate-400" />
+                    <Calendar className="absolute left-2.5 top-2 h-4 w-4 text-[#A0A0A0]" />
                     <Input 
                       type="date"
-                      className="bg-slate-950 border-white/10 text-white h-8 text-xs pl-8"
+                      className="bg-slate-950 border-white/10 text-[#F0F0F0] h-8 text-xs pl-8"
                       value={dl.date} onChange={e => updateDeadline(dl.id, { date: e.target.value })}
                     />
                   </div>
                   <Input 
                     placeholder="Notes..." 
-                    className="flex-1 bg-slate-950 border-white/10 text-white h-8 text-xs"
+                    className="flex-1 bg-slate-950 border-white/10 text-[#F0F0F0] h-8 text-xs"
                     value={dl.notes} onChange={e => updateDeadline(dl.id, { notes: e.target.value })}
                   />
                 </div>
@@ -150,19 +150,19 @@ export function Step5Goals({ onNext, onBack }: { onNext: () => void, onBack: () 
 
         {/* Q4: Day Prefs */}
         <div className="space-y-3 pt-4 border-t border-white/10">
-          <label className="text-white/70 text-sm font-medium">3. Day-specific Overrides</label>
-          <div className="text-xs text-slate-400 mb-2">Keep a day light, heavy, or take it entirely off!</div>
+          <label className="text-[#F0F0F0]/70 text-sm font-medium">3. Day-specific Overrides</label>
+          <div className="text-xs text-[#A0A0A0] mb-2">Keep a day light, heavy, or take it entirely off!</div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(day => {
               const pref = userData.heavyLightDays[day] || "Normal";
               return (
-                <div key={day} className="flex flex-col bg-slate-900 p-2 rounded-lg border border-white/10">
-                  <span className="text-xs font-semibold text-white/50 mb-1">{day}</span>
+                <div key={day} className="flex flex-col bg-[#111111] p-2 rounded-lg border border-white/10">
+                  <span className="text-xs font-semibold text-[#F0F0F0]/50 mb-1">{day}</span>
                   <Select value={pref} onValueChange={v => updateField("heavyLightDays", {...userData.heavyLightDays, [day]: v || ""})}>
-                    <SelectTrigger className="w-full bg-slate-950 border-white/5 h-7 text-[10px] text-white">
+                    <SelectTrigger className="w-full bg-slate-950 border-white/5 h-7 text-[10px] text-[#F0F0F0]">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-900 border-white/20 text-white text-xs">
+                    <SelectContent className="bg-[#111111] border-white/20 text-[#F0F0F0] text-xs">
                       {["Normal", "Light Day", "Heavy Day", "Off (No Study)"].map(t => <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>)}
                     </SelectContent>
                   </Select>
@@ -174,12 +174,12 @@ export function Step5Goals({ onNext, onBack }: { onNext: () => void, onBack: () 
 
         {/* Q5: Constraints */}
         <div className="space-y-3 pt-4 border-t border-white/10">
-          <label className="text-white/70 text-sm font-medium">4. Hard Constraints / Study Rules</label>
+          <label className="text-[#F0F0F0]/70 text-sm font-medium">4. Hard Constraints / Study Rules</label>
           <div className="flex flex-wrap gap-2">
             <div className="flex flex-wrap gap-2 w-full">
               {userData.hardConstraints.filter(c => !PRESET_CONSTRAINTS.includes(c)).map(c => (
                 <Badge key={c} variant="secondary" className="px-3 py-1.5 bg-red-950/40 text-red-300 border border-red-500/30 flex items-center gap-2 text-xs">
-                  {c} <X className="w-3 h-3 cursor-pointer hover:text-white" onClick={() => toggleConstraint(c)} />
+                  {c} <X className="w-3 h-3 cursor-pointer hover:text-[#F0F0F0]" onClick={() => toggleConstraint(c)} />
                 </Badge>
               ))}
             </div>
@@ -187,7 +187,7 @@ export function Step5Goals({ onNext, onBack }: { onNext: () => void, onBack: () 
               <Badge 
                 key={c} 
                 variant="outline"
-                className={`cursor-pointer px-3 py-1.5 border transition-all ${userData.hardConstraints.includes(c) ? 'bg-red-950/50 border-red-500/50 text-red-300' : 'bg-slate-900 border-white/10 hover:border-white/30 text-slate-400'}`}
+                className={`cursor-pointer px-3 py-1.5 border transition-all duration-150-all ${userData.hardConstraints.includes(c) ? 'bg-red-950/50 border-red-500/50 text-red-300' : 'bg-[#111111] border-white/10 hover:border-white/30 text-[#A0A0A0]'}`}
                 onClick={() => toggleConstraint(c)}
               >
                 {c}
@@ -197,7 +197,7 @@ export function Step5Goals({ onNext, onBack }: { onNext: () => void, onBack: () 
           <div className="flex gap-2">
             <Input 
               placeholder="e.g. Always do math first..." 
-              className="bg-slate-900 border-white/20 text-white"
+              className="bg-[#111111] border-white/20 text-[#F0F0F0]"
               value={customConstraint} onChange={e => setCustomConstraint(e.target.value)}
               onKeyDown={e => {
                 if(e.key === 'Enter' && customConstraint) {
@@ -205,14 +205,14 @@ export function Step5Goals({ onNext, onBack }: { onNext: () => void, onBack: () 
                 }
               }}
             />
-            <Button onClick={() => { if (customConstraint) { toggleConstraint(customConstraint); setCustomConstraint(""); } }} className="bg-slate-800 hover:bg-slate-700">Add Rule</Button>
+            <Button onClick={() => { if (customConstraint) { toggleConstraint(customConstraint); setCustomConstraint(""); } }} className="bg-[#1A1A1A] hover:bg-slate-700">Add Rule</Button>
           </div>
         </div>
 
       </div>
 
       <div className="mt-8 flex justify-between">
-        <Button variant="ghost" onClick={onBack} className="text-slate-400 hover:text-white">
+        <Button variant="ghost" onClick={onBack} className="text-[#A0A0A0] hover:text-[#F0F0F0]">
           <ArrowLeft className="w-4 h-4 mr-2" /> Back
         </Button>
         <Button onClick={onNext} className="bg-white text-black hover:bg-slate-200 px-8">

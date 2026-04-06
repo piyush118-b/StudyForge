@@ -28,17 +28,17 @@ export function Step0BasicProfile({ onNext }: { onNext: () => void }) {
       <div className="space-y-6 pb-6 border-b border-white/5">
         
         <div className="space-y-2">
-          <Label className="text-white/70">What should we call you?</Label>
+          <Label className="text-[#F0F0F0]/70">What should we call you?</Label>
           <Input 
             placeholder="E.g. Rahul" 
-            className="bg-slate-900 border-white/20 text-white rounded-xl h-12"
+            className="bg-[#111111] border-white/20 text-[#F0F0F0] rounded-xl h-12"
             value={userData.name}
             onChange={e => updateField("name", e.target.value)}
           />
         </div>
 
         <div className="space-y-2">
-          <Label className="text-white/70">College / University</Label>
+          <Label className="text-[#F0F0F0]/70">College / University</Label>
           {!showCustomCollege ? (
             <CategorizedCombobox 
               categories={INDIAN_COLLEGES}
@@ -56,12 +56,12 @@ export function Step0BasicProfile({ onNext }: { onNext: () => void }) {
             <div className="flex gap-2 relative">
               <Input 
                 placeholder="Type your college name" 
-                className="bg-slate-900 border-teal-500/50 text-white rounded-xl h-12 w-full pr-12"
+                className="bg-[#111111] border-teal-500/50 text-[#F0F0F0] rounded-xl h-12 w-full pr-12"
                 value={userData.college}
                 autoFocus
                 onChange={e => updateField("college", e.target.value)}
               />
-              <Button variant="ghost" size="icon" className="absolute right-2 top-2 text-slate-400 hover:text-white hover:bg-white/10" onClick={() => setShowCustomCollege(false)}>
+              <Button variant="ghost" size="icon" className="absolute right-2 top-2 text-[#A0A0A0] hover:text-[#F0F0F0] hover:bg-white/10" onClick={() => setShowCustomCollege(false)}>
                 <X className="w-4 h-4"/>
               </Button>
             </div>
@@ -69,21 +69,21 @@ export function Step0BasicProfile({ onNext }: { onNext: () => void }) {
         </div>
 
         <div className="space-y-2">
-          <Label className="text-white/70">Semester / Year</Label>
+          <Label className="text-[#F0F0F0]/70">Semester / Year</Label>
           <Select value={userData.semester} onValueChange={val => updateField("semester", val || "")}>
-            <SelectTrigger className="w-full bg-slate-900 border-white/20 text-white rounded-xl h-12">
+            <SelectTrigger className="w-full bg-[#111111] border-white/20 text-[#F0F0F0] rounded-xl h-12">
               <SelectValue placeholder="Select your current semester" />
             </SelectTrigger>
-            <SelectContent className="bg-slate-900 border-white/20 text-white max-h-[300px]">
+            <SelectContent className="bg-[#111111] border-white/20 text-[#F0F0F0] max-h-[300px]">
               {SEMESTERS.map(sem => (
-                <SelectItem key={sem} value={sem} className="hover:bg-slate-800 cursor-pointer">{sem}</SelectItem>
+                <SelectItem key={sem} value={sem} className="hover:bg-[#1A1A1A] cursor-pointer">{sem}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
         <div className="space-y-2">
-          <Label className="text-white/70">Branch / Stream</Label>
+          <Label className="text-[#F0F0F0]/70">Branch / Stream</Label>
           {!showCustomBranch ? (
             <CategorizedCombobox 
               categories={BRANCHES}
@@ -101,12 +101,12 @@ export function Step0BasicProfile({ onNext }: { onNext: () => void }) {
             <div className="flex gap-2 relative">
               <Input 
                 placeholder="Type your stream name" 
-                className="bg-slate-900 border-teal-500/50 text-white rounded-xl h-12 w-full pr-12"
+                className="bg-[#111111] border-teal-500/50 text-[#F0F0F0] rounded-xl h-12 w-full pr-12"
                 value={userData.branch}
                 autoFocus
                 onChange={e => updateField("branch", e.target.value)}
               />
-              <Button variant="ghost" size="icon" className="absolute right-2 top-2 text-slate-400 hover:text-white hover:bg-white/10" onClick={() => setShowCustomBranch(false)}>
+              <Button variant="ghost" size="icon" className="absolute right-2 top-2 text-[#A0A0A0] hover:text-[#F0F0F0] hover:bg-white/10" onClick={() => setShowCustomBranch(false)}>
                 <X className="w-4 h-4"/>
               </Button>
             </div>

@@ -27,7 +27,7 @@ export function TimetableBlock({ slotContent, timeLabel, onUpdate }: Props) {
       <DialogTrigger render={
         <button 
           type="button"
-          className="p-2 sm:p-3 h-full w-full rounded-md border flex flex-col justify-start text-left cursor-pointer hover:brightness-110 transition-all text-xs sm:text-sm"
+          className="p-2 sm:p-3 h-full w-full rounded-md border flex flex-col justify-start text-left cursor-pointer hover:brightness-110 transition-all duration-150-all text-xs sm:text-sm active:scale-[0.97]"
           style={{ 
             backgroundColor: `${slotContent.color}20`, 
             borderColor: `${slotContent.color}50`,
@@ -36,11 +36,11 @@ export function TimetableBlock({ slotContent, timeLabel, onUpdate }: Props) {
         >
           <span className="font-bold truncate text-slate-100">{slotContent.subject}</span>
           <span className="text-[10px] sm:text-xs text-slate-300 truncate">{slotContent.type}</span>
-          {slotContent.notes && <span className="text-[9px] sm:text-[10px] text-slate-400 mt-1 line-clamp-2 italic max-w-full">{slotContent.notes}</span>}
+          {slotContent.notes && <span className="text-[9px] sm:text-[10px] text-[#A0A0A0] mt-1 line-clamp-2 italic max-w-full">{slotContent.notes}</span>}
         </button>
       } />
       
-      <DialogContent className="sm:max-w-xs bg-slate-900 border-white/10 text-white">
+      <DialogContent className="sm:max-w-xs bg-[#111111] border-white/10 text-[#F0F0F0]">
         <DialogHeader>
           <DialogTitle>Edit ({timeLabel})</DialogTitle>
         </DialogHeader>
@@ -50,7 +50,7 @@ export function TimetableBlock({ slotContent, timeLabel, onUpdate }: Props) {
             <Input 
               value={edited.subject} 
               onChange={e => setEdited({...edited, subject: e.target.value})}
-              className="bg-slate-800 border-white/10"
+              className="bg-[#1A1A1A] border-white/10"
             />
           </div>
           <div className="space-y-2">
@@ -58,7 +58,7 @@ export function TimetableBlock({ slotContent, timeLabel, onUpdate }: Props) {
             <Input 
               value={edited.type} 
               onChange={e => setEdited({...edited, type: e.target.value})}
-              className="bg-slate-800 border-white/10"
+              className="bg-[#1A1A1A] border-white/10"
             />
           </div>
           <div className="space-y-2">
@@ -68,7 +68,7 @@ export function TimetableBlock({ slotContent, timeLabel, onUpdate }: Props) {
               <Input 
                 value={edited.color} 
                 onChange={e => setEdited({...edited, color: e.target.value})}
-                className="bg-slate-800 border-white/10 flex-1"
+                className="bg-[#1A1A1A] border-white/10 flex-1"
               />
             </div>
           </div>
@@ -77,10 +77,10 @@ export function TimetableBlock({ slotContent, timeLabel, onUpdate }: Props) {
             <Input 
               value={edited.notes} 
               onChange={e => setEdited({...edited, notes: e.target.value})}
-              className="bg-slate-800 border-white/10"
+              className="bg-[#1A1A1A] border-white/10"
             />
           </div>
-          <Button onClick={save} className="w-full bg-indigo-600 hover:bg-indigo-500">Save Changes</Button>
+          <Button onClick={save} className="w-full bg-[#10B981] hover:bg-[#10B981]">Save Changes</Button>
         </div>
       </DialogContent>
     </Dialog>

@@ -68,8 +68,8 @@ export default function LoginPage() {
           {/* Logo + Heading */}
           <div className="text-center mb-8">
             <Link href="/" className="inline-flex items-center gap-2.5 mb-5 group">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.3)] group-hover:shadow-[0_0_30px_rgba(16,185,129,0.4)] transition-all">
-                <BookOpen className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.3)] group-hover:shadow-[0_0_30px_rgba(16,185,129,0.4)] transition-all duration-150-all">
+                <BookOpen className="w-5 h-5 text-[#F0F0F0]" />
               </div>
             </Link>
             <h1 className="text-2xl font-bold text-[#F0F0F0] mb-1 tracking-tight">Welcome back</h1>
@@ -80,7 +80,7 @@ export default function LoginPage() {
           <button
             onClick={signInWithGoogle}
             type="button"
-            className="w-full flex items-center justify-center gap-3 h-11 bg-[#222222] border border-[#2A2A2A] rounded-lg text-sm font-medium text-[#F0F0F0] hover:bg-[#2A2A2A] hover:border-[#333333] transition-all duration-150 active:scale-[0.98] mb-6 cursor-pointer"
+            className="w-full flex items-center justify-center gap-3 h-11 bg-[#222222] border border-[#2A2A2A] rounded-lg text-sm font-medium text-[#F0F0F0] hover:bg-[#2A2A2A] hover:border-[#333333] transition-all duration-150-all duration-150 active:scale-[0.98] mb-6 cursor-pointer"
           >
             <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -112,7 +112,7 @@ export default function LoginPage() {
                   id="email"
                   type="email"
                   placeholder="name@example.com"
-                  className="pl-9 h-11 bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] placeholder:text-[#606060] rounded-lg hover:border-[#333333] focus-visible:ring-[#10B981]/70 focus-visible:border-[#10B981]/50 transition-all"
+                  className="pl-9 h-11 bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] placeholder:text-[#606060] rounded-lg hover:border-[#333333] focus-visible:ring-[#10B981]/70 focus-visible:border-[#10B981]/50 transition-all duration-150-all"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -127,7 +127,7 @@ export default function LoginPage() {
                   <label className="text-xs font-semibold uppercase tracking-widest text-[#606060]">
                     Password
                   </label>
-                  <a href="/auth/forgot" className="text-xs text-[#10B981] hover:text-[#34D399] transition-colors duration-150">
+                  <a href="/auth/forgot" className="text-xs text-[#10B981] hover:text-[#34D399] transition-all duration-150-colors duration-150">
                     Forgot password?
                   </a>
                 </div>
@@ -137,7 +137,7 @@ export default function LoginPage() {
                     id="password"
                     type="password"
                     placeholder="••••••••"
-                    className="pl-9 h-11 bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] placeholder:text-[#606060] rounded-lg hover:border-[#333333] focus-visible:ring-[#10B981]/70 focus-visible:border-[#10B981]/50 transition-all"
+                    className="pl-9 h-11 bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] placeholder:text-[#606060] rounded-lg hover:border-[#333333] focus-visible:ring-[#10B981]/70 focus-visible:border-[#10B981]/50 transition-all duration-150-all"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required={!isMagicLink}
@@ -150,7 +150,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full mt-6 h-11 bg-[#10B981] text-[#0A0A0A] font-bold rounded-lg hover:bg-[#34D399] shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_20px_rgba(16,185,129,0.15)] hover:shadow-[0_0_0_1px_rgba(16,185,129,0.5),0_0_40px_rgba(16,185,129,0.25)] transition-all duration-150 active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full mt-6 h-11 bg-[#10B981] text-[#0A0A0A] font-bold rounded-lg hover:bg-[#34D399] shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_20px_rgba(16,185,129,0.15)] hover:shadow-[0_0_0_1px_rgba(16,185,129,0.5),0_0_40px_rgba(16,185,129,0.25)] transition-all duration-150-all duration-150 active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <>
@@ -165,7 +165,7 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={() => setIsMagicLink(!isMagicLink)}
-            className="w-full text-sm text-[#606060] hover:text-[#A0A0A0] transition-colors mt-4 text-center"
+            className="w-full text-sm text-[#606060] hover:text-[#A0A0A0] transition-all duration-150-colors mt-4 text-center"
           >
             {isMagicLink ? "Use password instead" : "Send me a magic link instead"}
           </button>
@@ -174,16 +174,16 @@ export default function LoginPage() {
           <div className="border-t border-[#2A2A2A] mt-6 pt-6 space-y-3">
             <p className="text-center text-sm text-[#606060]">
               Don&apos;t have an account?{" "}
-              <Link href="/auth/signup" className="text-[#10B981] hover:text-[#34D399] font-medium transition-colors duration-150">
+              <Link href="/auth/signup" className="text-[#10B981] hover:text-[#34D399] font-medium transition-all duration-150-colors duration-150">
                 Create one free →
               </Link>
             </p>
             <Link
               href="/dashboard"
-              className="group flex items-center justify-center gap-2 text-sm text-[#606060] hover:text-[#A0A0A0] transition-colors"
+              className="group flex items-center justify-center gap-2 text-sm text-[#606060] hover:text-[#A0A0A0] transition-all duration-150-colors"
             >
               Continue without account
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-all duration-150-transform" />
             </Link>
           </div>
 

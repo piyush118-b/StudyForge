@@ -51,13 +51,13 @@ export function FocusMode() {
 
       {/* Ambient background glow */}
       <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-                       w-[600px] h-[600px] rounded-full blur-[120px] opacity-[0.04] pointer-events-none transition-colors duration-1000
+                       w-[600px] h-[600px] rounded-full blur-[120px] opacity-[0.04] pointer-events-none transition-all duration-150-colors duration-1000
                        ${isFocus ? 'bg-[#10B981]' : 'bg-[#3B82F6]'}`} />
 
       {/* Exit button */}
       <button
         onClick={() => store.setFocusMode(false)}
-        className="absolute top-6 right-6 h-9 px-4 rounded-xl border border-[#2A2A2A] bg-transparent text-sm font-medium text-[#A0A0A0] hover:bg-[#1A1A1A] hover:text-[#F0F0F0] transition-all duration-150">
+        className="absolute top-6 right-6 h-9 px-4 rounded-xl border border-[#2A2A2A] bg-transparent text-sm font-medium text-[#A0A0A0] hover:bg-[#1A1A1A] hover:text-[#F0F0F0] transition-all duration-150-all duration-150 hover:-translate-y-0.5 hover:border-[#333333] hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)] transition-all duration-200">
         Exit Focus Mode
       </button>
 
@@ -82,7 +82,7 @@ export function FocusMode() {
           {currentTask ? (
             <>
               {currentTask.subject && <span className="text-[#10B981] font-semibold tracking-wide uppercase text-sm">{currentTask.subject}</span>}
-              <h1 className="text-3xl md:text-5xl font-bold text-[#F0F0F0] leading-tight">{currentTask.title}</h1>
+              <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-[#F0F0F0] leading-tight">{currentTask.title}</h1>
             </>
           ) : (
             <h1 className="text-2xl md:text-4xl font-semibold text-[#A0A0A0] font-serif italic">
@@ -92,7 +92,7 @@ export function FocusMode() {
         </div>
 
         {/* Giant clock */}
-        <div className={`text-[110px] md:text-[180px] font-black tracking-tighter tabular-nums leading-none transition-all duration-300
+        <div className={`text-[110px] md:text-[180px] font-black tracking-tighter tabular-nums leading-none transition-all duration-150-all duration-300
           ${store.isRunning ? 'text-[#F0F0F0]' : 'text-[#F0F0F0]/40'}
           ${store.secondsRemaining < 60 ? '!text-[#EF4444]' : ''}`}
           style={{ fontVariantNumeric: 'tabular-nums' }}>
@@ -101,27 +101,27 @@ export function FocusMode() {
 
         {/* Progress bar */}
         <div className="h-1.5 w-full max-w-md mx-auto bg-[#1A1A1A] rounded-full overflow-hidden">
-          <div className={`h-full rounded-full transition-all duration-1000 ease-linear ${isFocus ? 'bg-[#10B981]' : 'bg-[#3B82F6]'}`}
+          <div className={`h-full rounded-full transition-all duration-150-all duration-1000 ease-linear ${isFocus ? 'bg-[#10B981]' : 'bg-[#3B82F6]'}`}
             style={{ width: `${progressPct}%` }} />
         </div>
 
         {/* Controls */}
         <div className="flex items-center gap-6">
           <button onClick={store.skip}
-            className="h-12 px-8 rounded-full text-[#A0A0A0] hover:text-[#F0F0F0] hover:bg-[#1A1A1A] border border-[#2A2A2A] text-sm font-semibold transition-all duration-150">
+            className="h-12 px-8 rounded-full text-[#A0A0A0] hover:text-[#F0F0F0] hover:bg-[#1A1A1A] border border-[#2A2A2A] text-sm font-semibold transition-all duration-150-all duration-150 active:scale-[0.97]">
             Skip Phase
           </button>
 
           <button onClick={store.isRunning ? store.pause : store.start}
-            className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 shadow-2xl
+            className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-150-all duration-200 hover:scale-105 active:scale-95 shadow-2xl
               ${store.isRunning
-                ? 'bg-orange-500 hover:bg-orange-400 text-white shadow-orange-500/20'
+                ? 'bg-orange-500 hover:bg-orange-400 text-[#F0F0F0] shadow-orange-500/20'
                 : 'bg-[#10B981] hover:bg-[#34D399] text-[#0A0A0A] shadow-[0_0_40px_rgba(16,185,129,0.4)]'}`}>
             {store.isRunning ? <Pause className="w-8 h-8 fill-current" /> : <Play className="w-8 h-8 fill-current translate-x-1" />}
           </button>
 
           <button onClick={store.reset}
-            className="h-12 px-8 rounded-full text-[#EF4444] hover:text-red-300 hover:bg-[rgba(239,68,68,0.08)] border border-[#2A2A2A] hover:border-[#EF4444]/30 text-sm font-semibold transition-all duration-150">
+            className="h-12 px-8 rounded-full text-[#EF4444] hover:text-red-300 hover:bg-[rgba(239,68,68,0.08)] border border-[#2A2A2A] hover:border-[#EF4444]/30 text-sm font-semibold transition-all duration-150-all duration-150 active:scale-[0.97]">
             Reset
           </button>
         </div>

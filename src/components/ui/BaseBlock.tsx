@@ -20,7 +20,7 @@ export function BaseBlock({
   isEditable = false
 }: BaseBlockProps) {
   
-  const baseClasses = "flex flex-col rounded-lg shadow-sm overflow-hidden border transition-all duration-200 relative group";
+  const baseClasses = "flex flex-col rounded-lg shadow-sm overflow-hidden border transition-all duration-150-all duration-200 relative group";
   const bgStyle = { backgroundColor: `${block.color}15`, borderColor: `${block.color}30` }; // light bg tint
   
   if (variant === 'grid') {
@@ -29,8 +29,8 @@ export function BaseBlock({
         className={cn(baseClasses, "w-full h-full p-2 hover:shadow-md cursor-pointer")}
         style={bgStyle}
       >
-        <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          {onDragStart && <GripVertical className="w-4 h-4 text-slate-400 cursor-grab active:cursor-grabbing" onPointerDown={onDragStart} />}
+        <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-all duration-150-opacity">
+          {onDragStart && <GripVertical className="w-4 h-4 text-[#A0A0A0] cursor-grab active:cursor-grabbing" onPointerDown={onDragStart} />}
         </div>
         <div className="flex-1 ml-4 overflow-hidden">
            <h4 className="font-semibold text-sm truncate" style={{ color: block.color }}>{block.subject}</h4>
@@ -56,10 +56,10 @@ export function BaseBlock({
         </div>
         {isEditable && onStatusChange && (
           <div className="flex items-center gap-2">
-            <button onClick={() => onStatusChange('completed')} className="p-1.5 hover:bg-emerald-500/10 rounded-md text-emerald-500 transition-colors" title="Mark Done">
+            <button onClick={() => onStatusChange('completed')} className="p-1.5 hover:bg-emerald-500/10 rounded-md text-emerald-500 transition-all duration-150-colors" title="Mark Done">
                <CheckCircle className="w-5 h-5" />
             </button>
-            <button onClick={() => onStatusChange('skipped')} className="p-1.5 hover:bg-rose-500/10 rounded-md text-rose-500 transition-colors" title="Skip">
+            <button onClick={() => onStatusChange('skipped')} className="p-1.5 hover:bg-rose-500/10 rounded-md text-rose-500 transition-all duration-150-colors" title="Skip">
                <XCircle className="w-5 h-5" />
             </button>
           </div>

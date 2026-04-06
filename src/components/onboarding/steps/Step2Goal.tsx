@@ -44,8 +44,8 @@ export function Step2Goal({ onNext, onBack }: { onNext: () => void, onBack: () =
                     updateField("dailyHours", opt.value);
                   }
                 }}
-                className={`cursor-pointer p-4 rounded-xl border flex items-center justify-center text-center font-semibold transition-all
-                  ${isSelected ? 'bg-indigo-600 border-indigo-500 shadow-lg shadow-indigo-500/20 text-white' : 'bg-slate-800 border-white/10 hover:border-white/30 text-slate-300'}`}
+                className={`cursor-pointer p-4 rounded-xl border flex items-center justify-center text-center font-semibold transition-all duration-150-all
+                  ${isSelected ? 'bg-[#10B981] border-[#10B981] shadow-lg shadow-indigo-500/20 text-[#F0F0F0]' : 'bg-[#1A1A1A] border-white/10 hover:border-white/30 text-slate-300'}`}
               >
                 {opt.label}
               </div>
@@ -56,7 +56,7 @@ export function Step2Goal({ onNext, onBack }: { onNext: () => void, onBack: () =
         {isCustom && (
           <Input 
             placeholder="E.g. 5 hours" 
-            className="mt-4 bg-slate-900 border-white/20 text-white h-12 rounded-xl text-center text-lg"
+            className="mt-4 bg-[#111111] border-white/20 text-[#F0F0F0] h-12 rounded-xl text-center text-lg"
             value={userData.dailyHours}
             onChange={e => updateField("dailyHours", e.target.value)}
           />
@@ -71,7 +71,7 @@ export function Step2Goal({ onNext, onBack }: { onNext: () => void, onBack: () =
       </div>
 
       <div className="mt-8 flex justify-between">
-        <Button variant="ghost" onClick={onBack} className="text-slate-400 hover:text-white">
+        <Button variant="ghost" onClick={onBack} className="text-[#A0A0A0] hover:text-[#F0F0F0]">
           <ArrowLeft className="w-4 h-4 mr-2" /> Back
         </Button>
         <Button onClick={onNext} disabled={!isValid} className="bg-white text-black hover:bg-slate-200 px-8">

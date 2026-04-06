@@ -52,24 +52,24 @@ export function AchievementModal() {
   if (!recentAchievement) return null;
 
   return (
-    <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[99999] transition-all duration-500 transform ${show ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'}`}>
-      <div className="bg-slate-900 border border-indigo-500/30 rounded-2xl p-4 shadow-[0_20px_40px_rgba(79,70,229,0.3)] flex items-center gap-4 min-w-[320px]">
-        <div className="w-12 h-12 rounded-xl bg-indigo-500/20 flex items-center justify-center shrink-0 border border-indigo-500/30 relative overflow-hidden">
-          <div className="absolute inset-0 bg-indigo-500/10 animate-pulse" />
+    <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[99999] transition-all duration-150-all duration-500 transform ${show ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'}`}>
+      <div className="bg-[#111111] border border-[#10B981]/30 rounded-2xl p-4 shadow-[0_20px_40px_rgba(79,70,229,0.3)] flex items-center gap-4 min-w-[320px]">
+        <div className="w-12 h-12 rounded-xl bg-[#10B981]/20 flex items-center justify-center shrink-0 border border-[#10B981]/30 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[#10B981]/10 animate-pulse" />
           <span className="text-2xl relative z-10">{recentAchievement.emoji}</span>
         </div>
         
         <div className="flex-1">
-          <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-0.5 flex items-center gap-1">
+          <h4 className="text-xs font-bold text-[#10B981] uppercase tracking-widest mb-0.5 flex items-center gap-1">
             <Trophy className="w-3 h-3" /> Achievement Unlocked
           </h4>
-          <h3 className="text-base font-bold text-white leading-tight mb-0.5">{recentAchievement.title}</h3>
-          <p className="text-xs text-slate-400 leading-snug">{recentAchievement.description}</p>
+          <h3 className="text-base font-bold text-[#F0F0F0] leading-tight mb-0.5">{recentAchievement.title}</h3>
+          <p className="text-xs text-[#A0A0A0] leading-snug">{recentAchievement.description}</p>
         </div>
 
         <button 
           onClick={() => { setShow(false); setTimeout(clearAchievement, 300); }} 
-          className="self-start p-1 text-slate-500 hover:text-white transition-colors"
+          className="self-start p-1 text-[#606060] hover:text-[#F0F0F0] transition-all duration-150-colors"
         >
           <X className="w-4 h-4" />
         </button>

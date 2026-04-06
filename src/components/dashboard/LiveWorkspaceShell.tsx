@@ -10,9 +10,22 @@ import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar'
 import { DashboardStatusBar } from '@/components/dashboard/DashboardStatusBar'
 import { useBlockReminder } from '@/hooks/useBlockReminder'
 import { ReminderSettingsPanel } from '@/components/reminders/ReminderSettingsPanel'
+import { GuestBanner } from '@/components/dashboard/GuestBanner'
+import { GuestMigrationPrompt } from '@/components/auth/GuestMigrationPrompt'
 import { useMemo } from 'react'
 import type { ReminderBlock } from '@/types/reminder.types'
 import { ReminderPermissionCard } from '@/components/reminders/ReminderPermissionCard'
+import { AnimatePresence, motion } from 'framer-motion'
+import Link from 'next/link'
+import {
+  LayoutDashboard, Calendar, BarChart3,
+  CheckSquare, Camera, Trophy, Settings, Zap, X
+} from 'lucide-react'
+import { useSubscriptionStore } from '@/store/subscription-store'
+import { TimetableNameDropdown } from '@/components/dashboard/TimetableDropdown'
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { KeyboardShortcutsModal } from '@/components/ui/keyboard-shortcuts-modal';
+import { CommandPalette } from '@/components/ui/command-palette';
 
 interface LiveWorkspaceShellProps {
   children: React.ReactNode
@@ -34,13 +47,35 @@ export function LiveWorkspaceShell({ children }: LiveWorkspaceShellProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [reminderSettingsOpen, setReminderSettingsOpen] = useState(false)
   const [showPermissionCard, setShowPermissionCard] = useState(false)
-  
-  // LocalStorage persistence for sidebar
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
+
+  const { isPro } = useSubscriptionStore()
+  const userEmail = user?.email || 'guest@studyforge.ai'
+  const userName = user?.user_metadata?.full_name || 'Guest User'
+  const userInitial = userName.charAt(0).toUpperCase()
+
+  const navItems = [
+    { href: "/dashboard", icon: LayoutDashboard, label: "Today's Plan" },
+    { href: "/dashboard/timetables", icon: Calendar, label: "My Timetables" },
+    { href: "/dashboard/analytics", icon: BarChart3, label: "Analytics" },
+    { href: "/dashboard/tasks", icon: CheckSquare, label: "Task Board" },
+    { href: "/dashboard/scanner", icon: Camera, label: "OCR Scanner" },
+    { href: "/dashboard/achievements", icon: Trophy, label: "Achievements" },
+    { href: "/pricing", icon: Zap, label: "Upgrade to Pro" },
+  ]
+  const isActive = (href: string) =>
+    href === '/dashboard'
+      ? pathname === '/dashboard' || pathname === '/dashboard/today'
+      : pathname === href || pathname.startsWith(href + '/')
+
+  // LocalStorage persistence for sidebar — default expanded
   useEffect(() => {
     const val = localStorage.getItem('sf_sidebar_collapsed')
+    // Only collapse if explicitly saved as 'true'; treat missing/other as expanded
     if (val === 'true') setSidebarCollapsed(true)
+    else localStorage.setItem('sf_sidebar_collapsed', 'false')
   }, [])
-  
+
   const toggleSidebar = () => {
     const nextVal = !sidebarCollapsed
     setSidebarCollapsed(nextVal)
@@ -110,6 +145,8 @@ export function LiveWorkspaceShell({ children }: LiveWorkspaceShellProps) {
     setShowPermissionCard(false)
   }, [])
   
+  useKeyboardShortcuts();
+  
   // Initial sync when active timetable is known but currentTimetable missing
   useEffect(() => {
     if (activeTimetable?.id && currentTimetable?.id !== activeTimetable.id) {
@@ -139,7 +176,10 @@ export function LiveWorkspaceShell({ children }: LiveWorkspaceShellProps) {
         saveStatus={saveStatus}
         userId={user?.id}
         onOpenReminderSettings={() => setReminderSettingsOpen(true)}
+        onOpenMobileNav={() => setMobileNavOpen(true)}
       />
+      <CommandPalette />
+      <KeyboardShortcutsModal />
       
       {/* Main Layout Area */}
       <div className="flex flex-1 overflow-hidden mt-12 mb-8 relative">
@@ -152,8 +192,9 @@ export function LiveWorkspaceShell({ children }: LiveWorkspaceShellProps) {
         />
         
         {/* Dynamic Content: can be the Grid or any Dashboard Sub-page */}
-        <main className="flex-1 overflow-hidden relative">
-          <div className="h-full w-full overflow-y-auto custom-scrollbar">
+        <main className="flex-1 overflow-hidden relative flex flex-col">
+          <GuestBanner />
+          <div className="flex-1 w-full overflow-y-auto custom-scrollbar">
             {children}
           </div>
         </main>
@@ -180,6 +221,114 @@ export function LiveWorkspaceShell({ children }: LiveWorkspaceShellProps) {
         blocks={reminderBlocks}
         studentName={user?.user_metadata?.full_name || 'Student'}
       />
+
+      <GuestMigrationPrompt />
+
+      {/* Mobile nav drawer */}
+      <AnimatePresence>
+        {mobileNavOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setMobileNavOpen(false)}
+              className="
+                fixed inset-0 z-40
+                bg-black/60 backdrop-blur-sm
+                md:hidden
+              "
+            />
+
+            {/* Drawer panel */}
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="
+                fixed left-0 top-0 bottom-0 z-50
+                w-72 md:hidden
+                bg-[#111111] border-r border-[#2A2A2A]
+                flex flex-col
+                overflow-hidden
+              "
+            >
+              {/* Drawer header */}
+              <div className="h-14 flex items-center justify-between px-4
+                              border-b border-[#2A2A2A] flex-shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg
+                                  bg-gradient-to-br from-[#10B981] to-[#059669]" />
+                  <span className="font-semibold text-[#F0F0F0] text-sm tracking-tight">
+                    StudyForge
+                  </span>
+                </div>
+                <button
+                  onClick={() => setMobileNavOpen(false)}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center
+                             text-[#606060] hover:text-[#F0F0F0] hover:bg-[#1A1A1A]
+                             transition-all duration-150"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Timetable switcher */}
+              <div className="px-3 py-3 border-b border-[#2A2A2A] flex-shrink-0">
+                <TimetableNameDropdown 
+                  timetables={allTimetables}
+                  active={activeTimetable}
+                  onSwitch={handleSwitchTimetable}
+                />
+              </div>
+
+              {/* Nav items — same as desktop sidebar */}
+              <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-0.5">
+                {navItems.map(item => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileNavOpen(false)}
+                    className={`
+                      flex items-center gap-3 px-3 py-2.5 rounded-lg
+                      text-sm font-medium transition-all duration-150
+                      ${isActive(item.href)
+                        ? 'text-[#10B981] bg-[rgba(16,185,129,0.08)] border border-[#10B981]/15'
+                        : 'text-[#A0A0A0] border border-transparent hover:bg-[#1A1A1A] hover:text-[#F0F0F0]'
+                      }
+                    `}
+                  >
+                    <item.icon className={`w-4 h-4 flex-shrink-0
+                                           ${isActive(item.href) ? 'text-[#10B981]' : ''}`} />
+                    {item.label}
+                  </Link>
+                ))}
+              </nav>
+
+              {/* User footer */}
+              <div className="p-3 border-t border-[#2A2A2A] flex-shrink-0">
+                <Link href="/profile" onClick={() => setMobileNavOpen(false)}
+                      className="flex items-center gap-3 p-2 rounded-lg
+                                 hover:bg-[#1A1A1A] transition-all duration-150">
+                  <div className="w-7 h-7 rounded-full
+                                  bg-gradient-to-br from-[#10B981] to-[#059669]
+                                  flex items-center justify-center
+                                  text-xs font-bold text-[#0A0A0A] flex-shrink-0">
+                    {userInitial}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-[#F0F0F0] truncate">{userEmail}</p>
+                    <p className="text-[10px] text-[#606060]">{isPro ? '⚡ Pro' : 'Free'}</p>
+                  </div>
+                </Link>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

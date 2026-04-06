@@ -12,7 +12,7 @@ function Card({
       data-slot="card"
       data-size={size}
       className={cn(
-        "rounded-xl bg-forge-elevated border border-forge-border shadow-forge-md transition-all duration-200",
+        "rounded-xl bg-forge-elevated border border-forge-border shadow-forge-md transition-all duration-150-all duration-200",
         className
       )}
       {...props}

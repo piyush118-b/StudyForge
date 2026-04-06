@@ -4,6 +4,7 @@ import {
   BarChart3, Camera, Bell, BookOpen, ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ScrollReveal } from "@/components/ui/scroll-reveal";
 
 const features = [
   {
@@ -67,7 +68,7 @@ export default function Home() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center shadow-[0_0_12px_rgba(16,185,129,0.4)]">
-              <BookOpen className="w-4 h-4 text-white" />
+              <BookOpen className="w-4 h-4 text-[#F0F0F0]" />
             </div>
             <span className="font-bold text-[#F0F0F0] tracking-tight text-sm">
               StudyForge
@@ -85,7 +86,7 @@ export default function Home() {
               </Button>
             </Link>
             <Link href="/auth/signup">
-              <Button size="sm" className="bg-[#10B981] hover:bg-[#34D399] text-[#0A0A0A] font-bold shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_20px_rgba(16,185,129,0.15)] hover:shadow-[0_0_0_1px_rgba(16,185,129,0.5),0_0_30px_rgba(16,185,129,0.25)] transition-all px-5">
+              <Button size="sm" className="bg-[#10B981] hover:bg-[#34D399] text-[#0A0A0A] font-bold shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_20px_rgba(16,185,129,0.15)] hover:shadow-[0_0_0_1px_rgba(16,185,129,0.5),0_0_30px_rgba(16,185,129,0.25)] transition-all duration-150-all px-5">
                 Get Started Free
               </Button>
             </Link>
@@ -132,15 +133,15 @@ export default function Home() {
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center mb-16">
             <Link href="/auth/signup">
-              <Button size="xl" className="w-full sm:w-auto h-14 px-10 text-lg font-bold bg-[#10B981] hover:bg-[#34D399] text-[#0A0A0A] shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_20px_rgba(16,185,129,0.15)] hover:shadow-[0_0_0_1px_rgba(16,185,129,0.5),0_0_40px_rgba(16,185,129,0.25)] transition-all group">
+              <Button size="xl" className="w-full sm:w-auto h-14 px-10 text-lg font-bold bg-[#10B981] hover:bg-[#34D399] text-[#0A0A0A] shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_20px_rgba(16,185,129,0.15)] hover:shadow-[0_0_0_1px_rgba(16,185,129,0.5),0_0_40px_rgba(16,185,129,0.25)] transition-all duration-150-all group">
                 Start Free
-                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-all duration-150-transform" />
               </Button>
             </Link>
             <Link href="/dashboard">
               <Button variant="secondary" size="xl" className="w-full sm:w-auto h-14 px-8 text-lg font-semibold bg-[#1A1A1A] border border-[#2A2A2A] text-[#A0A0A0] hover:bg-[#222222] hover:text-[#F0F0F0] hover:border-[#333333] group">
                 Explore as Guest
-                <ChevronRight className="ml-1 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <ChevronRight className="ml-1 w-5 h-5 group-hover:translate-x-1 transition-all duration-150-transform" />
               </Button>
             </Link>
           </div>
@@ -153,56 +154,61 @@ export default function Home() {
       </section>
 
       {/* ── STATS BAR ── */}
-      <div className="border-y border-[#2A2A2A] bg-[#111111]/60 py-8">
-        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 px-6">
-          {[
-            { value: "200+", label: "Colleges Supported" },
-            { value: "50K+", label: "Blocks Tracked" },
-            { value: "150+", label: "Branches & Streams" },
-            { value: "Free", label: "To Get Started" },
-          ].map(({ value, label }) => (
-            <div key={label} className="text-center">
-              <p className="text-2xl font-black text-[#F0F0F0] mb-1">{value}</p>
-              <p className="text-xs font-semibold uppercase tracking-widest text-[#606060]">{label}</p>
-            </div>
-          ))}
+      <ScrollReveal>
+        <div className="border-y border-[#2A2A2A] bg-[#111111]/60 py-8">
+          <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 px-6">
+            {[
+              { value: "200+", label: "Colleges Supported" },
+              { value: "50K+", label: "Blocks Tracked" },
+              { value: "150+", label: "Branches & Streams" },
+              { value: "Free", label: "To Get Started" },
+            ].map(({ value, label }) => (
+              <div key={label} className="text-center">
+                <p className="text-2xl font-black text-[#F0F0F0] mb-1">{value}</p>
+                <p className="text-xs font-semibold uppercase tracking-widest text-[#606060]">{label}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      </ScrollReveal>
 
       {/* ── FEATURES ── */}
       <section id="features" className="py-24 px-6 relative bg-[#111111]/30">
 
-        <div className="text-center mb-16 max-w-3xl mx-auto">
-          <p className="text-xs font-semibold uppercase tracking-widest text-[#606060] mb-3">
-            Why StudyForge
-          </p>
-          <h2 className="text-3xl md:text-4xl font-black text-[#F0F0F0] tracking-tight mb-4">
-            Everything you need to{" "}
-            <span className="text-[#10B981]">actually study</span>
-          </h2>
-          <p className="text-[#A0A0A0] leading-relaxed">
-            One platform to replace your planner, calendar, task list, and timer.
-            Built for how Indian students actually study.
-          </p>
-        </div>
+        <ScrollReveal>
+          <div className="text-center mb-16 max-w-3xl mx-auto">
+            <p className="text-xs font-semibold uppercase tracking-widest text-[#606060] mb-3">
+              Why StudyForge
+            </p>
+            <h2 className="text-3xl md:text-4xl font-black text-[#F0F0F0] tracking-tight mb-4">
+              Everything you need to{" "}
+              <span className="text-[#10B981]">actually study</span>
+            </h2>
+            <p className="text-[#A0A0A0] leading-relaxed">
+              One platform to replace your planner, calendar, task list, and timer.
+              Built for how Indian students actually study.
+            </p>
+          </div>
+        </ScrollReveal>
 
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {features.map(({ icon: Icon, tag, gradient, title, description }) => (
-            <div
-              key={title}
-              className="group bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6 cursor-default transition-all duration-200 hover:-translate-y-0.5 hover:border-[#333333] hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
-            >
-              <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center mb-4 shadow-[0_2px_8px_rgba(0,0,0,0.3)]`}>
-                <Icon className="w-5 h-5 text-white" />
+          {features.map(({ icon: Icon, tag, gradient, title, description }, i) => (
+            <ScrollReveal key={title} delay={i * 0.07}>
+              <div
+                className="group bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6 cursor-default transition-all duration-150-all duration-200 hover:-translate-y-0.5 hover:border-[#333333] hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
+              >
+                <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center mb-4 shadow-[0_2px_8px_rgba(0,0,0,0.3)]`}>
+                  <Icon className="w-5 h-5 text-[#F0F0F0]" />
+                </div>
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-[#222222] border border-[#2A2A2A] text-[#606060] mb-3">
+                  {tag}
+                </span>
+                <h3 className="text-base font-semibold text-[#F0F0F0] tracking-tight mb-2 group-hover:text-[#10B981] transition-all duration-150-colors">
+                  {title}
+                </h3>
+                <p className="text-sm text-[#A0A0A0] leading-relaxed">{description}</p>
               </div>
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-[#222222] border border-[#2A2A2A] text-[#606060] mb-3">
-                {tag}
-              </span>
-              <h3 className="text-base font-semibold text-[#F0F0F0] tracking-tight mb-2 group-hover:text-[#10B981] transition-colors">
-                {title}
-              </h3>
-              <p className="text-sm text-[#A0A0A0] leading-relaxed">{description}</p>
-            </div>
+            </ScrollReveal>
           ))}
         </div>
       </section>
@@ -220,11 +226,11 @@ export default function Home() {
           <div className="space-y-10 pl-4 md:pl-0">
             {steps.map((s) => (
               <div key={s.step} className="flex items-start gap-6 md:gap-8 group">
-                <div className="shrink-0 w-16 h-16 rounded-2xl bg-[#10B981]/10 border border-[#10B981]/30 flex items-center justify-center text-xl font-black text-[#10B981] shadow-[0_0_15px_rgba(16,185,129,0.15)] group-hover:bg-[#10B981] group-hover:text-[#0A0A0A] transition-all duration-300">
+                <div className="shrink-0 w-16 h-16 rounded-2xl bg-[#10B981]/10 border border-[#10B981]/30 flex items-center justify-center text-xl font-black text-[#10B981] shadow-[0_0_15px_rgba(16,185,129,0.15)] group-hover:bg-[#10B981] group-hover:text-[#0A0A0A] transition-all duration-150-all duration-300">
                   {s.step}
                 </div>
                 <div className="pt-2">
-                  <h3 className="text-2xl font-bold text-[#F0F0F0] mb-2 group-hover:text-[#10B981] transition-colors">{s.title}</h3>
+                  <h3 className="text-2xl font-bold text-[#F0F0F0] mb-2 group-hover:text-[#10B981] transition-all duration-150-colors">{s.title}</h3>
                   <p className="text-lg text-[#A0A0A0] leading-relaxed">{s.description}</p>
                 </div>
               </div>
@@ -235,25 +241,27 @@ export default function Home() {
 
       {/* ── BOTTOM CTA ── */}
       <section className="relative py-24 px-6 overflow-hidden border-t border-[#2A2A2A]/50">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-[#10B981]/8 blur-[100px] rounded-full pointer-events-none" />
+        <ScrollReveal direction="up" className="relative z-10">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-[#10B981]/8 blur-[100px] rounded-full pointer-events-none" />
 
-        <div className="relative z-10 max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl md:text-5xl font-black text-[#F0F0F0] tracking-tight mb-4">
-            Ready to own your semester?
-          </h2>
-          <p className="text-[#A0A0A0] mb-8 leading-relaxed">
-            Join thousands of Indian students who&apos;ve replaced 5 scattered apps
-            with one AI-powered Academic OS.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href="/auth/signup">
-              <Button size="xl" className="h-14 px-10 text-lg font-bold bg-[#10B981] hover:bg-[#34D399] text-[#0A0A0A] shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_20px_rgba(16,185,129,0.15)] hover:shadow-[0_0_0_1px_rgba(16,185,129,0.5),0_0_40px_rgba(16,185,129,0.25)] transition-all group">
+          <div className="relative z-10 max-w-2xl mx-auto text-center">
+            <h2 className="text-3xl md:text-5xl font-black text-[#F0F0F0] tracking-tight mb-4">
+              Ready to own your semester?
+            </h2>
+            <p className="text-[#A0A0A0] mb-8 leading-relaxed">
+              Join thousands of Indian students who&apos;ve replaced 5 scattered apps
+              with one AI-powered Academic OS.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link href="/auth/signup">
+                <Button size="xl" className="h-14 px-10 text-lg font-bold bg-[#10B981] hover:bg-[#34D399] text-[#0A0A0A] shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_20px_rgba(16,185,129,0.15)] hover:shadow-[0_0_0_1px_rgba(16,185,129,0.5),0_0_40px_rgba(16,185,129,0.25)] transition-all duration-150-all group active:scale-[0.97]">
                 Start Your Journey
-                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-all duration-150-transform" />
               </Button>
             </Link>
+            </div>
           </div>
-        </div>
+        </ScrollReveal>
       </section>
 
       {/* ── FOOTER ── */}
@@ -277,16 +285,16 @@ export default function Home() {
               <div>
                 <p className="text-xs font-semibold uppercase tracking-widest text-[#3A3A3A] mb-3">Product</p>
                 <div className="space-y-2">
-                  <Link href="/dashboard" className="block text-sm text-[#606060] hover:text-[#A0A0A0] transition-colors duration-150">Dashboard</Link>
-                  <Link href="/pricing" className="block text-sm text-[#606060] hover:text-[#A0A0A0] transition-colors duration-150">Pricing</Link>
-                  <Link href="/auth/signup" className="block text-sm text-[#606060] hover:text-[#A0A0A0] transition-colors duration-150">Sign Up</Link>
+                  <Link href="/dashboard" className="block text-sm text-[#606060] hover:text-[#A0A0A0] transition-all duration-150-colors duration-150">Dashboard</Link>
+                  <Link href="/pricing" className="block text-sm text-[#606060] hover:text-[#A0A0A0] transition-all duration-150-colors duration-150">Pricing</Link>
+                  <Link href="/auth/signup" className="block text-sm text-[#606060] hover:text-[#A0A0A0] transition-all duration-150-colors duration-150">Sign Up</Link>
                 </div>
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-widest text-[#3A3A3A] mb-3">Account</p>
                 <div className="space-y-2">
-                  <Link href="/auth/login" className="block text-sm text-[#606060] hover:text-[#A0A0A0] transition-colors duration-150">Login</Link>
-                  <Link href="/auth/signup" className="block text-sm text-[#606060] hover:text-[#A0A0A0] transition-colors duration-150">Create Account</Link>
+                  <Link href="/auth/login" className="block text-sm text-[#606060] hover:text-[#A0A0A0] transition-all duration-150-colors duration-150">Login</Link>
+                  <Link href="/auth/signup" className="block text-sm text-[#606060] hover:text-[#A0A0A0] transition-all duration-150-colors duration-150">Create Account</Link>
                 </div>
               </div>
             </div>
@@ -296,9 +304,9 @@ export default function Home() {
           <div className="border-t border-[#2A2A2A] pt-6 flex flex-col sm:flex-row justify-between items-center gap-3">
             <p className="text-xs text-[#606060]">© 2026 StudyForge AI. Made in India 🇮🇳</p>
             <div className="flex items-center gap-6">
-              <Link href="/auth/login" className="text-xs text-[#606060] hover:text-[#A0A0A0] transition-colors">Login</Link>
-              <Link href="/auth/signup" className="text-xs text-[#606060] hover:text-[#A0A0A0] transition-colors">Sign Up</Link>
-              <Link href="/dashboard" className="text-xs text-[#606060] hover:text-[#A0A0A0] transition-colors">Dashboard</Link>
+              <Link href="/auth/login" className="text-xs text-[#606060] hover:text-[#A0A0A0] transition-all duration-150-colors">Login</Link>
+              <Link href="/auth/signup" className="text-xs text-[#606060] hover:text-[#A0A0A0] transition-all duration-150-colors">Sign Up</Link>
+              <Link href="/dashboard" className="text-xs text-[#606060] hover:text-[#A0A0A0] transition-all duration-150-colors">Dashboard</Link>
             </div>
           </div>
         </div>

@@ -6,6 +6,9 @@ import { Toaster } from "sonner";
 import { PomodoroTimer } from "@/components/pomodoro/PomodoroTimer";
 import { PwaRegistration } from "@/components/PwaRegistration";
 import { StudyForgeProvider } from "@/providers/StudyForgeProvider";
+import { NotificationQueue } from "@/components/notifications/NotificationQueue";
+import { PermissionBanner } from "@/components/notifications/PermissionBanner";
+import { OfflineBanner } from "@/components/layout/OfflineBanner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,8 +21,25 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "StudyForge AI | Perfect College Timetables",
-  description: "Stop wasting time making timetables. Let AI build your perfect week in 60 seconds.",
+  title: {
+    template: '%s | StudyForge AI',
+    default: 'StudyForge AI | Perfect College Timetables',
+  },
+  description: 'Stop wasting time making timetables. Let AI build your perfect week in 60 seconds.',
+  openGraph: {
+    title: 'StudyForge AI',
+    description: 'The ultimate AI-powered Academic OS for college students.',
+    url: 'https://studyforge.ai',
+    siteName: 'StudyForge AI',
+    locale: 'en_IN',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'StudyForge AI',
+    description: 'The ultimate AI-powered Academic OS.',
+  },
+  themeColor: '#0A0A0A',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
@@ -32,10 +52,11 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: '#4f46e5',
+  themeColor: '#0A0A0A',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({
@@ -49,11 +70,14 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
+        <OfflineBanner />
         <StudyForgeProvider>
           <AuthProvider>
             {children}
             <PomodoroTimer />
             <PwaRegistration />
+            <NotificationQueue />
+            <PermissionBanner />
             <Toaster
               theme="dark"
               position="bottom-right"

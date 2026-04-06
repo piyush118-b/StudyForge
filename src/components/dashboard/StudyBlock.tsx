@@ -25,7 +25,7 @@ function StarRating({ value, onChange }: { value: number; onChange: (v: number) 
           key={star}
           onClick={() => onChange(star)}
           className={cn(
-            "text-lg transition-colors",
+            "text-lg transition-all duration-150-colors",
             value >= star ? "text-yellow-400" : "text-[#2A2A2A] hover:text-yellow-300"
           )}
         >
@@ -61,7 +61,7 @@ function DoneForm({
             key={e}
             onClick={() => setEnergy(e)}
             className={cn(
-              "text-xs px-2 py-0.5 rounded-full border capitalize transition-colors",
+              "text-xs px-2 py-0.5 rounded-full border capitalize transition-all duration-150-colors",
               energy === e
                 ? "bg-[#10B981] border-[#10B981] text-[#0A0A0A] font-semibold"
                 : "border-[#2A2A2A] text-[#A0A0A0] hover:border-[#333333] hover:text-[#F0F0F0]"
@@ -73,13 +73,13 @@ function DoneForm({
       </div>
       <div className="flex gap-2">
         <button
-          className="h-7 px-3 text-xs rounded-lg bg-[#10B981] hover:bg-[#34D399] text-[#0A0A0A] font-bold transition-all"
+          className="h-7 px-3 text-xs rounded-lg bg-[#10B981] hover:bg-[#34D399] text-[#0A0A0A] font-bold transition-all duration-150-all active:scale-[0.97]"
           onClick={() => onSave(rating, energy)}
         >
           Save
         </button>
         <button
-          className="h-7 px-3 text-xs rounded-lg text-[#606060] hover:text-[#A0A0A0] hover:bg-[#222222] transition-all"
+          className="h-7 px-3 text-xs rounded-lg text-[#606060] hover:text-[#A0A0A0] hover:bg-[#222222] transition-all duration-150-all active:scale-[0.97]"
           onClick={onSkip}
         >
           Skip
@@ -132,13 +132,13 @@ function PartialForm({
 
       <div className="flex gap-2">
         <button
-          className="h-7 px-3 text-xs rounded-lg bg-[#F59E0B] hover:bg-amber-400 text-[#0A0A0A] font-bold transition-all"
+          className="h-7 px-3 text-xs rounded-lg bg-[#F59E0B] hover:bg-amber-400 text-[#0A0A0A] font-bold transition-all duration-150-all active:scale-[0.97]"
           onClick={() => onSave(partialPercentage, scheduledHours * (partialPercentage / 100))}
         >
           Save Partial
         </button>
         <button
-          className="h-7 px-3 text-xs rounded-lg text-[#606060] hover:text-[#A0A0A0] hover:bg-[#222222] transition-all"
+          className="h-7 px-3 text-xs rounded-lg text-[#606060] hover:text-[#A0A0A0] hover:bg-[#222222] transition-all duration-150-all active:scale-[0.97]"
           onClick={onCancel}
         >
           Cancel
@@ -182,7 +182,7 @@ export function StudyBlock({ block, mode, todayDate, onDone, onPartial, onSkip, 
   if (mode === "compact") {
     return (
       <div
-        className="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-200"
+        className="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-150-all duration-200"
         style={{
           backgroundColor: isDone ? 'rgba(16,185,129,0.05)' : 'rgba(26,26,26,0.8)',
           borderColor: isDone ? 'rgba(16,185,129,0.2)' : '#2A2A2A',
@@ -208,7 +208,7 @@ export function StudyBlock({ block, mode, todayDate, onDone, onPartial, onSkip, 
           <StatusBadge status="skipped" />
         ) : isPending ? (
           <button
-            className="h-7 px-3 text-xs rounded-lg bg-[rgba(16,185,129,0.12)] hover:bg-[rgba(16,185,129,0.2)] text-[#10B981] border border-[#10B981]/30 shrink-0 font-semibold transition-all"
+            className="h-7 px-3 text-xs rounded-lg bg-[rgba(16,185,129,0.12)] hover:bg-[rgba(16,185,129,0.2)] text-[#10B981] border border-[#10B981]/30 shrink-0 font-semibold transition-all duration-150-all active:scale-[0.97]"
             onClick={() => onDone(block.blockId, todayDate)}
           >
             ✅ Done
@@ -235,12 +235,15 @@ export function StudyBlock({ block, mode, todayDate, onDone, onPartial, onSkip, 
   return (
     <div
       className={cn(
-        "flex w-full border rounded-xl overflow-hidden transition-all duration-200",
+        "flex w-full border rounded-xl overflow-hidden transition-all duration-150-all duration-200 relative",
         block.isCurrent && "shadow-[0_0_0_1px_rgba(59,130,246,0.4),0_0_20px_rgba(59,130,246,0.1)]",
         isDone && "opacity-75"
       )}
       style={{ backgroundColor: statusBg, borderColor: statusBorder }}
     >
+      {block.isCurrent && (
+        <div className="absolute inset-0 rounded-xl pointer-events-none animate-[forge-pulse-glow_3s_ease-in-out_infinite]" />
+      )}
       {/* Left accent bar */}
       <div
         className="w-[3px] shrink-0 self-stretch opacity-80"
@@ -284,14 +287,14 @@ export function StudyBlock({ block, mode, todayDate, onDone, onPartial, onSkip, 
             {isPending && (
               <>
                 <button
-                  className="h-8 px-3 text-xs rounded-lg border border-[#10B981]/40 text-[#10B981] hover:bg-[rgba(16,185,129,0.1)] font-semibold flex items-center gap-1 transition-all"
+                  className="h-8 px-3 text-xs rounded-lg border border-[#10B981]/40 text-[#10B981] hover:bg-[rgba(16,185,129,0.1)] font-semibold flex items-center gap-1 transition-all duration-150-all active:scale-[0.97]"
                   onClick={() => setActiveForm((v) => v === 'done' ? 'none' : 'done')}
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   Done
                 </button>
                 <button
-                  className="h-8 px-3 text-xs rounded-lg border border-[#F59E0B]/30 text-[#F59E0B] hover:bg-[rgba(245,158,11,0.1)] font-semibold hidden sm:flex items-center gap-1 transition-all"
+                  className="h-8 px-3 text-xs rounded-lg border border-[#F59E0B]/30 text-[#F59E0B] hover:bg-[rgba(245,158,11,0.1)] font-semibold hidden sm:flex items-center gap-1 transition-all duration-150-all active:scale-[0.97]"
                   onClick={() => setActiveForm((v) => v === 'partial' ? 'none' : 'partial')}
                 >
                   <Zap className="w-3.5 h-3.5" />
@@ -302,7 +305,7 @@ export function StudyBlock({ block, mode, todayDate, onDone, onPartial, onSkip, 
 
             {block.status !== "pending" && (
               <button
-                className="h-8 w-8 p-0 rounded-lg flex items-center justify-center text-[#606060] hover:text-[#A0A0A0] hover:bg-[#222222] transition-all"
+                className="h-8 w-8 p-0 rounded-lg flex items-center justify-center text-[#606060] hover:text-[#A0A0A0] hover:bg-[#222222] transition-all duration-150-all active:scale-[0.97]"
                 title="Undo"
                 onClick={() => onUndo(block.blockId, todayDate)}
               >

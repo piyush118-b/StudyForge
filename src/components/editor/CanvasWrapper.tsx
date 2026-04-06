@@ -71,7 +71,7 @@ export function CanvasWrapper({ children }: { children: React.ReactNode }) {
       onMouseLeave={() => { document.body.style.cursor = ''; }}
     >
       <div 
-        className="absolute origin-top-left transition-transform duration-75"
+        className="absolute origin-top-left transition-all duration-150-transform duration-75"
         style={{
           transform: `scale(${zoom}) translate(${panX / zoom}px, ${panY / zoom}px)`,
           willChange: "transform"
@@ -81,17 +81,17 @@ export function CanvasWrapper({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Floating Zoom Controls */}
-      <div className="absolute bottom-6 left-6 flex items-center bg-slate-800 border border-slate-700 rounded-lg shadow-xl overflow-hidden z-50 pointer-events-auto text-slate-300">
-         <button className="p-2 hover:bg-slate-700 hover:text-white" onClick={() => setZoom(Math.max(0.3, zoom - 0.1))}>
+      <div className="absolute bottom-6 left-6 flex items-center bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg shadow-xl overflow-hidden z-50 pointer-events-auto text-slate-300">
+         <button className="p-2 hover:bg-slate-700 hover:text-[#F0F0F0] active:scale-[0.97]" onClick={() => setZoom(Math.max(0.3, zoom - 0.1))}>
            <ZoomOut className="w-4 h-4" />
          </button>
-         <button className="px-3 hover:bg-slate-700 hover:text-white font-mono text-xs border-x border-slate-700" onClick={() => setZoom(1.0)}>
+         <button className="px-3 hover:bg-slate-700 hover:text-[#F0F0F0] font-mono text-xs border-x border-[#2A2A2A] active:scale-[0.97]" onClick={() => setZoom(1.0)}>
            {Math.round(zoom * 100)}%
          </button>
-         <button className="p-2 hover:bg-slate-700 hover:text-white" onClick={() => setZoom(Math.min(2.0, zoom + 0.1))}>
+         <button className="p-2 hover:bg-slate-700 hover:text-[#F0F0F0] active:scale-[0.97]" onClick={() => setZoom(Math.min(2.0, zoom + 0.1))}>
            <ZoomIn className="w-4 h-4" />
          </button>
-         <button className="p-2 hover:bg-slate-700 hover:text-white border-l border-slate-700" onClick={() => { setZoom(1.0); setPan(0, 0); }}>
+         <button className="p-2 hover:bg-slate-700 hover:text-[#F0F0F0] border-l border-[#2A2A2A] active:scale-[0.97]" onClick={() => { setZoom(1.0); setPan(0, 0); }}>
            <Maximize2 className="w-4 h-4" />
          </button>
       </div>

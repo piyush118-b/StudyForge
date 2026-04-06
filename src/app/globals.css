@@ -160,3 +160,32 @@
     box-shadow: 0 0 6px rgba(16,185,129,0.8);
   }
 }
+
+/* ========================================
+   STUDYFORGE PRINT STYLESHEET
+   Phase 4 Polish
+   ======================================== */
+@media print {
+  /* Force dark backgrounds to print white */
+  body, html, main, .bg-\[\#111111\], .bg-\[\#0A0A0A\] {
+    background-color: white !important;
+    color: black !important;
+  }
+  
+  /* Hide UI elements that shouldn't print */
+  nav, header, aside, .hud, button, .command-palette-trigger {
+    display: none !important;
+  }
+
+  /* Make grid lines visible on paper */
+  .border-\[\#2A2A2A\] {
+    border-color: #e5e7eb !important;
+  }
+
+  /* Print specific formatting */
+  .timetable-grid {
+    width: 100% !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { chartTheme } from '@/lib/chart-theme';
 
 interface SubjectEntry {
   subject: string;
@@ -24,7 +26,7 @@ interface SubjectChartProps {
 }
 
 function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-md bg-slate-800/60", className)} />;
+  return <div className={cn("animate-pulse rounded-md bg-[#1A1A1A]/60", className)} />;
 }
 
 // Circular progress ring for the completion metric
@@ -65,8 +67,8 @@ function CompletionRing({ done, partial, total }: { done: number; partial: numbe
       </svg>
       {/* Center label */}
       <div className="absolute flex flex-col items-center justify-center leading-none">
-        <span className="text-[18px] font-black text-white">{done}</span>
-        <span className="text-[10px] text-slate-500 font-medium">/{total}</span>
+        <span className="text-[18px] font-black text-[#F0F0F0]">{done}</span>
+        <span className="text-[10px] text-[#606060] font-medium">/{total}</span>
       </div>
     </div>
   );
@@ -156,7 +158,7 @@ export function SubjectChart({ refreshKey = 0, date }: SubjectChartProps) {
       <Card className="bg-[#0A0C14] border-white/5">
         <CardContent className="flex flex-col items-center justify-center h-[200px] gap-3">
           <div className="text-3xl">📚</div>
-          <p className="text-slate-500 text-sm text-center max-w-xs">
+          <p className="text-[#606060] text-sm text-center max-w-xs">
             No blocks scheduled for <span className="text-slate-300">{dayName}</span>.
           </p>
         </CardContent>
@@ -180,116 +182,57 @@ export function SubjectChart({ refreshKey = 0, date }: SubjectChartProps) {
   const totalRemaining = Math.max(remaining + partialRemaining, 0);
 
   return (
-    <Card className="bg-[#0A0C14] border-white/5 shadow-2xl group hover:border-white/10 transition-all duration-300 overflow-hidden">
-      <CardContent className="p-5">
-        {/* Header Row */}
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
-              Today's Subjects
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse shadow-[0_0_6px_rgba(99,102,241,0.7)] inline-block" />
-            </h3>
-            <p className="text-[11px] text-slate-500 mt-0.5">{dayName} · {totalRemaining > 0 ? <span className="text-amber-400 font-semibold">{totalRemaining.toFixed(1)}h remaining</span> : <span className="text-emerald-400 font-semibold">All done 🎉</span>}</p>
+    <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
+      <h3 className="text-sm font-semibold text-[#F0F0F0] mb-1">
+        Subject Distribution
+      </h3>
+      <p className="text-xs text-[#606060] mb-4">
+        Time spent per subject this week
+      </p>
+
+      <div style={{ width: '100%', height: 200 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={subjects}
+              dataKey="plannedHours"
+              nameKey="subject"
+              cx="50%"
+              cy="50%"
+              innerRadius={chartTheme.pie.innerRadius}
+              outerRadius={chartTheme.pie.outerRadius}
+              paddingAngle={chartTheme.pie.paddingAngle}
+              cornerRadius={chartTheme.pie.cornerRadius}
+              stroke="none"
+            >
+              {subjects.map((entry: any, index: number) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={entry.color}
+                />
+              ))}
+            </Pie>
+            <Tooltip
+              contentStyle={chartTheme.tooltip.contentStyle}
+              labelStyle={chartTheme.tooltip.labelStyle}
+              itemStyle={chartTheme.tooltip.itemStyle}
+              formatter={(value) => [`${Number(value).toFixed(1)}h`, 'Study time']}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Custom legend below chart */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-4">
+        {subjects.map((entry: any) => (
+          <div key={entry.subject} className="flex items-center gap-2">
+            <div className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                 style={{ backgroundColor: entry.color }} />
+            <span className="text-xs text-[#A0A0A0] truncate">{entry.subject}</span>
+            <span className="text-xs font-mono text-[#606060] ml-auto">{entry.plannedHours}h</span>
           </div>
-          <div className="text-right">
-            <p className="text-[9px] uppercase tracking-widest text-slate-600 font-bold mb-0.5">Completion</p>
-            <p className="text-[11px] text-slate-400 font-mono">{totalActual.toFixed(1)}<span className="text-slate-600">/{totalPlanned.toFixed(1)}h</span></p>
-          </div>
-        </div>
-
-        {/* Two-column Bento Layout */}
-        <div className="flex gap-5 items-start">
-          {/* LEFT: Completion Ring */}
-          <div className="flex flex-col items-center gap-1.5 shrink-0">
-            <CompletionRing done={done} partial={partial} total={subjects.length} />
-            <div className="flex items-center gap-2 text-[10px]">
-              {done > 0 && <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" /><span className="text-slate-500">{done} done</span></span>}
-              {partial > 0 && <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" /><span className="text-slate-500">{partial} partial</span></span>}
-            </div>
-          </div>
-
-          {/* RIGHT: Subject compact list */}
-          <div className="flex-1 space-y-2.5 min-w-0">
-            {subjects.map((s) => {
-              const isActive = isBlockActive(s.startTime, s.endTime, now);
-              const progressPct = s.plannedHours > 0 ? Math.min((s.totalActualHours / s.plannedHours) * 100, 100) : 0;
-              const remainingHrs = Math.max(s.plannedHours - s.totalActualHours, 0);
-
-              const barColor = s.color;
-
-              const textColor =
-                s.status === 'completed' ? 'text-emerald-400' :
-                s.status === 'partial'   ? 'text-amber-400'   :
-                isActive                 ? 'text-indigo-300'  :
-                                           'text-slate-400';
-
-              return (
-                <div
-                  key={s.subject}
-                  className={cn(
-                    "relative rounded-lg p-2 transition-all duration-300",
-                    isActive
-                      ? "bg-indigo-500/8 border border-indigo-500/20 shadow-[0_0_12px_rgba(99,102,241,0.1)]"
-                      : "bg-transparent"
-                  )}
-                >
-                  {/* "Now Studying" badge */}
-                  {isActive && (
-                    <span className="absolute top-1.5 right-2 flex items-center gap-1 text-[9px] font-bold text-indigo-300 uppercase tracking-wider">
-                      <span className="w-1 h-1 rounded-full bg-indigo-400 animate-pulse inline-block" />
-                      Now
-                    </span>
-                  )}
-
-                  {/* Subject name + time inline */}
-                  <div className="flex items-center justify-between mb-1 pr-8">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
-                      <span className={cn("text-[12px] font-semibold truncate", textColor)}>
-                        {s.subject}
-                      </span>
-                      {s.status === 'completed' && (
-                        <span className="text-[9px] font-bold text-emerald-500 bg-emerald-500/10 px-1 py-px rounded shrink-0">✓</span>
-                      )}
-                      {s.status === 'skipped' && (
-                        <span className="text-[9px] font-bold text-slate-500 bg-slate-800 px-1 py-px rounded shrink-0">skip</span>
-                      )}
-                    </div>
-
-                    {/* Actionable hours */}
-                    <span className="text-[10px] font-mono shrink-0">
-                      {s.status === 'completed'
-                        ? <span className="text-emerald-400 font-semibold">{s.totalActualHours.toFixed(1)}/{s.plannedHours.toFixed(1)}h</span>
-                        : s.totalActualHours > 0
-                        ? <><span className="text-amber-400 font-semibold">{s.totalActualHours.toFixed(1)}</span><span className="text-slate-500">/{s.plannedHours.toFixed(1)}h</span></>
-                        : <span className="text-slate-500">{s.plannedHours.toFixed(1)}h</span>
-                      }
-                    </span>
-                  </div>
-
-                  {/* Slim progress bar */}
-                  <div className="relative h-[4px] rounded-full overflow-hidden" style={{ backgroundColor: `${s.color}20` }}>
-                    {/* Progress fill */}
-                    {progressPct > 0 && (
-                      <div
-                        className="absolute inset-y-0 left-0 rounded-full transition-all duration-700"
-                        style={{ width: `${progressPct}%`, backgroundColor: barColor, opacity: s.status === 'partial' ? 0.8 : 1 }}
-                      />
-                    )}
-                    {/* Glow for active */}
-                    {isActive && progressPct > 0 && (
-                      <div
-                        className="absolute inset-y-0 left-0 rounded-full blur-[2px] opacity-60 transition-all duration-700"
-                        style={{ width: `${progressPct}%`, backgroundColor: '#6366f1' }}
-                      />
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+        ))}
+      </div>
+    </div>
   );
 }

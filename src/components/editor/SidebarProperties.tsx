@@ -7,7 +7,7 @@ export function SidebarProperties({ blockId, onClose, variant }: { blockId: stri
         <h3 className="text-sm font-semibold text-[#F0F0F0]">Block Properties</h3>
         <button
           onClick={onClose}
-          className="w-7 h-7 rounded-lg flex items-center justify-center text-[#606060] hover:text-[#F0F0F0] hover:bg-[#222222] transition-all duration-150"
+          className="w-7 h-7 rounded-lg flex items-center justify-center text-[#606060] hover:text-[#F0F0F0] hover:bg-[#222222] transition-all duration-150-all duration-150 active:scale-[0.97]"
         >
           ✕
         </button>

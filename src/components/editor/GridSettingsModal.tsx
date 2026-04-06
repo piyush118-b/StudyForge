@@ -49,13 +49,13 @@ export function GridSettingsModal({ isOpen, onClose }: Props) {
         
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 bg-[#14151C]">
-          <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-            <Clock className="w-4 h-4 text-indigo-400" />
+          <h3 className="text-sm font-semibold text-[#F0F0F0] flex items-center gap-2">
+            <Clock className="w-4 h-4 text-[#10B981]" />
             Grid Active Hours
           </h3>
           <button 
             onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-white/10 text-[#A0A0A0] hover:text-[#F0F0F0] transition-all duration-150-colors active:scale-[0.97]"
           >
             <X className="w-4 h-4" />
           </button>
@@ -63,7 +63,7 @@ export function GridSettingsModal({ isOpen, onClose }: Props) {
 
         {/* Content */}
         <div className="p-5 space-y-5">
-          <p className="text-xs text-slate-400 leading-relaxed">
+          <p className="text-xs text-[#A0A0A0] leading-relaxed">
             Customize the start and end boundary times for your timetable. E.g., 06:00 to 02:00. Note: End times earlier than start times will automatically span to the next day.
           </p>
           
@@ -74,7 +74,7 @@ export function GridSettingsModal({ isOpen, onClose }: Props) {
                 type="time"
                 value={start}
                 onChange={e => setStart(e.target.value)}
-                className="w-full bg-[#0A0A0A] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500/50"
+                className="w-full bg-[#0A0A0A] border border-white/10 rounded-lg px-3 py-2 text-sm text-[#F0F0F0] focus:outline-none focus:border-[#10B981]/50"
               />
             </div>
             
@@ -84,7 +84,7 @@ export function GridSettingsModal({ isOpen, onClose }: Props) {
                 type="time"
                 value={end}
                 onChange={e => setEnd(e.target.value)}
-                className="w-full bg-[#0A0A0A] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500/50"
+                className="w-full bg-[#0A0A0A] border border-white/10 rounded-lg px-3 py-2 text-sm text-[#F0F0F0] focus:outline-none focus:border-[#10B981]/50"
               />
             </div>
           </div>
@@ -94,13 +94,13 @@ export function GridSettingsModal({ isOpen, onClose }: Props) {
         <div className="px-5 py-4 border-t border-white/5 bg-[#14151C] flex justify-end gap-3">
           <button 
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors"
+            className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-[#F0F0F0] transition-all duration-150-colors active:scale-[0.97]"
           >
             Cancel
           </button>
           <button 
             onClick={handleSave}
-            className="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-semibold rounded-lg shadow disabled:opacity-50 transition-colors"
+            className="px-4 py-2 bg-[#10B981] hover:bg-[#10B981] text-white text-sm font-semibold rounded-lg shadow disabled:opacity-50 transition-all duration-150-colors active:scale-[0.97]"
           >
             Apply Bounds
           </button>

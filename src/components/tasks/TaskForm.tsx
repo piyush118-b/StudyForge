@@ -113,7 +113,7 @@ export function TaskForm({ open, onClose, editTask, defaultStatus = 'pending' }:
               placeholder="What needs to get done?"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] h-10 text-sm focus:ring-2 focus:ring-[#10B981]/70 focus:border-[#10B981]/50 hover:border-[#333333] transition-all placeholder:text-[#606060]"
+              className="bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] h-10 text-sm focus:ring-2 focus:ring-[#10B981]/70 focus:border-[#10B981]/50 hover:border-[#333333] transition-all duration-150-all placeholder:text-[#606060]"
             />
           </div>
 
@@ -124,7 +124,7 @@ export function TaskForm({ open, onClose, editTask, defaultStatus = 'pending' }:
               placeholder="e.g. Data Structures, DBMS..."
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              className="bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] focus:ring-2 focus:ring-[#10B981]/70 focus:border-[#10B981]/50 hover:border-[#333333] transition-all placeholder:text-[#606060]"
+              className="bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] focus:ring-2 focus:ring-[#10B981]/70 focus:border-[#10B981]/50 hover:border-[#333333] transition-all duration-150-all placeholder:text-[#606060]"
             />
           </div>
 
@@ -138,7 +138,7 @@ export function TaskForm({ open, onClose, editTask, defaultStatus = 'pending' }:
                   type="button"
                   data-active={priority === opt.value}
                   onClick={() => setPriority(opt.value)}
-                  className={`flex-1 py-2 text-sm font-medium rounded-lg border transition-all ${opt.color} ${priority === opt.value ? 'ring-1 ring-offset-1 ring-offset-[#0A0A0A]' : 'opacity-70 hover:opacity-100'}`}
+                  className={`flex-1 py-2 text-sm font-medium rounded-lg border transition-all duration-150-all ${opt.color} ${priority === opt.value ? 'ring-1 ring-offset-1 ring-offset-[#0A0A0A]' : 'opacity-70 hover:opacity-100'}`}
                 >
                   {opt.label}
                 </button>
@@ -153,7 +153,7 @@ export function TaskForm({ open, onClose, editTask, defaultStatus = 'pending' }:
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] focus:ring-2 focus:ring-[#10B981]/70 hover:border-[#333333] transition-all"
+              className="bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] focus:ring-2 focus:ring-[#10B981]/70 hover:border-[#333333] transition-all duration-150-all"
             />
             <div className="flex gap-2 flex-wrap">
               {[
@@ -166,7 +166,7 @@ export function TaskForm({ open, onClose, editTask, defaultStatus = 'pending' }:
                   key={label}
                   type="button"
                   onClick={() => quickDate(offset)}
-                  className="text-xs text-[#10B981] hover:text-[#34D399] bg-[rgba(16,185,129,0.1)] hover:bg-[rgba(16,185,129,0.15)] px-2.5 py-1 rounded-full transition-colors"
+                  className="text-xs text-[#10B981] hover:text-[#34D399] bg-[rgba(16,185,129,0.1)] hover:bg-[rgba(16,185,129,0.15)] px-2.5 py-1 rounded-full transition-all duration-150-colors"
                 >
                   {label}
                 </button>
@@ -182,7 +182,7 @@ export function TaskForm({ open, onClose, editTask, defaultStatus = 'pending' }:
                 type="time"
                 value={dueTime}
                 onChange={(e) => setDueTime(e.target.value)}
-                className="bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] font-mono focus:ring-2 focus:ring-[#10B981]/70 hover:border-[#333333] transition-all"
+                className="bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] font-mono focus:ring-2 focus:ring-[#10B981]/70 hover:border-[#333333] transition-all duration-150-all"
               />
             </div>
           )}
@@ -192,14 +192,14 @@ export function TaskForm({ open, onClose, editTask, defaultStatus = 'pending' }:
             <label className="text-xs font-semibold uppercase tracking-widest text-[#606060] block">Estimated Hours</label>
             <div className="flex items-center gap-3">
               <button type="button" onClick={() => setEstimatedHours(Math.max(0.25, estimatedHours - 0.25))}
-                className="w-8 h-8 rounded-lg bg-[#222222] border border-[#2A2A2A] text-[#F0F0F0] hover:bg-[#2A2A2A] text-lg font-bold transition-colors">−</button>
+                className="w-8 h-8 rounded-lg bg-[#222222] border border-[#2A2A2A] text-[#F0F0F0] hover:bg-[#2A2A2A] text-lg font-bold transition-all duration-150-colors">−</button>
               <span className="text-[#F0F0F0] font-mono min-w-[60px] text-center">
                 {estimatedHours >= 1
                   ? `${Math.floor(estimatedHours)}h ${estimatedHours % 1 ? `${(estimatedHours % 1) * 60}m` : ''}`
                   : `${estimatedHours * 60}m`}
               </span>
               <button type="button" onClick={() => setEstimatedHours(Math.min(24, estimatedHours + 0.25))}
-                className="w-8 h-8 rounded-lg bg-[#222222] border border-[#2A2A2A] text-[#F0F0F0] hover:bg-[#2A2A2A] text-lg font-bold transition-colors">+</button>
+                className="w-8 h-8 rounded-lg bg-[#222222] border border-[#2A2A2A] text-[#F0F0F0] hover:bg-[#2A2A2A] text-lg font-bold transition-all duration-150-colors">+</button>
             </div>
           </div>
 
@@ -212,7 +212,7 @@ export function TaskForm({ open, onClose, editTask, defaultStatus = 'pending' }:
                   key={tag}
                   type="button"
                   onClick={() => toggleTag(tag)}
-                  className={`text-xs px-2.5 py-1 rounded-full border transition-all ${tags.includes(tag) ? 'bg-[rgba(16,185,129,0.15)] border-[#10B981]/40 text-[#10B981]' : 'border-[#2A2A2A] text-[#606060] hover:border-[#333333] hover:text-[#A0A0A0]'}`}
+                  className={`text-xs px-2.5 py-1 rounded-full border transition-all duration-150-all ${tags.includes(tag) ? 'bg-[rgba(16,185,129,0.15)] border-[#10B981]/40 text-[#10B981]' : 'border-[#2A2A2A] text-[#606060] hover:border-[#333333] hover:text-[#A0A0A0]'}`}
                 >
                   {tag}
                 </button>
@@ -224,7 +224,7 @@ export function TaskForm({ open, onClose, editTask, defaultStatus = 'pending' }:
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustomTag(); } }}
-                className="bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] text-sm focus:ring-2 focus:ring-[#10B981]/70 hover:border-[#333333] transition-all placeholder:text-[#606060]"
+                className="bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] text-sm focus:ring-2 focus:ring-[#10B981]/70 hover:border-[#333333] transition-all duration-150-all placeholder:text-[#606060]"
               />
             </div>
             {tags.filter((t) => !COMMON_TAGS.includes(t)).map((tag) => (
@@ -243,7 +243,7 @@ export function TaskForm({ open, onClose, editTask, defaultStatus = 'pending' }:
             <select
               value={reminderMinutes}
               onChange={(e) => setReminderMinutes(Number(e.target.value))}
-              className="w-full bg-[#222222] border border-[#2A2A2A] text-[#F0F0F0] rounded-lg h-9 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/70 hover:border-[#333333] transition-all"
+              className="w-full bg-[#222222] border border-[#2A2A2A] text-[#F0F0F0] rounded-lg h-9 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/70 hover:border-[#333333] transition-all duration-150-all"
             >
               <option value={15}>15 min before</option>
               <option value={30}>30 min before</option>
@@ -261,16 +261,16 @@ export function TaskForm({ open, onClose, editTask, defaultStatus = 'pending' }:
               placeholder="Add any extra details, links, or formulas..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full bg-[#222222] border border-[#2A2A2A] text-[#F0F0F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/70 hover:border-[#333333] transition-all resize-none placeholder:text-[#606060]"
+              className="w-full bg-[#222222] border border-[#2A2A2A] text-[#F0F0F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/70 hover:border-[#333333] transition-all duration-150-all resize-none placeholder:text-[#606060]"
             />
           </div>
 
           {/* Actions */}
           <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 h-9 rounded-lg border border-[#2A2A2A] bg-transparent text-sm font-medium text-[#A0A0A0] hover:bg-[#222222] hover:text-[#F0F0F0] hover:border-[#333333] transition-all active:scale-[0.97]">
+            <button type="button" onClick={onClose} className="flex-1 h-9 rounded-lg border border-[#2A2A2A] bg-transparent text-sm font-medium text-[#A0A0A0] hover:bg-[#222222] hover:text-[#F0F0F0] hover:border-[#333333] transition-all duration-150-all active:scale-[0.97]">
               Cancel
             </button>
-            <button type="submit" disabled={loading} className="flex-1 h-9 rounded-lg bg-[#10B981] text-[#0A0A0A] text-sm font-bold shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_16px_rgba(16,185,129,0.15)] hover:bg-[#34D399] transition-all active:scale-[0.97] disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center">
+            <button type="submit" disabled={loading} className="flex-1 h-9 rounded-lg bg-[#10B981] text-[#0A0A0A] text-sm font-bold shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_16px_rgba(16,185,129,0.15)] hover:bg-[#34D399] transition-all duration-150-all active:scale-[0.97] disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : isEditing ? 'Update Task →' : 'Save Task →'}
             </button>
           </div>

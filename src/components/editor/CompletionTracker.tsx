@@ -146,11 +146,11 @@ export function CompletionTrackerModal() {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4">
-      <div className="w-full max-w-[320px] bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl relative overflow-hidden font-sans">
+      <div className="w-full max-w-[320px] bg-[#111111] border border-[#2A2A2A]/50 rounded-2xl shadow-2xl relative overflow-hidden font-sans">
 
-        <div className="p-4 border-b border-white/5 flex justify-between items-center bg-slate-800/50">
+        <div className="p-4 border-b border-white/5 flex justify-between items-center bg-[#1A1A1A]/50">
           <h3 className="font-bold text-slate-100 text-[15px] tracking-tight">Why are you skipping this? 😅</h3>
-          <button onClick={closeSkipModal} className="text-slate-400 hover:text-white transition-colors">
+          <button onClick={closeSkipModal} className="text-[#A0A0A0] hover:text-[#F0F0F0] transition-all duration-150-colors active:scale-[0.97]">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -161,7 +161,7 @@ export function CompletionTrackerModal() {
               <button
                 key={chip.label}
                 onClick={() => setSelectedReason(chip.label)}
-                className={`px-3 py-1.5 rounded-full text-[11px] font-medium flex items-center gap-1.5 transition-colors border
+                className={`px-3 py-1.5 rounded-full text-[11px] font-medium flex items-center gap-1.5 transition-all duration-150-colors border
                   ${selectedReason === chip.label
                     ? 'bg-orange-500/20 border-orange-500 text-orange-200'
                     : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'
@@ -185,7 +185,7 @@ export function CompletionTrackerModal() {
           )}
 
           <div className="p-4 bg-slate-950/60 rounded-xl border border-white/5 space-y-3">
-            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">How much did you actually study?</label>
+            <label className="text-[11px] font-bold text-[#A0A0A0] uppercase tracking-wider block">How much did you actually study?</label>
             <input
               type="range"
               min="0" max="100" step="25"
@@ -193,7 +193,7 @@ export function CompletionTrackerModal() {
               onChange={e => setPartialPercentage(parseInt(e.target.value))}
               className="w-full h-1.5 bg-slate-700 rounded-full appearance-none flex cursor-pointer"
             />
-            <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+            <div className="flex justify-between text-[10px] text-[#606060] font-mono">
               <span>0%</span>
               <span>25%</span>
               <span>50%</span>
@@ -203,11 +203,11 @@ export function CompletionTrackerModal() {
           </div>
         </div>
 
-        <div className="p-4 bg-slate-800/30 border-t border-white/5 flex gap-3">
-          <Button variant="ghost" onClick={closeSkipModal} className="flex-1 text-slate-400 hover:text-white hover:bg-white/5 h-9 text-xs">
+        <div className="p-4 bg-[#1A1A1A]/30 border-t border-white/5 flex gap-3">
+          <Button variant="ghost" onClick={closeSkipModal} className="flex-1 text-[#A0A0A0] hover:text-[#F0F0F0] hover:bg-white/5 h-9 text-xs">
             Cancel
           </Button>
-          <Button onClick={handleSkip} className="flex-1 bg-orange-600 hover:bg-orange-500 text-white shadow-lg shadow-orange-900/20 font-bold h-9 text-xs border border-orange-500/20">
+          <Button onClick={handleSkip} className="flex-1 bg-orange-600 hover:bg-orange-500 text-[#F0F0F0] shadow-lg shadow-orange-900/20 font-bold h-9 text-xs border border-orange-500/20">
             {partialPercentage > 0 ? 'Mark Partial' : 'Mark Skipped'}
           </Button>
         </div>

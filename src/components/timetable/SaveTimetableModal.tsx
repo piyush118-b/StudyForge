@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import confetti from 'canvas-confetti'
+import { useTimetableStore } from '@/store/timetable-store'
 import {
   Dialog,
   DialogContent,
@@ -88,7 +89,8 @@ export function SaveTimetableModal({
          timetables.push(newTimetable)
          localStorage.setItem('sf_guest_timetables', JSON.stringify(timetables))
          
-         onSuccess(makeActive)
+         const isFirst = timetables.length === 1;
+         onSuccess(makeActive, isFirst)
       } else {
         // Auth Mode -> API POST
         const res = await fetch('/api/timetables', {
@@ -110,7 +112,8 @@ export function SaveTimetableModal({
            throw new Error(`Failed to save timetable: ${res.status} ${errText}`)
         }
         
-        onSuccess(makeActive)
+        const isFirst = useTimetableStore.getState().allTimetables.length === 0;
+        onSuccess(makeActive, isFirst)
       }
     } catch (error) {
        toast.error('Error saving timetable')
@@ -119,8 +122,16 @@ export function SaveTimetableModal({
     }
   }
 
-  const onSuccess = (isActive: boolean) => {
-    toast.success('🎉 Timetable saved!')
+  const onSuccess = (isActive: boolean, isFirstTimetable: boolean) => {
+    if (isFirstTimetable) {
+      toast.success('🎉 Your first timetable is ready!', {
+        description: 'Head to your dashboard to start tracking. You got this! 🚀',
+        duration: 5000,
+      })
+    } else {
+      toast.success('🎉 Timetable saved!')
+    }
+
     if (isActive) {
       confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } })
     }
@@ -155,7 +166,7 @@ export function SaveTimetableModal({
                 <button
                   key={color}
                   onClick={() => setSelectedColor(color)}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-150-all ${
                     selectedColor === color ? 'ring-2 ring-offset-2 ring-primary scale-110' : 'hover:scale-110'
                   }`}
                   style={{ backgroundColor: color }}

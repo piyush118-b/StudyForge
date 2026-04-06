@@ -58,13 +58,13 @@ export function WeeklyAIInsights({ weeklyStats }: { weeklyStats: any }) {
           </div>
         ) : (
           <div className="space-y-2">
-            <p className="text-[11px] text-slate-400 leading-snug">
+            <p className="text-[11px] text-[#A0A0A0] leading-snug">
               Your study patterns look solid! You&apos;re most productive between 2 PM and 5 PM.
             </p>
             {insight && (
               <button 
                 onClick={generateInsight}
-                className="text-[10px] uppercase tracking-wider text-blue-400/50 hover:text-blue-400 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="text-[10px] uppercase tracking-wider text-blue-400/50 hover:text-blue-400 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-150-opacity active:scale-[0.97]"
               >
                 <RefreshCw className="w-2.5 h-2.5" /> Regenerate
               </button>
@@ -72,7 +72,7 @@ export function WeeklyAIInsights({ weeklyStats }: { weeklyStats: any }) {
             {!insight && !loading && (
               <button 
                 onClick={generateInsight}
-                className="text-xs bg-blue-500/10 text-blue-400 px-3 py-1.5 rounded-lg border border-blue-500/20 hover:bg-blue-500/20 transition-colors"
+                className="text-xs bg-blue-500/10 text-blue-400 px-3 py-1.5 rounded-lg border border-blue-500/20 hover:bg-blue-500/20 transition-all duration-150-colors active:scale-[0.97]"
               >
                 Generate Insight
               </button>

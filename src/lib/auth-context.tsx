@@ -103,7 +103,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) throw error;
       setProfile(data);
     } catch (err) {
-      console.error('Error fetching profile:', err);
+      console.error('Error fetching profile:', (err as any)?.message || err);
     } finally {
       setLoading(false);
     }
@@ -121,7 +121,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signOut = async () => {
     await supabase.auth.signOut();
     if (typeof window !== 'undefined') {
-      window.location.href = '/login';
+      window.location.href = '/auth/login';
     }
   };
 

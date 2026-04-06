@@ -12,7 +12,7 @@ interface PageProps {
 
 export default async function EditorPage({ params }: PageProps) {
   const { id } = await params;
-  
+
   if (!id) return notFound();
 
   const cookieStore = await cookies();
@@ -40,7 +40,7 @@ export default async function EditorPage({ params }: PageProps) {
   );
 
   const { data: { user } } = await supabase.auth.getUser();
-  
+
   // For protected routes, check if user owns the timetable
   const { data: timetable, error } = await supabase
     .from('timetables')
@@ -54,7 +54,7 @@ export default async function EditorPage({ params }: PageProps) {
 
   // Double check ownership if user exists
   if (user && (timetable as any).user_id !== user.id) {
-     return redirect('/dashboard/timetables');
+    return redirect('/dashboard/timetables');
   }
 
   return <TimetableGridEditor timetableId={id} initialData={timetable} />;

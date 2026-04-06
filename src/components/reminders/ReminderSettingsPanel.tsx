@@ -38,8 +38,8 @@ export function ReminderSettingsPanel({ open, onClose, blocks, studentName }: Pr
           backdrop-blur-xl overflow-y-auto"
       >
         <SheetHeader className="mb-6">
-          <SheetTitle className="flex items-center gap-2 text-white">
-            <Bell size={16} className="text-indigo-400" />
+          <SheetTitle className="flex items-center gap-2 text-[#F0F0F0]">
+            <Bell size={16} className="text-[#10B981]" />
             Reminder Settings
           </SheetTitle>
         </SheetHeader>
@@ -80,10 +80,10 @@ export function ReminderSettingsPanel({ open, onClose, blocks, studentName }: Pr
           <SettingsSection title="Timing" icon={Clock}>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <Label className="text-[13px] text-white/60">
+                <Label className="text-[13px] text-[#F0F0F0]/60">
                   Remind me before
                 </Label>
-                <span className="text-[13px] font-semibold text-white">
+                <span className="text-[13px] font-semibold text-[#F0F0F0]">
                   {settings.reminderBeforeMinutes} min
                 </span>
               </div>
@@ -95,7 +95,7 @@ export function ReminderSettingsPanel({ open, onClose, blocks, studentName }: Pr
                 onValueChange={(val) => updateSettings({ reminderBeforeMinutes: Array.isArray(val) ? val[0] : (val as any)[0] || 5 })}
                 className="reminder-slider"
               />
-              <div className="flex justify-between text-[10px] text-white/20">
+              <div className="flex justify-between text-[10px] text-[#F0F0F0]/20">
                 <span>1 min</span>
                 <span>15 min</span>
               </div>
@@ -117,10 +117,10 @@ export function ReminderSettingsPanel({ open, onClose, blocks, studentName }: Pr
                   onClick={() => updateSettings({ toneStyle: tone })}
                   className={`
                     p-2.5 rounded-xl text-[12px] font-medium capitalize
-                    border transition-all duration-150
+                    border transition-all duration-150-all duration-150
                     ${settings.toneStyle === tone
-                      ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-300'
-                      : 'bg-white/5 border-white/10 text-white/40 hover:bg-white/8'
+                      ? 'bg-[#10B981]/20 border-[#10B981]/50 text-indigo-300'
+                      : 'bg-white/5 border-white/10 text-[#F0F0F0]/40 hover:bg-white/8'
                     }
                   `}
                 >
@@ -130,10 +130,10 @@ export function ReminderSettingsPanel({ open, onClose, blocks, studentName }: Pr
             </div>
             
             <div className="p-3 rounded-xl bg-white/5 border border-white/8 mt-2">
-              <p className="text-[10px] text-white/30 uppercase tracking-wider mb-1">
+              <p className="text-[10px] text-[#F0F0F0]/30 uppercase tracking-wider mb-1">
                 Preview
               </p>
-              <p className="text-[12px] text-white/60 italic leading-relaxed">
+              <p className="text-[12px] text-[#F0F0F0]/60 italic leading-relaxed">
                 "{previewMessage}"
               </p>
             </div>
@@ -149,7 +149,7 @@ export function ReminderSettingsPanel({ open, onClose, blocks, studentName }: Pr
             {settings.quietHoursEnabled && (
               <div className="grid grid-cols-2 gap-3 mt-2">
                 <div>
-                  <Label className="text-[11px] text-white/40 mb-1 block">
+                  <Label className="text-[11px] text-[#F0F0F0]/40 mb-1 block">
                     Start
                   </Label>
                   <input
@@ -157,12 +157,12 @@ export function ReminderSettingsPanel({ open, onClose, blocks, studentName }: Pr
                     value={settings.quietHoursStart}
                     onChange={e => updateSettings({ quietHoursStart: e.target.value })}
                     className="w-full bg-white/5 border border-white/10 rounded-lg
-                      px-3 py-2 text-[13px] text-white/70
-                      focus:outline-none focus:border-indigo-500/50"
+                      px-3 py-2 text-[13px] text-[#F0F0F0]/70
+                      focus:outline-none focus:border-[#10B981]/50"
                   />
                 </div>
                 <div>
-                  <Label className="text-[11px] text-white/40 mb-1 block">
+                  <Label className="text-[11px] text-[#F0F0F0]/40 mb-1 block">
                     End
                   </Label>
                   <input
@@ -170,8 +170,8 @@ export function ReminderSettingsPanel({ open, onClose, blocks, studentName }: Pr
                     value={settings.quietHoursEnd}
                     onChange={e => updateSettings({ quietHoursEnd: e.target.value })}
                     className="w-full bg-white/5 border border-white/10 rounded-lg
-                      px-3 py-2 text-[13px] text-white/70
-                      focus:outline-none focus:border-indigo-500/50"
+                      px-3 py-2 text-[13px] text-[#F0F0F0]/70
+                      focus:outline-none focus:border-[#10B981]/50"
                   />
                 </div>
               </div>
@@ -182,9 +182,9 @@ export function ReminderSettingsPanel({ open, onClose, blocks, studentName }: Pr
             <button
               onClick={() => testReminder()}
               className="w-full py-3 rounded-xl border border-dashed 
-                border-white/15 text-white/40 hover:border-indigo-500/40
-                hover:text-indigo-300 text-[13px] transition-all duration-200
-                hover:bg-indigo-500/5"
+                border-white/15 text-[#F0F0F0]/40 hover:border-[#10B981]/40
+                hover:text-indigo-300 text-[13px] transition-all duration-150-all duration-200
+                hover:bg-[#10B981]/5"
             >
               🔔 Test Reminder Now
             </button>
@@ -206,8 +206,8 @@ function SettingsSection({
   return (
     <div>
       <div className="flex items-center gap-2 mb-3">
-        <Icon size={13} className="text-white/30" />
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-white/30">
+        <Icon size={13} className="text-[#F0F0F0]/30" />
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-[#F0F0F0]/30">
           {title}
         </span>
       </div>
@@ -231,15 +231,15 @@ function ToggleRow({
     <div className={`flex items-center justify-between gap-4 
       ${disabled ? 'opacity-40 pointer-events-none' : ''}`}>
       <div>
-        <p className="text-[13px] text-white/70 font-medium">{label}</p>
+        <p className="text-[13px] text-[#F0F0F0]/70 font-medium">{label}</p>
         {description && (
-          <p className="text-[11px] text-white/30 mt-0.5">{description}</p>
+          <p className="text-[11px] text-[#F0F0F0]/30 mt-0.5">{description}</p>
         )}
       </div>
       <Switch
         checked={checked}
         onCheckedChange={onChange}
-        className="data-[state=checked]:bg-indigo-500"
+        className="data-[state=checked]:bg-[#10B981]"
       />
     </div>
   )

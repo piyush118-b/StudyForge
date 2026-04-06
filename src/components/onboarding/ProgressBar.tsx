@@ -22,7 +22,7 @@ export function ProgressBar({ currentStep, totalSteps }: ProgressBarProps) {
 
   return (
     <div className="w-full space-y-2 mb-8 px-4">
-      <div className="flex justify-between text-sm font-medium text-white/70">
+      <div className="flex justify-between text-sm font-medium text-[#F0F0F0]/70">
         <span>Step {currentStep} of {totalSteps}</span>
         <span className="text-teal-400 font-semibold">{message}</span>
       </div>

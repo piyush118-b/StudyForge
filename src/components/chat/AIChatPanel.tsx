@@ -95,28 +95,28 @@ export function AIChatPanel({ onClose, isOpen }: AIChatPanelProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-slate-900 border-l border-slate-800 shadow-2xl z-50 flex flex-col pt-16 sm:pt-0">
+    <div className="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-[#111111] border-l border-[#2A2A2A] shadow-2xl z-50 flex flex-col pt-16 sm:pt-0">
       
       {/* Header */}
-      <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/95 backdrop-blur z-10 sticky top-0">
+      <div className="p-4 border-b border-[#2A2A2A] flex items-center justify-between bg-[#111111]/95 backdrop-blur z-10 sticky top-0">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
-            <Bot className="w-4 h-4 text-indigo-400" />
+          <div className="w-8 h-8 rounded-full bg-[#10B981]/20 flex items-center justify-center border border-[#10B981]/30">
+            <Bot className="w-4 h-4 text-[#10B981]" />
           </div>
           <div>
             <h3 className="font-semibold text-slate-200 text-sm">StudyForge Assistant</h3>
-            <div className="flex items-center gap-1.5 text-xs text-slate-500">
+            <div className="flex items-center gap-1.5 text-xs text-[#606060]">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Online
             </div>
           </div>
         </div>
-        <button onClick={onClose} className="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors">
+        <button onClick={onClose} className="p-2 hover:bg-[#1A1A1A] rounded-lg text-[#A0A0A0] hover:text-[#F0F0F0] transition-all duration-150-colors active:scale-[0.97]">
           <X className="w-4 h-4" />
         </button>
       </div>
 
-      <div className="px-4 py-2 bg-slate-900/50">
+      <div className="px-4 py-2 bg-[#111111]/50">
         <AIUsageBanner />
       </div>
 
@@ -128,17 +128,17 @@ export function AIChatPanel({ onClose, isOpen }: AIChatPanelProps) {
             {/* Avatar */}
             <div className={`w-6 h-6 shrink-0 rounded-full flex items-center justify-center mt-1 border ${
               m.role === 'user' 
-                ? 'bg-slate-800 border-slate-700' 
-                : 'bg-indigo-500/20 border-indigo-500/30'
+                ? 'bg-[#1A1A1A] border-[#2A2A2A]' 
+                : 'bg-[#10B981]/20 border-[#10B981]/30'
             }`}>
-              {m.role === 'user' ? <User className="w-3 h-3 text-slate-400" /> : <Bot className="w-3 h-3 text-indigo-400" />}
+              {m.role === 'user' ? <User className="w-3 h-3 text-[#A0A0A0]" /> : <Bot className="w-3 h-3 text-[#10B981]" />}
             </div>
 
             {/* Bubble */}
             <div className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
               m.role === 'user'
-                ? 'bg-indigo-600 text-white rounded-tr-sm'
-                : 'bg-slate-800 text-slate-200 rounded-tl-sm border border-slate-700'
+                ? 'bg-[#10B981] text-[#F0F0F0] rounded-tr-sm'
+                : 'bg-[#1A1A1A] text-slate-200 rounded-tl-sm border border-[#2A2A2A]'
             }`}>
               {m.content}
             </div>
@@ -146,10 +146,10 @@ export function AIChatPanel({ onClose, isOpen }: AIChatPanelProps) {
         ))}
         {isLoading && (
           <div className="flex gap-3 max-w-[90%]">
-            <div className="w-6 h-6 shrink-0 rounded-full flex items-center justify-center mt-1 border bg-indigo-500/20 border-indigo-500/30">
-              <Bot className="w-3 h-3 text-indigo-400" />
+            <div className="w-6 h-6 shrink-0 rounded-full flex items-center justify-center mt-1 border bg-[#10B981]/20 border-[#10B981]/30">
+              <Bot className="w-3 h-3 text-[#10B981]" />
             </div>
-            <div className="rounded-2xl px-4 py-3 bg-slate-800 border border-slate-700 rounded-tl-sm flex items-center gap-1">
+            <div className="rounded-2xl px-4 py-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-tl-sm flex items-center gap-1 hover:-translate-y-0.5 hover:border-[#333333] hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)] transition-all duration-200">
               <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
               <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
               <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" />
@@ -160,11 +160,11 @@ export function AIChatPanel({ onClose, isOpen }: AIChatPanelProps) {
       </div>
 
       {/* Input */}
-      <div className="p-4 bg-slate-900 border-t border-slate-800">
+      <div className="p-4 bg-[#111111] border-t border-[#2A2A2A]">
         <ProGate feature="ai_chat" fallback={
-          <div className="text-center py-3 px-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
-            <Sparkles className="w-4 h-4 text-indigo-400 mx-auto mb-2" />
-            <p className="text-sm text-slate-400 mb-2">Upgrade to Pro to chat with the AI assistant inside the editor.</p>
+          <div className="text-center py-3 px-4 bg-[#1A1A1A]/50 rounded-xl border border-[#2A2A2A]/50">
+            <Sparkles className="w-4 h-4 text-[#10B981] mx-auto mb-2" />
+            <p className="text-sm text-[#A0A0A0] mb-2">Upgrade to Pro to chat with the AI assistant inside the editor.</p>
           </div>
         }>
           <div className="relative flex items-center">
@@ -174,15 +174,15 @@ export function AIChatPanel({ onClose, isOpen }: AIChatPanelProps) {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               placeholder="Ask for advice, balance tips..."
-              className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-4 pr-12 py-3 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+              className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl pl-4 pr-12 py-3 text-sm text-[#F0F0F0] placeholder:text-[#606060] focus:outline-none focus:border-[#10B981] focus:ring-1 focus-visible:ring-[#10B981]/70 transition-all duration-150-all"
               disabled={isLoading || !canUseAI}
             />
             <button
               onClick={handleSend}
               disabled={!input.trim() || isLoading || !canUseAI}
-              className="absolute right-2 p-1.5 bg-indigo-500 hover:bg-indigo-600 disabled:bg-slate-700 text-white rounded-lg transition-colors"
+              className="absolute right-2 p-1.5 bg-[#10B981] hover:bg-[#10B981] disabled:bg-slate-700 text-white rounded-lg transition-all duration-150-colors active:scale-[0.97]"
             >
-              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4 text-white hover:text-slate-200 relative -left-[1px] top-[1px]" style={{ transform: 'rotate(45deg)' }} />}
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4 text-[#F0F0F0] hover:text-slate-200 relative -left-[1px] top-[1px]" style={{ transform: 'rotate(45deg)' }} />}
             </button>
           </div>
         </ProGate>

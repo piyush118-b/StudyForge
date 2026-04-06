@@ -12,6 +12,8 @@ import { SmartSuggestions } from '@/components/analytics/SmartSuggestions';
 import { Button } from '@/components/ui/button';
 import { Plus, LayoutList, Columns, Loader2, CalendarDays, ArrowRight, Sparkles } from 'lucide-react';
 import { isToday, parseISO, addDays, format } from 'date-fns';
+import { SkeletonTaskCard } from '@/components/ui/forge-skeleton'
+import { EmptyState } from '@/components/ui/forge-empty'
 
 export default function TasksPage() {
   const { fetchTasks, getFilteredTasks, getTodayTasks, tasks, loading } = useTaskStore();
@@ -78,17 +80,17 @@ export default function TasksPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setViewMode('list')}
-              className={`p-2 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-[#10B981] text-[#0A0A0A]' : 'text-[#A0A0A0] hover:bg-[#222222] hover:text-[#F0F0F0]'}`}
+              className={`p-2 rounded-lg transition-all duration-150-colors ${viewMode === 'list' ? 'bg-[#10B981] text-[#0A0A0A]' : 'text-[#A0A0A0] hover:bg-[#222222] hover:text-[#F0F0F0]'}`}
             >
               <LayoutList className="w-4 h-4" />
             </button>
             <button
               onClick={() => setViewMode('kanban')}
-              className={`p-2 rounded-lg transition-colors ${viewMode === 'kanban' ? 'bg-[#10B981] text-[#0A0A0A]' : 'text-[#A0A0A0] hover:bg-[#222222] hover:text-[#F0F0F0]'}`}
+              className={`p-2 rounded-lg transition-all duration-150-colors ${viewMode === 'kanban' ? 'bg-[#10B981] text-[#0A0A0A]' : 'text-[#A0A0A0] hover:bg-[#222222] hover:text-[#F0F0F0]'}`}
             >
               <Columns className="w-4 h-4" />
             </button>
-            <button onClick={() => openAddTask()} className="h-9 px-4 rounded-lg text-sm font-bold bg-[#10B981] text-[#0A0A0A] shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_16px_rgba(16,185,129,0.15)] hover:bg-[#34D399] transition-all duration-150 active:scale-[0.97] flex items-center gap-1.5 ml-2">
+            <button onClick={() => openAddTask()} className="h-9 px-4 rounded-lg text-sm font-bold bg-[#10B981] text-[#0A0A0A] shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_16px_rgba(16,185,129,0.15)] hover:bg-[#34D399] transition-all duration-150-all duration-150 active:scale-[0.97] flex items-center gap-1.5 ml-2">
               <Plus className="w-4 h-4" /> Add Task
             </button>
           </div>
@@ -97,59 +99,31 @@ export default function TasksPage() {
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
           {loading && (
-            <div className="flex items-center justify-center h-40">
-              <Loader2 className="w-8 h-8 animate-spin text-[#10B981]" />
+            <div className="flex gap-4 overflow-x-auto px-1 pb-6 pt-2">
+              {Array.from({ length: 3 }).map((_, ci) => (
+                <div key={ci} className="flex-shrink-0 w-80">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-2 h-2 rounded-full bg-[#1A1A1A] animate-[forge-shimmer_2s_linear_infinite]" />
+                    <div className="h-4 w-24 rounded bg-[#1A1A1A] animate-[forge-shimmer_2s_linear_infinite]" />
+                    <div className="h-4 w-8 rounded bg-[#1A1A1A] animate-[forge-shimmer_2s_linear_infinite]" />
+                  </div>
+                  <div className="space-y-2">
+                    {Array.from({ length: 3 }).map((_, ti) => (
+                      <SkeletonTaskCard key={ti} />
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
           {!loading && filteredTasks.length === 0 && (
-            <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-6 text-center px-6">
-              {/* Illustration */}
-              <div className="w-16 h-16 bg-[rgba(16,185,129,0.1)] rounded-2xl flex items-center justify-center border border-[#10B981]/20">
-                <Sparkles className="w-8 h-8 text-[#10B981]" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-[#F0F0F0]">No tasks yet, yaar!</h3>
-                <p className="text-[#A0A0A0] text-sm mt-1 max-w-xs">
-                  Add assignments, exams, and study goals. Try typing one below ↓
-                </p>
-              </div>
-
-              {/* Smart Quick-Add */}
-              <div className="w-full max-w-md">
-                <div className="flex gap-2 items-center bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl px-4 py-3 focus-within:border-[#10B981]/60 focus-within:ring-1 focus-within:ring-[#10B981]/20 transition-all shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
-                  <Plus className="w-4 h-4 text-[#606060] shrink-0" />
-                  <input
-                    ref={quickInputRef}
-                    type="text"
-                    value={quickTaskTitle}
-                    onChange={(e) => setQuickTaskTitle(e.target.value)}
-                    onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleQuickAdd()}
-                    placeholder='e.g. "Submit OS assignment" or "Study Networks 2hrs"'
-                    className="flex-1 bg-transparent text-sm text-[#F0F0F0] placeholder-[#606060] outline-none"
-                    autoFocus
-                  />
-                  <button
-                    onClick={handleQuickAdd}
-                    disabled={!quickTaskTitle.trim() || quickAdding}
-                    className="shrink-0 flex items-center gap-1 text-xs bg-[#10B981] hover:bg-[#34D399] disabled:opacity-40 disabled:cursor-not-allowed text-[#0A0A0A] px-3 py-1.5 rounded-lg transition-colors font-semibold"
-                  >
-                    {quickAdding ? <Loader2 className="w-3 h-3 animate-spin" /> : <ArrowRight className="w-3 h-3" />}
-                    {quickAdding ? 'Adding...' : 'Add'}
-                  </button>
-                </div>
-                <p className="text-xs text-[#606060] mt-2 text-left pl-1">
-                  Press <kbd className="bg-[#222222] border border-[#2A2A2A] px-1.5 py-0.5 rounded text-[#A0A0A0]">Enter</kbd> to quickly add · Priority defaults to Medium
-                </p>
-              </div>
-
-              <button
-                onClick={() => openAddTask()}
-                className="text-xs text-[#606060] hover:text-[#10B981] transition-colors underline-offset-2 hover:underline"
-              >
-                Want more options? Open the full task form →
-              </button>
-            </div>
+            <EmptyState
+              emoji="📋"
+              title="No tasks yet"
+              description="Add your first task manually or use the OCR scanner to import tasks from a photo of your notes."
+              action={{ label: 'Add Your First Task', onClick: openAddTask }}
+            />
           )}
 
           {!loading && filteredTasks.length > 0 && viewMode === 'list' && (
@@ -183,7 +157,7 @@ export default function TasksPage() {
           ) : (
             <div className="space-y-2">
               {todayTasks.slice(0, 5).map((task) => (
-                <div key={task.id} className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-forge-overlay transition-colors">
+                <div key={task.id} className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-forge-overlay transition-all duration-150-colors">
                   <span className={`w-2 h-2 rounded-full shrink-0 shadow-sm ${task.priority === 'High' ? 'bg-red-400' : task.priority === 'Medium' ? 'bg-orange-400' : 'bg-emerald-400'}`} />
                   <span className="text-xs text-forge-text-primary truncate flex-1">{task.title}</span>
                 </div>

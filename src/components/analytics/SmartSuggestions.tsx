@@ -40,9 +40,9 @@ export function SmartSuggestions() {
         {insights.length > 0 && (
           <button 
             onClick={() => setExpanded(!expanded)}
-            className="text-xs text-slate-500 hover:text-indigo-400 transition-colors flex items-center"
+            className="text-xs text-[#606060] hover:text-[#10B981] transition-all duration-150-colors flex items-center"
           >
-            {expanded ? "Hide" : "Show"} <ChevronRight className={`w-3 h-3 transition-transform ${expanded ? 'rotate-90' : ''}`} />
+            {expanded ? "Hide" : "Show"} <ChevronRight className={`w-3 h-3 transition-all duration-150-transform ${expanded ? 'rotate-90' : ''}`} />
           </button>
         )}
       </div>
@@ -50,7 +50,7 @@ export function SmartSuggestions() {
       {!expanded && insights.length === 0 && (
         <button
           onClick={fetchInsights}
-          className="w-full py-2 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 rounded-lg text-xs font-medium transition-all hover:shadow-[0_0_10px_rgba(99,102,241,0.2)] flex items-center justify-center gap-2"
+          className="w-full py-2 bg-[#10B981]/10 hover:bg-[#10B981]/20 border border-[#10B981]/30 text-[#10B981] rounded-lg text-xs font-medium transition-all duration-150-all hover:shadow-[0_0_10px_rgba(99,102,241,0.2)] flex items-center justify-center gap-2 active:scale-[0.97]"
         >
           Generate Study Plan
         </button>
@@ -59,14 +59,14 @@ export function SmartSuggestions() {
       {expanded && (
         <div className="space-y-3 animate-in slide-in-from-top-2 duration-300">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-4 text-indigo-400/60">
+            <div className="flex flex-col items-center justify-center py-4 text-[#10B981]/60">
               <Loader2 className="w-5 h-5 animate-spin mb-2" />
               <span className="text-xs">Analyzing workload...</span>
             </div>
           ) : (
             <div className="space-y-2.5">
               {insights.map((insight, idx) => (
-                <div key={idx} className="flex gap-2.5 bg-slate-900/60 p-3 rounded-xl border border-shadow-sm border-slate-800/50 hover:border-indigo-500/20 transition-colors">
+                <div key={idx} className="flex gap-2.5 bg-[#111111]/60 p-3 rounded-xl border border-shadow-sm border-[#2A2A2A]/50 hover:border-[#10B981]/20 transition-all duration-150-colors">
                   <Lightbulb className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                   <p className="text-xs text-slate-300 leading-relaxed font-medium">
                     {insight}
@@ -74,7 +74,7 @@ export function SmartSuggestions() {
                 </div>
               ))}
               <div className="pt-2 flex justify-end">
-                 <button onClick={fetchInsights} className="text-[10px] text-slate-500 hover:text-indigo-400 transition-colors underline-offset-2 hover:underline tracking-wide">
+                 <button onClick={fetchInsights} className="text-[10px] text-[#606060] hover:text-[#10B981] transition-all duration-150-colors underline-offset-2 hover:underline tracking-wide active:scale-[0.97]">
                    Refresh Insights
                  </button>
               </div>

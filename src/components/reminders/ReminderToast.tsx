@@ -36,7 +36,7 @@ export function ReminderToast({ data, onDismiss, onOpenTimetable }: Props) {
         w-[380px] rounded-2xl overflow-hidden
         border backdrop-blur-xl
         shadow-2xl
-        transition-all duration-300
+        transition-all duration-150-all duration-300
         ${isUrgent 
           ? 'border-orange-500/40 bg-orange-950/40 shadow-orange-500/20' 
           : 'border-forge-accent/30 bg-forge-base/80 shadow-forge-accent/10'
@@ -79,8 +79,8 @@ export function ReminderToast({ data, onDismiss, onOpenTimetable }: Props) {
           
           <button
             onClick={onDismiss}
-            className="p-1 rounded-lg hover:bg-forge-overlay transition-colors 
-              text-forge-text-secondary hover:text-forge-text-primary flex-shrink-0"
+            className="p-1 rounded-lg hover:bg-forge-overlay transition-all duration-150-colors 
+              text-forge-text-secondary hover:text-forge-text-primary flex-shrink-0 active:scale-[0.97]"
           >
             <X size={14} />
           </button>
@@ -124,7 +124,7 @@ export function ReminderToast({ data, onDismiss, onOpenTimetable }: Props) {
             onClick={onOpenTimetable}
             className={`
               flex items-center gap-1 text-[12px] font-medium
-              px-3 py-1.5 rounded-lg transition-all duration-150
+              px-3 py-1.5 rounded-lg transition-all duration-150-all duration-150
               ${isUrgent
                 ? 'bg-orange-500/20 text-orange-300 hover:bg-orange-500/30'
                 : 'bg-forge-accent/20 text-forge-accent-bright hover:bg-forge-accent/30'
@@ -140,7 +140,7 @@ export function ReminderToast({ data, onDismiss, onOpenTimetable }: Props) {
       
       <div className="h-[2px] bg-forge-border">
         <div
-          className="h-full transition-all duration-1000 ease-linear"
+          className="h-full transition-all duration-150-all duration-1000 ease-linear"
           style={{
             width: `${(timeLeft / (data.minutesBefore * 60)) * 100}%`,
             background: isUrgent ? '#f97316' : data.color

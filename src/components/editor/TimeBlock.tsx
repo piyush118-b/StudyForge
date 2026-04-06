@@ -271,7 +271,7 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
         openBlockModal(block.day, block.startTime, block.endTime, block.id);
       }}
       // Use pointer-events-none conditionally to let Pan grab the wrapper underneath
-      className={`absolute transition-transform duration-75 flex flex-col group rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.4)] border border-white/5
+      className={`absolute transition-all duration-150-transform duration-75 flex flex-col group rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.4)] border border-white/5
         ${activeTool === 'pan' ? 'cursor-inherit' : 'cursor-pointer pointer-events-auto'}
         ${isCompleted ? 'brightness-90 ring-1 ring-green-500 shadow-green-900/40' : ''}
         ${isSkipped ? 'grayscale-[0.6] opacity-70 bg-[repeating-linear-gradient(45deg,transparent,transparent_8px,rgba(0,0,0,0.2)_8px,rgba(0,0,0,0.2)_10px)]' : ''}
@@ -284,17 +284,17 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
 
       {/* 0. Top Resize Handler */}
       <div
-        className="absolute top-0 left-2 right-2 h-[6px] cursor-n-resize hover:bg-white/40 rounded-b-xl transition-colors z-30 pointer-events-auto"
+        className="absolute top-0 left-2 right-2 h-[6px] cursor-n-resize hover:bg-white/40 rounded-b-xl transition-all duration-150-colors z-30 pointer-events-auto"
         onMouseDown={handleTopResizeStart}
       />
 
       {/* Feature 7: Inline Top Time Pill (Visible during resize or hover) */}
-      <div className={`absolute -top-6 left-1/2 -translate-x-1/2 bg-forge-elevated text-forge-text-primary border border-forge-border text-[10px] font-bold px-2 py-0.5 rounded shadow-forge-md opacity-0 transition-opacity ${isResizingTop || isResizingBottom || 'group-hover:opacity-100'}`}>
+      <div className={`absolute -top-6 left-1/2 -translate-x-1/2 bg-forge-elevated text-forge-text-primary border border-forge-border text-[10px] font-bold px-2 py-0.5 rounded shadow-forge-md opacity-0 transition-all duration-150-opacity ${isResizingTop || isResizingBottom || 'group-hover:opacity-100'}`}>
         {to12HourShort(previewStartTimeStr)}
       </div>
 
       {/* 1. Drag Handle (Hover state) */}
-      <div className="w-full h-3 cursor-grab opacity-0 hover:opacity-100 transition-opacity bg-black/10 flex items-center justify-center shrink-0 pointer-events-auto" title="Click to edit">
+      <div className="w-full h-3 cursor-grab opacity-0 hover:opacity-100 transition-all duration-150-opacity bg-black/10 flex items-center justify-center shrink-0 pointer-events-auto" title="Click to edit">
         <GripHorizontal className="w-3 h-3 mix-blend-overlay pointer-events-none" />
       </div>
 
@@ -306,7 +306,7 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
             <span>{block.subject}</span>
           </div>
           {isCompleted && <div className="shrink-0 bg-green-500/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center shadow-lg"><CheckCircle2 className="w-3.5 h-3.5" /></div>}
-          {isSkipped && <div className="shrink-0 bg-orange-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center shadow-lg"><ChevronRight className="w-3.5 h-3.5" /></div>}
+          {isSkipped && <div className="shrink-0 bg-orange-600/90 text-[#F0F0F0] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center shadow-lg"><ChevronRight className="w-3.5 h-3.5" /></div>}
         </div>
 
         <div className="flex items-center justify-between mt-2">
@@ -322,24 +322,24 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
       {/* 3. Bottom Action Strip */}
       <div className="h-8 w-full border-t border-black/10 bg-black/20 shrink-0 flex items-center justify-between px-3 backdrop-blur-md pointer-events-auto rounded-b-2xl">
         <div className="flex items-center gap-1.5">
-          <button onClick={handleToggleComplete} className={`p-0.5 rounded-full transition-colors ${isCompleted ? 'bg-green-500 text-white' : 'text-white/60 hover:bg-white/20 hover:text-white'}`} title="Mark Completed">
+          <button onClick={handleToggleComplete} className={`p-0.5 rounded-full transition-all duration-150-colors ${isCompleted ? 'bg-green-500 text-white' : 'text-white/60 hover:bg-white/20 hover:text-white'}`} title="Mark Completed">
             <CheckCircle2 className="w-3.5 h-3.5" />
           </button>
-          <button onClick={(e) => { e.stopPropagation(); openSkipModal(block.id); }} className={`p-0.5 rounded-full transition-colors ${isSkipped ? 'bg-orange-500 text-white' : 'text-white/60 hover:bg-white/20 hover:text-white'}`} title="Skip Event">
+          <button onClick={(e) => { e.stopPropagation(); openSkipModal(block.id); }} className={`p-0.5 rounded-full transition-all duration-150-colors ${isSkipped ? 'bg-orange-500 text-[#F0F0F0]' : 'text-[#F0F0F0]/60 hover:bg-white/20 hover:text-[#F0F0F0]'}`} title="Skip Event">
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
-        {block.notes && <FileText className="w-3.5 h-3.5 text-white/50" />}
+        {block.notes && <FileText className="w-3.5 h-3.5 text-[#F0F0F0]/50" />}
       </div>
 
       {/* 5. Bottom Resize Handler */}
       <div
-        className="absolute bottom-0 left-2 right-2 h-[6px] cursor-s-resize hover:bg-white/40 rounded-t-xl transition-colors z-30 pointer-events-auto"
+        className="absolute bottom-0 left-2 right-2 h-[6px] cursor-s-resize hover:bg-white/40 rounded-t-xl transition-all duration-150-colors z-30 pointer-events-auto"
         onMouseDown={handleBottomResizeStart}
       />
 
       {/* Feature 7: Inline Bottom Time Pill */}
-      <div className={`absolute -bottom-6 left-1/2 -translate-x-1/2 bg-forge-elevated text-forge-text-primary border border-forge-border text-[10px] font-bold px-2 py-0.5 rounded shadow-forge-md opacity-0 transition-opacity ${isResizingTop || isResizingBottom || 'group-hover:opacity-100'}`}>
+      <div className={`absolute -bottom-6 left-1/2 -translate-x-1/2 bg-forge-elevated text-forge-text-primary border border-forge-border text-[10px] font-bold px-2 py-0.5 rounded shadow-forge-md opacity-0 transition-all duration-150-opacity ${isResizingTop || isResizingBottom || 'group-hover:opacity-100'}`}>
         {to12HourShort(previewEndTimeStr)}
       </div>
 

@@ -88,7 +88,7 @@ function DropdownMenuItem({
       data-inset={inset}
       data-variant={variant}
       className={cn(
-        "group/dropdown-menu-item relative flex cursor-default select-none items-center rounded-lg px-3 py-2 text-sm text-[#A0A0A0] outline-none transition-all duration-100 hover:text-[#F0F0F0] hover:bg-[#222222] focus:bg-[#222222] focus:text-[#F0F0F0] data-disabled:pointer-events-none data-disabled:opacity-50 data-[variant=destructive]:text-[#EF4444] data-[variant=destructive]:hover:bg-[rgba(239,68,68,0.1)] data-[variant=destructive]:focus:bg-[rgba(239,68,68,0.1)] [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 data-inset:pl-8",
+        "group/dropdown-menu-item relative flex cursor-default select-none items-center rounded-lg px-3 py-2 text-sm text-[#A0A0A0] outline-none transition-all duration-150-all duration-100 hover:text-[#F0F0F0] hover:bg-[#222222] focus:bg-[#222222] focus:text-[#F0F0F0] data-disabled:pointer-events-none data-disabled:opacity-50 data-[variant=destructive]:text-[#EF4444] data-[variant=destructive]:hover:bg-[rgba(239,68,68,0.1)] data-[variant=destructive]:focus:bg-[rgba(239,68,68,0.1)] [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 data-inset:pl-8",
         className
       )}
       {...props}
@@ -113,7 +113,7 @@ function DropdownMenuSubTrigger({
       data-slot="dropdown-menu-sub-trigger"
       data-inset={inset}
       className={cn(
-        "flex cursor-default select-none items-center rounded-lg px-2 py-1.5 text-sm text-forge-text-secondary outline-none transition-colors focus:bg-forge-overlay focus:text-forge-text-primary data-open:bg-forge-overlay data-open:text-forge-text-primary data-inset:pl-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2",
+        "flex cursor-default select-none items-center rounded-lg px-2 py-1.5 text-sm text-forge-text-secondary outline-none transition-all duration-150-colors focus:bg-forge-overlay focus:text-forge-text-primary data-open:bg-forge-overlay data-open:text-forge-text-primary data-inset:pl-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2",
         className
       )}
       {...props}

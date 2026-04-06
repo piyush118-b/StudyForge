@@ -58,6 +58,7 @@ export async function PATCH(request: Request, context: any) {
 
     } catch (err: any) {
         console.error(err)
+        import('fs').then(fs => fs.writeFileSync('/tmp/studyforge_save_error.json', JSON.stringify(err, null, 2)))
         return NextResponse.json({ error: err.message || 'Error occurred' }, { status: 500 })
     }
 }

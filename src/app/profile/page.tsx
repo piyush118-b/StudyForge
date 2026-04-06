@@ -136,7 +136,7 @@ export default function ProfilePage() {
                 </label>
                 <Input
                   placeholder="E.g. Rahul"
-                  className="h-10 bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] placeholder:text-[#606060] rounded-lg hover:border-[#333333] focus-visible:ring-[#10B981]/70 focus-visible:border-[#10B981]/50 transition-all"
+                  className="h-10 bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] placeholder:text-[#606060] rounded-lg hover:border-[#333333] focus-visible:ring-[#10B981]/70 focus-visible:border-[#10B981]/50 transition-all duration-150-all"
                   value={name}
                   onChange={e => setName(e.target.value)}
                 />
@@ -161,14 +161,14 @@ export default function ProfilePage() {
                   <div className="flex gap-2 relative">
                     <Input
                       placeholder="Type your college name"
-                      className="h-10 w-full pr-12 bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] placeholder:text-[#606060] rounded-lg hover:border-[#333333] focus-visible:ring-[#10B981]/70 focus-visible:border-[#10B981]/50 transition-all"
+                      className="h-10 w-full pr-12 bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] placeholder:text-[#606060] rounded-lg hover:border-[#333333] focus-visible:ring-[#10B981]/70 focus-visible:border-[#10B981]/50 transition-all duration-150-all"
                       value={college}
                       autoFocus
                       onChange={e => setCollege(e.target.value)}
                     />
                     <button
                       type="button"
-                      className="absolute right-1 top-1 h-8 w-8 rounded flex items-center justify-center text-[#606060] hover:text-[#F0F0F0] hover:bg-[#333333] transition-all"
+                      className="absolute right-1 top-1 h-8 w-8 rounded flex items-center justify-center text-[#606060] hover:text-[#F0F0F0] hover:bg-[#333333] transition-all duration-150-all active:scale-[0.97]"
                       onClick={() => setShowCustomCollege(false)}
                     >
                       <X className="w-4 h-4" />
@@ -183,7 +183,7 @@ export default function ProfilePage() {
                   Semester / Year
                 </label>
                 <Select value={semester} onValueChange={val => setSemester(val || '')}>
-                  <SelectTrigger className="h-10 w-full bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] rounded-lg hover:border-[#333333] focus:ring-[#10B981]/70 transition-all">
+                  <SelectTrigger className="h-10 w-full bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] rounded-lg hover:border-[#333333] focus:ring-[#10B981]/70 transition-all duration-150-all">
                     <SelectValue placeholder="Select your current semester" />
                   </SelectTrigger>
                   <SelectContent className="bg-[#1A1A1A] border-[#2A2A2A] text-[#F0F0F0] max-h-[300px]">
@@ -213,14 +213,14 @@ export default function ProfilePage() {
                   <div className="flex gap-2 relative">
                     <Input
                       placeholder="Type your stream name"
-                      className="h-10 w-full pr-12 bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] placeholder:text-[#606060] rounded-lg hover:border-[#333333] focus-visible:ring-[#10B981]/70 focus-visible:border-[#10B981]/50 transition-all"
+                      className="h-10 w-full pr-12 bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] placeholder:text-[#606060] rounded-lg hover:border-[#333333] focus-visible:ring-[#10B981]/70 focus-visible:border-[#10B981]/50 transition-all duration-150-all"
                       value={branch}
                       autoFocus
                       onChange={e => setBranch(e.target.value)}
                     />
                     <button
                       type="button"
-                      className="absolute right-1 top-1 h-8 w-8 rounded flex items-center justify-center text-[#606060] hover:text-[#F0F0F0] hover:bg-[#333333] transition-all"
+                      className="absolute right-1 top-1 h-8 w-8 rounded flex items-center justify-center text-[#606060] hover:text-[#F0F0F0] hover:bg-[#333333] transition-all duration-150-all active:scale-[0.97]"
                       onClick={() => setShowCustomBranch(false)}
                     >
                       <X className="w-4 h-4" />
@@ -240,7 +240,7 @@ export default function ProfilePage() {
             <button
               onClick={handleSubmit}
               disabled={!isValid || saving}
-              className="h-10 px-6 rounded-lg text-sm font-bold bg-[#10B981] text-[#0A0A0A] hover:bg-[#34D399] shadow-[0_0_0_1px_rgba(16,185,129,0.4),0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[0_0_0_1px_rgba(16,185,129,0.6),0_0_40px_rgba(16,185,129,0.3)] transition-all duration-150 active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+              className="h-10 px-6 rounded-lg text-sm font-bold bg-[#10B981] text-[#0A0A0A] hover:bg-[#34D399] shadow-[0_0_0_1px_rgba(16,185,129,0.4),0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[0_0_0_1px_rgba(16,185,129,0.6),0_0_40px_rgba(16,185,129,0.3)] transition-all duration-150-all duration-150 active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {saving ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

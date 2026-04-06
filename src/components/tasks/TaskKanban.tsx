@@ -40,7 +40,7 @@ export function TaskKanban({ onAddTask, onEditTask }: TaskKanbanProps) {
               </div>
               <button
                 onClick={() => onAddTask(col.status)}
-                className="p-1 rounded-md text-forge-text-secondary hover:text-forge-accent hover:bg-forge-accent/10 transition-colors"
+                className="p-1 rounded-md text-forge-text-secondary hover:text-forge-accent hover:bg-forge-accent/10 transition-all duration-150-colors"
                 title={`Add to ${col.label}`}
               >
                 <Plus className="w-4 h-4" />

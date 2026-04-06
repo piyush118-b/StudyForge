@@ -25,7 +25,7 @@ export function TimetableNameDropdown({
   
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger className="flex items-center gap-2 hover:bg-forge-overlay px-2 py-1.5 rounded-lg transition-colors outline-none focus:ring-2 focus:ring-forge-accent/50">
+      <PopoverTrigger className="flex items-center gap-2 hover:bg-forge-overlay px-2 py-1.5 rounded-lg transition-all duration-150-colors outline-none focus:ring-2 focus:ring-forge-accent/50">
           {/* Color dot */}
           <div 
             className="w-2.5 h-2.5 rounded-full shrink-0"
@@ -51,7 +51,7 @@ export function TimetableNameDropdown({
           {timetables.map(t => (
             <button
               key={t.id}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors ${t.isActive ? 'bg-forge-accent/10' : 'hover:bg-forge-overlay'}`}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all duration-150-colors ${t.isActive ? 'bg-forge-accent/10' : 'hover:bg-forge-overlay'}`}
               onClick={() => {
                 onSwitch(t.id)
                 setOpen(false)
@@ -84,14 +84,14 @@ export function TimetableNameDropdown({
         
         <div className="p-1">
           <Link href="/create" onClick={() => setOpen(false)}>
-            <div className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-left transition-colors text-forge-text-secondary hover:text-forge-text-primary hover:bg-forge-overlay cursor-pointer">
+            <div className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-left transition-all duration-150-colors text-forge-text-secondary hover:text-forge-text-primary hover:bg-forge-overlay cursor-pointer">
               <Plus size={14} className="text-forge-text-muted" />
               <span className="text-sm font-medium">Create New Timetable</span>
             </div>
           </Link>
           
           <Link href="/dashboard/timetables" onClick={() => setOpen(false)}>
-            <div className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-left transition-colors text-forge-text-secondary hover:text-forge-accent hover:bg-forge-accent/10 cursor-pointer">
+            <div className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-left transition-all duration-150-colors text-forge-text-secondary hover:text-forge-accent hover:bg-forge-accent/10 cursor-pointer">
               <span className="text-sm font-medium w-full text-center">Manage all timetables &rarr;</span>
             </div>
           </Link>

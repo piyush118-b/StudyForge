@@ -29,7 +29,7 @@ export function PomodoroSettings({ open, onClose }: SettingsProps) {
     { val: 'none', label: 'Silent' }
   ];
 
-  const inputCls = "w-full bg-[#222222] border border-[#2A2A2A] text-[#F0F0F0] font-mono text-sm rounded-lg h-9 px-3 text-center focus:outline-none focus:ring-2 focus:ring-[#10B981]/70 focus:border-[#10B981]/50 hover:border-[#333333] transition-all duration-150";
+  const inputCls = "w-full bg-[#222222] border border-[#2A2A2A] text-[#F0F0F0] font-mono text-sm rounded-lg h-9 px-3 text-center focus:outline-none focus:ring-2 focus:ring-[#10B981]/70 focus:border-[#10B981]/50 hover:border-[#333333] transition-all duration-150-all duration-150";
 
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
@@ -63,7 +63,7 @@ export function PomodoroSettings({ open, onClose }: SettingsProps) {
                       type="number" min={min} max={max}
                       value={value}
                       onChange={(e) => onChange(Number(e.target.value))}
-                      className="w-16 h-8 px-2 bg-[#222222] border border-[#2A2A2A] rounded-lg text-sm text-[#F0F0F0] font-mono text-center focus:outline-none focus:ring-2 focus:ring-[#10B981]/70 hover:border-[#333333] transition-all duration-150"
+                      className="w-16 h-8 px-2 bg-[#222222] border border-[#2A2A2A] rounded-lg text-sm text-[#F0F0F0] font-mono text-center focus:outline-none focus:ring-2 focus:ring-[#10B981]/70 hover:border-[#333333] transition-all duration-150-all duration-150"
                     />
                     <span className="text-xs text-[#606060]">min</span>
                   </div>
@@ -115,7 +115,7 @@ export function PomodoroSettings({ open, onClose }: SettingsProps) {
                   <div className="grid grid-cols-2 gap-2">
                     {soundOptions.map((opt) => (
                       <button key={opt.val} onClick={() => setLcl(s => ({ ...s, selectedSound: opt.val }))}
-                        className={`text-xs px-3 py-2 rounded-lg border text-left flex items-center justify-between transition-all duration-150 ${
+                        className={`text-xs px-3 py-2 rounded-lg border text-left flex items-center justify-between transition-all duration-150-all duration-150 ${
                           lcl.selectedSound === opt.val
                             ? 'bg-[rgba(16,185,129,0.1)] border-[#10B981]/30 text-[#10B981] font-semibold'
                             : 'bg-[#222222] border-[#2A2A2A] text-[#A0A0A0] hover:bg-[#2A2A2A] hover:text-[#F0F0F0]'}`}>
@@ -146,11 +146,11 @@ export function PomodoroSettings({ open, onClose }: SettingsProps) {
         {/* Footer actions */}
         <div className="mt-8 pt-4 flex gap-3 border-t border-[#2A2A2A] sticky bottom-0 bg-[#0A0A0A]">
           <button onClick={onClose}
-            className="flex-1 h-9 rounded-lg border border-[#2A2A2A] bg-transparent text-sm font-medium text-[#A0A0A0] hover:bg-[#1A1A1A] hover:text-[#F0F0F0] hover:border-[#333333] transition-all duration-150">
+            className="flex-1 h-9 rounded-lg border border-[#2A2A2A] bg-transparent text-sm font-medium text-[#A0A0A0] hover:bg-[#1A1A1A] hover:text-[#F0F0F0] hover:border-[#333333] transition-all duration-150-all duration-150 active:scale-[0.97]">
             Cancel
           </button>
           <button onClick={save}
-            className="flex-1 h-9 rounded-lg bg-[#10B981] text-[#0A0A0A] text-sm font-bold shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_16px_rgba(16,185,129,0.15)] hover:bg-[#34D399] transition-all duration-150 active:scale-[0.97] flex items-center justify-center gap-2">
+            className="flex-1 h-9 rounded-lg bg-[#10B981] text-[#0A0A0A] text-sm font-bold shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_16px_rgba(16,185,129,0.15)] hover:bg-[#34D399] transition-all duration-150-all duration-150 active:scale-[0.97] flex items-center justify-center gap-2">
             <Save className="w-4 h-4" /> Apply
           </button>
         </div>

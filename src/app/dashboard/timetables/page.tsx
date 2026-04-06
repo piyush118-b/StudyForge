@@ -7,6 +7,8 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { TimetableCard } from '@/components/timetable/TimetableCard'
+import { SkeletonTimetableCard } from '@/components/ui/forge-skeleton'
+import { EmptyState } from '@/components/ui/forge-empty'
 import {
   Dialog,
   DialogContent,
@@ -152,7 +154,7 @@ export default function MyTimetablesPage() {
         </div>
         <a
           href="/create"
-          className="inline-flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#10B981] text-[#0A0A0A] text-sm font-bold shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_16px_rgba(16,185,129,0.15)] hover:bg-[#34D399] transition-all duration-150 active:scale-[0.97]"
+          className="inline-flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#10B981] text-[#0A0A0A] text-sm font-bold shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_16px_rgba(16,185,129,0.15)] hover:bg-[#34D399] transition-all duration-150-all duration-150 active:scale-[0.97]"
         >
           <Plus className="w-4 h-4" />
           New Timetable
@@ -160,31 +162,18 @@ export default function MyTimetablesPage() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center p-24">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 py-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <SkeletonTimetableCard key={i} />
+          ))}
         </div>
       ) : timetables.length === 0 ? (
-        <div className="flex flex-col items-center justify-center text-center p-12 lg:p-24 border border-dashed border-[#2A2A2A] rounded-xl bg-[#1A1A1A]/30">
-          <div className="text-5xl mb-4">📅</div>
-          <h2 className="text-xl font-semibold tracking-tight text-[#F0F0F0]">No timetables yet!</h2>
-          <p className="text-[#A0A0A0] mt-2 max-w-sm mb-6 text-sm">
-            Create your first timetable to start tracking your study progress and visualize your classes.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <button
-              onClick={() => router.push('/create/ai')}
-              className="h-10 px-6 rounded-lg bg-[#10B981] text-[#0A0A0A] text-sm font-bold shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_0_16px_rgba(16,185,129,0.15)] hover:bg-[#34D399] transition-all"
-            >
-              Create with AI ✨
-            </button>
-            <button
-              onClick={() => router.push('/create')}
-              className="h-10 px-6 rounded-lg border border-[#2A2A2A] bg-transparent text-sm font-medium text-[#A0A0A0] hover:bg-[#222222] hover:text-[#F0F0F0] hover:border-[#333333] transition-all"
-            >
-              Build Manually
-            </button>
-          </div>
-        </div>
+        <EmptyState
+          emoji="🗂️"
+          title="No timetables yet"
+          description="You haven't created any timetables. Let AI build your first personalised study schedule."
+          action={{ label: '✨ Generate with AI', href: '/create' }}
+        />
       ) : (
         <Tabs defaultValue="all" className="w-full">
           <TabsList className="bg-[#1A1A1A] border border-[#2A2A2A] p-1 rounded-lg">

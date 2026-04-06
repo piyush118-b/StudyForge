@@ -8,7 +8,7 @@ import { useAuth } from '@/lib/auth-context'
 import { TimetableNameDropdown } from './TimetableDropdown'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { LogOut, User, Bell, Clock } from 'lucide-react'
+import { LogOut, User, Bell, Clock, Menu, Search } from 'lucide-react'
 import { ScheduledReminder } from '@/types/reminder.types'
 import { useReminderStore } from '@/store/reminder-store'
 
@@ -31,7 +31,7 @@ function NextReminderChip({ reminder }: { reminder: ScheduledReminder }) {
   return (
     <div className={`
         flex items-center gap-1.5 px-2.5 py-1 rounded-full
-        text-[11px] font-medium transition-all
+        text-[11px] font-medium transition-all duration-150-all
         ${minutesLeft <= 5 
           ? 'bg-forge-error/15 border border-forge-error/30 text-forge-error/90'
           : 'bg-forge-overlay border border-forge-border text-forge-text-muted'
@@ -54,6 +54,7 @@ interface DashboardHUDProps {
   saveStatus: string
   userId?: string
   onOpenReminderSettings: () => void
+  onOpenMobileNav?: () => void
 }
 
 export function DashboardHUD({
@@ -61,7 +62,8 @@ export function DashboardHUD({
   allTimetables,
   onSwitchTimetable,
   saveStatus,
-  onOpenReminderSettings
+  onOpenReminderSettings,
+  onOpenMobileNav
 }: DashboardHUDProps) {
   const { profile, signOut } = useAuth()
   const [time, setTime] = useState(new Date())
@@ -78,14 +80,19 @@ export function DashboardHUD({
       
       {/* LEFT GROUP */}
       <div className="flex items-center gap-3 shrink-0">
-        <Link href="/">
-          <div className="w-8 h-8 rounded-lg bg-[rgba(16,185,129,0.12)] border border-[#10B981]/25 flex items-center justify-center shadow-sm hover:scale-105 transition-transform hover:bg-[rgba(16,185,129,0.2)]">
-            <BookOpen className="w-4 h-4 text-[#10B981]" />
-          </div>
-        </Link>
-        
-        <div className="w-px h-5 bg-[#2A2A2A] hidden sm:block" />
-        
+        <button
+          onClick={onOpenMobileNav}
+          className="
+            md:hidden w-9 h-9 rounded-lg flex items-center justify-center
+            text-[#A0A0A0] hover:text-[#F0F0F0] hover:bg-[#1A1A1A]
+            border border-transparent hover:border-[#2A2A2A]
+            transition-all duration-150
+           active:scale-[0.97]"
+          aria-label="Open navigation"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
         <div className="hidden sm:block">
           <TimetableNameDropdown 
             timetables={allTimetables}
@@ -100,7 +107,7 @@ export function DashboardHUD({
             <div className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-[livePulse_2s_ease-in-out_infinite] shadow-[0_0_6px_rgba(16,185,129,0.7)]" />
             <span className="text-[10px] uppercase font-bold text-[#606060] tracking-wide">Live</span>
             
-            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 bg-[#1A1A1A] border border-[#2A2A2A] rounded text-[10px] text-[#A0A0A0] opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap transition-opacity shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
+            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 bg-[#1A1A1A] border border-[#2A2A2A] rounded text-[10px] text-[#A0A0A0] opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap transition-all duration-150-opacity shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
               Auto-saves every 5s
             </div>
           </div>
@@ -115,7 +122,7 @@ export function DashboardHUD({
           {time.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
         </span>
         <div className="w-px h-3 bg-[#2A2A2A]" />
-        <span className="text-[13px] font-semibold text-[#F0F0F0] tabular-nums">
+        <span className="text-[13px] font-semibold font-mono text-[#F0F0F0] tabular-nums">
           {time.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
         </span>
       </div>
@@ -123,6 +130,24 @@ export function DashboardHUD({
       {/* RIGHT GROUP */}
       <div className="flex items-center gap-4 shrink-0">
         
+        {/* Cmd+K Search Trigger */}
+        <button
+          onClick={() => window.dispatchEvent(new Event('open-command-palette'))}
+          className="
+            hidden md:flex items-center gap-2
+            h-8 px-3 rounded-lg
+            bg-[#1A1A1A] border border-[#2A2A2A]
+            text-xs text-[#606060]
+            hover:border-[#333333] hover:text-[#A0A0A0]
+            transition-all duration-150
+            active:scale-[0.97]
+          "
+        >
+          <Search className="w-3.5 h-3.5" />
+          <span>Search...</span>
+          <kbd className="ml-2 font-mono text-[10px] text-[#3A3A3A]">⌘K</kbd>
+        </button>
+
         <div className="hidden md:block w-px h-4 bg-[#2A2A2A]" />
         
         {/* Save Status */}
@@ -135,7 +160,7 @@ export function DashboardHUD({
         {/* Reminders Bell Token */}
         <button 
           onClick={onOpenReminderSettings}
-          className="relative w-9 h-9 rounded-lg flex items-center justify-center hover:bg-[#222222] transition-colors text-[#A0A0A0] hover:text-[#F0F0F0]"
+          className="relative w-9 h-9 rounded-lg flex items-center justify-center hover:bg-[#222222] transition-all duration-150-colors text-[#A0A0A0] hover:text-[#F0F0F0] active:scale-[0.97]"
         >
           <Bell size={16} />
           {nextReminder && (
@@ -146,7 +171,7 @@ export function DashboardHUD({
         {/* User Menu */}
         <Popover>
           <PopoverTrigger className="outline-none ml-1">
-            <Avatar className="w-[28px] h-[28px] border border-[#2A2A2A] hover:border-[#10B981]/50 transition-colors cursor-pointer rounded-full overflow-hidden">
+            <Avatar className="w-[28px] h-[28px] border border-[#2A2A2A] hover:border-[#10B981]/50 transition-all duration-150-colors cursor-pointer rounded-full overflow-hidden">
               <AvatarImage src={profile?.avatar_url || ''} />
               <AvatarFallback className="bg-[#222222] text-[10px] text-[#F0F0F0]">
                 {profile?.full_name?.charAt(0) || 'U'}
@@ -159,12 +184,12 @@ export function DashboardHUD({
               <p className="text-xs text-[#606060] truncate mt-0.5">{profile?.email || 'Not signed in'}</p>
             </div>
             <Link href="/dashboard/settings/profile">
-              <div className="flex items-center gap-2 px-3 py-2 text-sm text-[#A0A0A0] hover:text-[#F0F0F0] hover:bg-[#222222] rounded-md transition-colors cursor-pointer">
+              <div className="flex items-center gap-2 px-3 py-2 text-sm text-[#A0A0A0] hover:text-[#F0F0F0] hover:bg-[#222222] rounded-md transition-all duration-150-colors cursor-pointer">
                 <User size={14} /> Profile
               </div>
             </Link>
             <div className="h-px bg-[#2A2A2A] my-1" />
-            <button onClick={signOut} className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-[#EF4444] hover:text-[#EF4444] hover:bg-[rgba(239,68,68,0.1)] rounded-md transition-colors cursor-pointer">
+            <button onClick={signOut} className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-[#EF4444] hover:text-[#EF4444] hover:bg-[rgba(239,68,68,0.1)] rounded-md transition-all duration-150-colors cursor-pointer active:scale-[0.97]">
               <LogOut size={14} /> Sign out
             </button>
           </PopoverContent>

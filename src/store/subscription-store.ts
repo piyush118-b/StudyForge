@@ -130,7 +130,7 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
       const sub = rowToSubscription(data as SubscriptionRow);
       set({ subscription: sub, loading: false, ...computeFields(sub) });
     } catch (err) {
-      console.error('[SubscriptionStore] fetch error:', err);
+      console.error('[SubscriptionStore] fetch error:', (err as any)?.message || err);
       // Still set a fallback so the app doesn't break
       const fallback = freeFallback(userId);
       set({ subscription: fallback, loading: false, ...computeFields(fallback) });

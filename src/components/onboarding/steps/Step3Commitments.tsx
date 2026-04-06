@@ -60,7 +60,7 @@ export function Step3Commitments({ onNext, onBack }: { onNext: () => void, onBac
             <Badge 
               key={type} 
               variant="outline" 
-              className="cursor-pointer border-white/20 text-slate-300 hover:bg-slate-800 py-1.5 px-3"
+              className="cursor-pointer border-white/20 text-slate-300 hover:bg-[#1A1A1A] py-1.5 px-3"
               onClick={() => addCommitment(type)}
             >
               + {type}
@@ -70,35 +70,35 @@ export function Step3Commitments({ onNext, onBack }: { onNext: () => void, onBac
 
         <div className="space-y-3 pt-4 border-t border-white/10">
           {userData.commitments.map((comm) => (
-            <div key={comm.id} className="bg-slate-900 rounded-xl border border-white/10 overflow-hidden">
+            <div key={comm.id} className="bg-[#111111] rounded-xl border border-white/10 overflow-hidden">
               <div 
-                className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-800/50"
+                className="flex items-center justify-between p-4 cursor-pointer hover:bg-[#1A1A1A]/50"
                 onClick={() => setExpandedId(expandedId === comm.id ? null : comm.id)}
               >
                 <div className="flex items-center gap-3">
                   <Clock className="w-5 h-5 text-teal-400" />
                   <div>
-                    <span className="font-semibold text-white">{comm.type}</span>
-                    {comm.name && <span className="ml-2 text-sm text-slate-400">({comm.name})</span>}
+                    <span className="font-semibold text-[#F0F0F0]">{comm.type}</span>
+                    {comm.name && <span className="ml-2 text-sm text-[#A0A0A0]">({comm.name})</span>}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   {comm.type !== "Sleep" && (
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-red-400" onClick={(e) => { e.stopPropagation(); removeComm(comm.id); }}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-[#606060] hover:text-red-400" onClick={(e) => { e.stopPropagation(); removeComm(comm.id); }}>
                       <X className="w-4 h-4" />
                     </Button>
                   )}
-                  {expandedId === comm.id ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+                  {expandedId === comm.id ? <ChevronUp className="w-4 h-4 text-[#A0A0A0]" /> : <ChevronDown className="w-4 h-4 text-[#A0A0A0]" />}
                 </div>
               </div>
 
               {expandedId === comm.id && (
-                <div className="p-4 pt-0 border-t border-white/5 space-y-4 bg-slate-900/50">
+                <div className="p-4 pt-0 border-t border-white/5 space-y-4 bg-[#111111]/50">
                   
                   {['Tuition / Coaching', 'Part-time Job', 'Club / Extracurricular', 'Other'].includes(comm.type) && (
                     <Input 
                       placeholder="Description / Name (Optional)" 
-                      className="bg-slate-950 border-white/10 text-white mt-4"
+                      className="bg-slate-950 border-white/10 text-[#F0F0F0] mt-4"
                       value={comm.name}
                       onChange={e => updateComm(comm.id, { name: e.target.value })}
                     />
@@ -110,7 +110,7 @@ export function Step3Commitments({ onNext, onBack }: { onNext: () => void, onBac
                         key={d}
                         variant="outline"
                         onClick={() => toggleDay(comm.id, d)}
-                        className={`cursor-pointer px-3 py-1 border transition-all ${comm.days.includes(d) ? 'bg-indigo-500/20 border-indigo-500 text-indigo-300' : 'bg-slate-950 border-white/10 text-slate-400'}`}
+                        className={`cursor-pointer px-3 py-1 border transition-all duration-150-all ${comm.days.includes(d) ? 'bg-[#10B981]/20 border-[#10B981] text-indigo-300' : 'bg-slate-950 border-white/10 text-[#A0A0A0]'}`}
                       >
                         {d}
                       </Badge>
@@ -119,19 +119,19 @@ export function Step3Commitments({ onNext, onBack }: { onNext: () => void, onBac
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <span className="text-white/60 text-xs uppercase">Start Time</span>
+                      <span className="text-[#F0F0F0]/60 text-xs uppercase">Start Time</span>
                       <Input 
                         type="time"
-                        className="bg-slate-950 border-white/10 text-white block w-full"
+                        className="bg-slate-950 border-white/10 text-[#F0F0F0] block w-full"
                         value={comm.startTime}
                         onChange={e => updateComm(comm.id, { startTime: e.target.value })}
                       />
                     </div>
                     <div className="space-y-1">
-                      <span className="text-white/60 text-xs uppercase">End Time</span>
+                      <span className="text-[#F0F0F0]/60 text-xs uppercase">End Time</span>
                       <Input 
                         type="time"
-                        className="bg-slate-950 border-white/10 text-white block w-full"
+                        className="bg-slate-950 border-white/10 text-[#F0F0F0] block w-full"
                         value={comm.endTime}
                         onChange={e => updateComm(comm.id, { endTime: e.target.value })}
                       />
@@ -147,7 +147,7 @@ export function Step3Commitments({ onNext, onBack }: { onNext: () => void, onBac
       </div>
 
       <div className="mt-8 flex justify-between">
-        <Button variant="ghost" onClick={onBack} className="text-slate-400 hover:text-white">
+        <Button variant="ghost" onClick={onBack} className="text-[#A0A0A0] hover:text-[#F0F0F0]">
           <ArrowLeft className="w-4 h-4 mr-2" /> Back
         </Button>
         <Button onClick={onNext} className="bg-white text-black hover:bg-slate-200 px-8">

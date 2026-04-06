@@ -15,6 +15,8 @@ import { toast } from "sonner";
 import { recalculateDailySummary } from "@/lib/analytics-utils";
 import { supabase } from "@/lib/supabase";
 import { RealtimeChannel } from "@supabase/supabase-js";
+import { Skeleton, SkeletonCard } from '@/components/ui/forge-skeleton';
+import { EmptyState } from '@/components/ui/forge-empty';
 
 export default function AnalyticsPage() {
   const { user } = useAuth();
@@ -163,7 +165,55 @@ export default function AnalyticsPage() {
     setStats(computeWeeklyStats(uniqueEvents as any[], startStr));
   }, [historicalEvents]);
 
-  if (!stats || subscriptionLoading) return <div className="p-8 flex items-center justify-center min-h-[400px]"><div className="w-8 h-8 border-2 border-[#10B981] border-t-transparent rounded-full animate-spin" /></div>;
+  if (!stats || subscriptionLoading) {
+    return (
+      <div className="p-6 space-y-4 max-w-7xl mx-auto mt-6">
+        {/* Streak row */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+
+        {/* Heatmap skeleton */}
+        <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
+          <Skeleton className="h-4 w-32 mb-6" />
+          <div className="flex gap-1">
+            {Array.from({ length: 12 }).map((_, wi) => (
+              <div key={wi} className="flex flex-col gap-1">
+                {Array.from({ length: 7 }).map((_, di) => (
+                  <Skeleton key={di} className="w-3 h-3 rounded-[2px]" />
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Charts skeleton */}
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
+            <Skeleton className="h-4 w-40 mb-6" />
+            <Skeleton className="h-48 w-full rounded-lg" />
+          </div>
+          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
+            <Skeleton className="h-4 w-40 mb-6" />
+            <Skeleton className="h-48 w-full rounded-full mx-auto max-w-[200px]" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (historicalEvents.length === 0) {
+    return (
+      <EmptyState
+        emoji="📊"
+        title="No study data yet"
+        description="Start tracking your study blocks on the dashboard. Your analytics will appear here after your first session."
+        action={{ label: 'Go to Dashboard', href: '/dashboard' }}
+      />
+    );
+  }
 
 
 
@@ -235,12 +285,24 @@ export default function AnalyticsPage() {
       </div>
 
       {!isPro && timeRange === '7d' && (
-        <div className="bg-[rgba(16,185,129,0.06)] border border-[#10B981]/20 rounded-xl p-4 flex items-start sm:items-center gap-4">
-           <div className="bg-[rgba(16,185,129,0.12)] p-2 rounded-lg"><Sparkles className="w-5 h-5 text-[#10B981]" /></div>
-           <div className="flex-1">
-             <h4 className="text-sm font-semibold text-[#F0F0F0]">Unlock Multi-Month Trends</h4>
-             <p className="text-xs text-[#A0A0A0] mt-1">Free users can view 7-day stats. Upgrade to Pro to track your consistency across your entire semester with 30-day and all-time analytics.</p>
-           </div>
+        <div className="bg-[#1A1A1A] border border-[#10B981]/30 rounded-xl p-4 mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-lg bg-[rgba(16,185,129,0.1)] flex items-center justify-center shrink-0">
+              <Sparkles className="w-4 h-4 text-[#10B981]" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-[#F0F0F0] mb-0.5">
+                Unlock Multi-Month Trends
+              </h4>
+              <p className="text-xs text-[#A0A0A0]">
+                Free users can view 7-day stats. Upgrade to Pro for 30-day and all-time.
+              </p>
+            </div>
+          </div>
+          <a href="/pricing"
+             className="h-8 px-4 rounded-lg bg-[#10B981] text-[#0A0A0A] text-xs font-bold hover:bg-[#34D399] transition-all duration-150-colors shrink-0 flex items-center mt-2 sm:mt-0">
+            Upgrade Now
+          </a>
         </div>
       )}
 
@@ -248,33 +310,39 @@ export default function AnalyticsPage() {
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {/* Streak */}
-          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-4 flex items-center gap-3 hover:border-[#F97316]/20 transition-colors">
+          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-4 flex items-center gap-3 hover:border-[#F97316]/20 transition-all duration-150-colors">
             <div className="w-9 h-9 rounded-lg bg-[rgba(249,115,22,0.1)] flex items-center justify-center shrink-0">
               <Flame className="w-4 h-4 text-orange-400" />
             </div>
             <div>
               <p className="text-[10px] text-[#606060] font-semibold uppercase tracking-wider">Streak</p>
-              <p className="text-xl font-black text-[#F0F0F0] leading-none mt-0.5">
+              <p 
+                key={stats.streakDays}
+                className="text-2xl font-black text-[#F0F0F0] leading-none mt-0.5 animate-[forge-scale-in_0.3s_ease-out_forwards]"
+              >
                 {stats.streakDays}<span className="text-[13px] text-[#606060] font-medium ml-0.5">days</span>
               </p>
             </div>
           </div>
 
           {/* Weekly Completion Rate */}
-          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-4 flex items-center gap-3 hover:border-[#3B82F6]/20 transition-colors">
+          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-4 flex items-center gap-3 hover:border-[#3B82F6]/20 transition-all duration-150-colors">
             <div className="w-9 h-9 rounded-lg bg-[rgba(59,130,246,0.1)] flex items-center justify-center shrink-0">
               <Target className="w-4 h-4 text-[#3B82F6]" />
             </div>
             <div>
               <p className="text-[10px] text-[#606060] font-semibold uppercase tracking-wider">This Week</p>
-              <p className="text-xl font-black text-[#F0F0F0] leading-none mt-0.5">
+              <p 
+                className="text-2xl font-black text-[#F0F0F0] leading-none mt-0.5 transition-all duration-700 ease-out tabular-nums font-mono"
+                style={{ fontVariantNumeric: 'tabular-nums' }}
+              >
                 {Math.round(stats.overallCompletionRate)}<span className="text-[13px] text-[#606060] font-medium ml-0.5">%</span>
               </p>
             </div>
           </div>
 
           {/* Hours Completed */}
-          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-4 flex items-center gap-3 hover:border-[#10B981]/20 transition-colors">
+          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-4 flex items-center gap-3 hover:border-[#10B981]/20 transition-all duration-150-colors">
             <div className="w-9 h-9 rounded-lg bg-[rgba(16,185,129,0.1)] flex items-center justify-center shrink-0">
               <TrendingUp className="w-4 h-4 text-[#10B981]" />
             </div>
@@ -287,7 +355,7 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Most Skipped */}
-          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-4 flex items-center gap-3 hover:border-[#EF4444]/20 transition-colors">
+          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-4 flex items-center gap-3 hover:border-[#EF4444]/20 transition-all duration-150-colors">
             <div className="w-9 h-9 rounded-lg bg-[rgba(239,68,68,0.1)] flex items-center justify-center shrink-0">
               <TrendingDown className="w-4 h-4 text-[#EF4444]" />
             </div>
@@ -316,7 +384,7 @@ export default function AnalyticsPage() {
           <div className="p-5 border-b border-[#2A2A2A]">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-md bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center">
-                <Brain className="w-3.5 h-3.5 text-white" />
+                <Brain className="w-3.5 h-3.5 text-[#F0F0F0]" />
               </div>
               <h3 className="text-sm font-semibold text-[#F0F0F0]">AI Study Insight</h3>
               <span className="ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded bg-[rgba(16,185,129,0.12)] text-[#10B981] border border-[#10B981]/20 uppercase tracking-wider">Gemini</span>
