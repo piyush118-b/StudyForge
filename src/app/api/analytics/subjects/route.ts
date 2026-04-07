@@ -106,12 +106,47 @@ export async function GET(request: Request) {
       }
     }
 
+    // Build a separate map of today's grid blocks by blockId for the reconciliation step
+    // We store: blockId → { subject, hours, completionPercentage, status }
+    const gridBlockMap: Record<string, { subject: string; hrs: number; completionPercentage: number; status: string }> = {};
+    if (activeTT?.grid_data) {
+      const allBlocks = Object.values(activeTT.grid_data) as any[];
+      for (const block of allBlocks.filter(blockMatchesToday)) {
+        if (!block.id) continue;
+        let hrs = 0;
+        if (block.startTime && block.endTime) {
+          const [sh, sm] = block.startTime.split(':').map(Number);
+          const [eh, em] = block.endTime.split(':').map(Number);
+          hrs = Math.max(0, (eh * 60 + em - (sh * 60 + sm)) / 60);
+        }
+        gridBlockMap[block.id] = {
+          subject: block.subject || 'Unknown',
+          hrs,
+          completionPercentage: typeof block.completionPercentage === 'number' ? block.completionPercentage : (block.status === 'completed' ? 100 : 0),
+          status: block.status || 'pending',
+        };
+      }
+    }
+
     // ─── 3. Get actual block_logs for the date (user-scoped, not timetable-scoped) ──
-    const { data: logs } = await supabase
+    const { data: rawLogs } = await supabase
       .from('block_logs')
-      .select('subject, status, scheduled_hours, actual_hours, partial_percentage')
+      .select('block_id, subject, status, scheduled_hours, actual_hours, partial_percentage')
       .eq('user_id', user.id)
-      .eq('scheduled_date', date) as any;
+      .eq('scheduled_date', date)
+      .order('marked_at', { ascending: false }) as any; // newest first for dedup
+
+    // Deduplicate: keep only the most recent log per block_id.
+    // Without this, a block marked partial then complete creates two rows → double count.
+    const seenBlocks = new Set<string>();
+    const logs: any[] = [];
+    for (const log of (rawLogs || [])) {
+      const key = log.block_id || `${log.subject}__${log.scheduled_date}__${log.scheduled_start}`; // stable, not affected by status changes
+      if (!seenBlocks.has(key)) {
+        seenBlocks.add(key);
+        logs.push(log);
+      }
+    }
 
     // Build actual map: subject → { completedHours, partialHours }
     const actualMap: Record<string, { completedHours: number; partialHours: number; status: string }> = {};
@@ -125,10 +160,61 @@ export async function GET(request: Request) {
         actualMap[subject].completedHours += Number(log.scheduled_hours) || 0;
         actualMap[subject].status = 'completed';
       } else if (log.status === 'partial') {
-        actualMap[subject].partialHours += Number(log.actual_hours) || 0;
+        // Use actual_hours if set; else derive from percentage (handles legacy 0-actual_hours rows)
+        const pct = Number(log.partial_percentage || 0);
+        const scheduled = Number(log.scheduled_hours || 0);
+        const actualHrs = Number(log.actual_hours || 0);
+        const effectiveHrs = actualHrs > 0 ? actualHrs : (pct / 100) * scheduled;
+        actualMap[subject].partialHours += Number(effectiveHrs.toFixed(2));
         actualMap[subject].status = 'partial';
       } else if (log.status === 'skipped') {
         actualMap[subject].status = 'skipped';
+      }
+    }
+
+    // ─── 3b. Reconcile grid_data vs block_logs ────────────────────────────────────
+    //
+    // For any block in grid_data that has a non-pending status but either:
+    //   (a) has no block_log entry at all, OR
+    //   (b) has a block_log with actual_hours = 0 (stale/broken entry)
+    // → synthesize the actual hours from grid_data.completionPercentage.
+    //
+    // This ensures the timetable and analytics always agree.
+    //
+    // Track which block_ids we already have good data for from block_logs
+    const goodBlockIds = new Set<string>(logs.map((l: any) => l.block_id).filter(Boolean));
+    const loggedSubjectHours: Record<string, number> = {};
+    for (const log of logs) {
+      const s = log.subject || 'Unknown';
+      const hrs = Number(log.actual_hours || 0);
+      if (!loggedSubjectHours[s]) loggedSubjectHours[s] = 0;
+      loggedSubjectHours[s] += hrs;
+    }
+
+    for (const [blockId, gridBlock] of Object.entries(gridBlockMap)) {
+      const { subject, hrs, completionPercentage, status } = gridBlock;
+      if (status === 'pending') continue; // nothing to synthesize
+
+      const hasGoodLog = goodBlockIds.has(blockId);
+      const loggedHrs = loggedSubjectHours[subject] || 0;
+
+      if (!hasGoodLog || loggedHrs === 0) {
+        // No block_log or stale zero — synthesize from grid_data
+        const syntheticHrs = Number(((completionPercentage / 100) * hrs).toFixed(2));
+        if (!actualMap[subject]) {
+          actualMap[subject] = { completedHours: 0, partialHours: 0, status: 'pending' };
+        }
+        if (status === 'completed') {
+          actualMap[subject].completedHours = Math.max(actualMap[subject].completedHours, syntheticHrs);
+          actualMap[subject].status = 'completed';
+        } else if (status === 'partial') {
+          actualMap[subject].partialHours = Math.max(actualMap[subject].partialHours, syntheticHrs);
+          if (actualMap[subject].status !== 'completed') {
+            actualMap[subject].status = 'partial';
+          }
+        } else if (status === 'skipped') {
+          actualMap[subject].status = 'skipped';
+        }
       }
     }
 

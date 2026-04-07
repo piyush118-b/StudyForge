@@ -86,12 +86,25 @@ export async function GET(request: Request) {
   }
 
   // 2. Get block logs for subject breakdown and skips
-  const { data: logs } = await supabase
+  const { data: rawLogs } = await supabase
      .from('block_logs')
      .select('*')
      .eq('user_id', userId)
      .gte('scheduled_date', fromDateStr)
      .lte('scheduled_date', toDateStr)
+     .order('marked_at', { ascending: false })
+
+  const seenKeys = new Set<string>()
+  const logs: any[] = []
+  if (rawLogs) {
+      rawLogs.forEach(l => {
+          const key = `${l.block_id || `${l.scheduled_date}__${l.scheduled_start}`}__${l.scheduled_date}`
+          if (!seenKeys.has(key)) {
+              seenKeys.add(key)
+              logs.push(l)
+          }
+      })
+  }
 
   let totalScheduledHours = 0
   let totalCompletedHours = 0
@@ -104,17 +117,28 @@ export async function GET(request: Request) {
      logs.forEach(l => {
          const schedHr = Number(l.scheduled_hours) || 0
          const actHr = Number(l.actual_hours) || 0
+         const pct = Number(l.partial_percentage || 0)
+         
          totalScheduledHours += schedHr
-         if (l.status === 'completed') totalCompletedHours += schedHr
-         if (l.status === 'partial') totalPartialHours += actHr
+         if (l.status === 'completed') {
+             totalCompletedHours += schedHr
+         } else if (l.status === 'partial') {
+             // Fallback if actual_hours is 0
+             const effectiveActHr = actHr > 0 ? actHr : (pct / 100) * schedHr
+             totalPartialHours += effectiveActHr
+         }
 
          if (!subjectMap[l.subject]) {
              subjectMap[l.subject] = { scheduledHours: 0, completedHours: 0, partialHours: 0, skippedCount: 0 }
          }
          subjectMap[l.subject].scheduledHours += schedHr
          
-         if (l.status === 'completed') subjectMap[l.subject].completedHours += schedHr
-         if (l.status === 'partial') subjectMap[l.subject].partialHours += actHr
+         if (l.status === 'completed') {
+             subjectMap[l.subject].completedHours += schedHr
+         } else if (l.status === 'partial') {
+             const effectiveActHr = actHr > 0 ? actHr : (pct / 100) * schedHr
+             subjectMap[l.subject].partialHours += effectiveActHr
+         }
          if (l.status === 'skipped') {
              subjectMap[l.subject].skippedCount += 1
              if (l.skip_reason) {

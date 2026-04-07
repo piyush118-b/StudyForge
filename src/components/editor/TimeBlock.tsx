@@ -3,7 +3,8 @@
 import { useGridStore } from "@/store/grid-store";
 import { TimeBlock } from "@/lib/grid-engine";
 import { GripHorizontal, CheckCircle2, ChevronRight, FileText } from "lucide-react";
-import { useState, useRef, MouseEvent as ReactMouseEvent } from "react";
+import { useState, useRef, MouseEvent as ReactMouseEvent, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { pixelToTime, snapTime, timeToPixel, to12HourShort, timeDiffMinutes } from "@/lib/time-utils";
 import { getDateForDayOfWeek, calculateHours, recalculateDailySummary } from "@/lib/analytics-utils";
 import { useAuth } from "@/lib/auth-context";
@@ -49,6 +50,48 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
   const isCompleted = block.status === 'completed';
   const isSkipped = block.status === 'skipped';
   const isPartial = block.status === 'partial';
+
+  // --- Hover Portal Mechanics ---
+  const blockRef = useRef<HTMLDivElement>(null);
+  const [showPopover, setShowPopover] = useState(false);
+  const [popoverCoords, setPopoverCoords] = useState({ top: 0, left: 0 });
+  const [isMounted, setIsMounted] = useState(false);
+  const hideTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    setIsMounted(true);
+    return () => {
+      if (hideTimeout.current) clearTimeout(hideTimeout.current);
+    };
+  }, []);
+
+  const handleMouseEnter = () => {
+    if (activeTool === 'pan' || isResizingTop || isResizingBottom) return;
+    if (hideTimeout.current) clearTimeout(hideTimeout.current);
+
+    if (blockRef.current) {
+      const rect = blockRef.current.getBoundingClientRect();
+      const CARD_W = 272;
+      const CARD_H = 240;
+      // Prefer right; fall back to left if card would be clipped
+      const spaceRight = window.innerWidth - rect.right;
+      const left = spaceRight >= CARD_W + 20
+        ? rect.right + 12
+        : rect.left - CARD_W - 12;
+      // Clamp top so card never goes below viewport bottom
+      const top = Math.min(Math.max(16, rect.top), window.innerHeight - CARD_H - 16);
+      setPopoverCoords({ top, left });
+    }
+    setShowPopover(true);
+  };
+
+  const handleMouseLeave = () => {
+    if (hideTimeout.current) clearTimeout(hideTimeout.current);
+    // 400ms gives enough time to move mouse from block to popover
+    hideTimeout.current = setTimeout(() => {
+      setShowPopover(false);
+    }, 400);
+  };
 
   // --- TOP Resize Mechanics (Feature 9) ---
   const handleTopResizeStart = (e: ReactMouseEvent) => {
@@ -263,24 +306,52 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
     snapTime(pixelToTime(timeToPixel(block.startTime, gridStartTime, pxPerHour) + (previewY !== null ? previewY : 0) + previewH, gridStartTime, pxPerHour), currentSnapInterval) : block.endTime;
 
   return (
+    <>
     <div
-      style={{ left: 2, top: displayY + 2, width: w - 4, height: displayHeight - 4, backgroundColor: block.color, color: block.textColor ?? undefined }}
+      ref={blockRef}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      style={{ left: 2, top: displayY + 2, width: w - 4, height: displayHeight - 4, backgroundColor: block.color, color: block.textColor ?? undefined, '--block-shadow-color': `${block.color}40` } as React.CSSProperties}
       onClick={(e) => {
         if (activeTool === 'pan') return; // let it bubble up to pan handlers if applicable, or just ignore
         e.stopPropagation();
         openBlockModal(block.day, block.startTime, block.endTime, block.id);
       }}
       // Use pointer-events-none conditionally to let Pan grab the wrapper underneath
-      className={`absolute transition-all duration-150-transform duration-75 flex flex-col group rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.4)] border border-white/5
-        ${activeTool === 'pan' ? 'cursor-inherit' : 'cursor-pointer pointer-events-auto'}
-        ${isCompleted ? 'brightness-90 ring-1 ring-green-500 shadow-green-900/40' : ''}
-        ${isSkipped ? 'grayscale-[0.6] opacity-70 bg-[repeating-linear-gradient(45deg,transparent,transparent_8px,rgba(0,0,0,0.2)_8px,rgba(0,0,0,0.2)_10px)]' : ''}
-        ${isPartial ? 'ring-1 ring-yellow-500' : ''}
-        ${isResizingTop || isResizingBottom ? 'z-50 pointer-events-none' : 'z-20 hover:z-40'}
+      className={`absolute transition-colors duration-150 flex flex-col group rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.4)] border border-white/5
+        ${activeTool === 'pan' ? 'cursor-inherit' : 'cursor-pointer pointer-events-auto hover:border-white/15 hover:shadow-[0_12px_32px_rgba(0,0,0,0.6)]'}
+        ${isCompleted ? 'brightness-[0.85] ring-1 ring-emerald-500/50 shadow-[0_0_16px_rgba(16,185,129,0.2)]' : ''}
+        ${isSkipped ? 'grayscale-[0.6] opacity-50 border-orange-500/20' : ''}
+        ${isPartial ? 'ring-1 ring-yellow-500/40 shadow-[0_0_12px_rgba(245,158,11,0.15)]' : ''}
+        ${isResizingTop || isResizingBottom ? 'z-50 pointer-events-none' : 'z-20 hover:z-[60]'}
       `}
       onContextMenu={handleContextMenu}
       data-block-id={block.id}
     >
+
+      {/* Partial Completion — clean left-edge vertical fill bar */}
+      {isPartial && (
+        <div className="absolute left-0 top-0 bottom-0 w-[4px] rounded-l-2xl overflow-hidden pointer-events-none z-10">
+          {/* Track */}
+          <div className="absolute inset-0 bg-black/20" />
+          {/* Fill — grows from bottom */}
+          <div
+            className="absolute bottom-0 left-0 right-0 transition-all duration-500"
+            style={{
+              height: `${block.completionPercentage ?? 0}%`,
+              background: 'linear-gradient(to top, #f59e0b, #fbbf24)'
+            }}
+          />
+        </div>
+      )}
+
+      {/* Completed Watermark */}
+      {isCompleted && (
+        <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden mix-blend-overlay opacity-30">
+          <CheckCircle2 className="w-24 h-24 absolute -right-6 -bottom-6 text-emerald-500" strokeWidth={3} />
+        </div>
+      )}
+
 
       {/* 0. Top Resize Handler */}
       <div
@@ -348,5 +419,88 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
         <div className="absolute inset-0 border-2 border-dashed border-white/50 pointer-events-none rounded-lg" />
       )}
     </div>
+
+    {isMounted && showPopover && createPortal(
+      <div
+        className="fixed bg-[#111111] border border-[#222222] rounded-xl shadow-[0_24px_60px_rgba(0,0,0,0.9)] p-4 z-[9999] w-[264px] animate-in fade-in zoom-in-95 duration-150"
+        style={{ top: popoverCoords.top, left: popoverCoords.left }}
+        onMouseEnter={() => { if (hideTimeout.current) clearTimeout(hideTimeout.current); setShowPopover(true); }}
+        onMouseLeave={handleMouseLeave}
+      >
+        {/* Header: time + duration */}
+        <div className="flex items-center gap-2 mb-2.5">
+          <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: block.color, boxShadow: `0 0 6px ${block.color}` }} />
+          <span className="text-[10px] font-bold text-[#606060] uppercase tracking-wider">
+            {to12HourShort(block.startTime)} – {to12HourShort(block.endTime)} · {calculateHours(block.startTime, block.endTime)}h
+          </span>
+        </div>
+
+        {/* Subject name */}
+        <div className="font-bold text-[#F0F0F0] text-[15px] leading-tight mb-2.5">
+          {block.sticker && <span className="mr-1.5 text-base inline-block align-bottom">{block.sticker}</span>}
+          {block.subject}
+        </div>
+
+        {/* Badges: type + priority */}
+        <div className="flex items-center gap-1.5 flex-wrap mb-3">
+          <span className="text-[10px] bg-[#1E1E1E] border border-[#2A2A2A] text-[#A0A0A0] px-2 py-0.5 rounded-md uppercase tracking-wider font-bold">
+            {block.subjectType}
+          </span>
+          {block.priority && (
+            <span className={`text-[10px] px-2 py-0.5 rounded-md uppercase tracking-wider font-bold border ${
+              block.priority === 'High'   ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+              block.priority === 'Medium' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
+                                           'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+            }`}>{block.priority}</span>
+          )}
+        </div>
+
+        {/* Completion status row */}
+        <div className="border-t border-[#1E1E1E] pt-3">
+          {isCompleted && (
+            <>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[11px] font-semibold text-emerald-400 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> 100% Done
+                </span>
+                <span className="text-[10px] text-[#606060]">Complete</span>
+              </div>
+              <div className="h-1 bg-[#1E1E1E] rounded-full overflow-hidden">
+                <div className="h-full rounded-full bg-emerald-500" style={{ width: '100%' }} />
+              </div>
+            </>
+          )}
+          {isPartial && (
+            <>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[11px] font-semibold text-yellow-400">⚡ {block.completionPercentage ?? 0}% Done</span>
+                <span className="text-[10px] text-[#606060]">Partial</span>
+              </div>
+              <div className="h-1 bg-[#1E1E1E] rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full"
+                  style={{ width: `${block.completionPercentage ?? 0}%`, background: 'linear-gradient(to right, #f59e0b, #fbbf24)' }}
+                />
+              </div>
+            </>
+          )}
+          {isSkipped && (
+            <span className="text-[11px] font-semibold text-orange-400">⏭ Skipped</span>
+          )}
+          {!isCompleted && !isPartial && !isSkipped && (
+            <span className="text-[11px] text-[#505050] font-medium">○ Not started</span>
+          )}
+        </div>
+
+        {/* Notes */}
+        {block.notes && (
+          <div className="mt-3 text-xs text-[#606060] pt-3 border-t border-[#1E1E1E] line-clamp-3 leading-relaxed">
+            {block.notes}
+          </div>
+        )}
+      </div>,
+      document.body
+    )}
+    </>
   );
 }

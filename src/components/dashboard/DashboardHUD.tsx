@@ -168,32 +168,7 @@ export function DashboardHUD({
           )}
         </button>
 
-        {/* User Menu */}
-        <Popover>
-          <PopoverTrigger className="outline-none ml-1">
-            <Avatar className="w-[28px] h-[28px] border border-[#2A2A2A] hover:border-[#10B981]/50 transition-all duration-150-colors cursor-pointer rounded-full overflow-hidden">
-              <AvatarImage src={profile?.avatar_url || ''} />
-              <AvatarFallback className="bg-[#222222] text-[10px] text-[#F0F0F0]">
-                {profile?.full_name?.charAt(0) || 'U'}
-              </AvatarFallback>
-            </Avatar>
-          </PopoverTrigger>
-          <PopoverContent className="w-56 bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-1 shadow-[0_8px_32px_rgba(0,0,0,0.5)]" align="end" sideOffset={10}>
-            <div className="px-3 py-2 border-b border-[#2A2A2A] mb-1">
-              <p className="text-sm font-semibold text-[#F0F0F0] truncate">{profile?.full_name || 'Guest User'}</p>
-              <p className="text-xs text-[#606060] truncate mt-0.5">{profile?.email || 'Not signed in'}</p>
-            </div>
-            <Link href="/dashboard/settings/profile">
-              <div className="flex items-center gap-2 px-3 py-2 text-sm text-[#A0A0A0] hover:text-[#F0F0F0] hover:bg-[#222222] rounded-md transition-all duration-150-colors cursor-pointer">
-                <User size={14} /> Profile
-              </div>
-            </Link>
-            <div className="h-px bg-[#2A2A2A] my-1" />
-            <button onClick={signOut} className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-[#EF4444] hover:text-[#EF4444] hover:bg-[rgba(239,68,68,0.1)] rounded-md transition-all duration-150-colors cursor-pointer active:scale-[0.97]">
-              <LogOut size={14} /> Sign out
-            </button>
-          </PopoverContent>
-        </Popover>
+
 
       </div>
     </header>

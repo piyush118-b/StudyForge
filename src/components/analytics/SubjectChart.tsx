@@ -166,73 +166,136 @@ export function SubjectChart({ refreshKey = 0, date }: SubjectChartProps) {
     );
   }
 
-  const done = subjects.filter(s => s.status === 'completed').length;
-  const partial = subjects.filter(s => s.status === 'partial').length;
-  const totalPlanned = subjects.reduce((acc, s) => acc + s.plannedHours, 0);
-  const totalActual = subjects.reduce((acc, s) => acc + s.totalActualHours, 0);
-  // "remaining" = sum of planned hours for subjects not yet completed/partially done
-  // This correctly handles the case where some blocks have no log entry yet
-  const remaining = subjects
-    .filter(s => s.status === 'pending' || s.status === 'skipped')
-    .reduce((acc, s) => acc + s.plannedHours, 0);
-  // Add partial remainder too (planned - actual for partial blocks)
-  const partialRemaining = subjects
-    .filter(s => s.status === 'partial')
-    .reduce((acc, s) => acc + Math.max(s.plannedHours - s.totalActualHours, 0), 0);
-  const totalRemaining = Math.max(remaining + partialRemaining, 0);
+  // Always use totalActualHours for the pie chart
+  const pieDataKey: keyof SubjectEntry = 'totalActualHours';
+
+  const sorted = [...subjects].sort((a, b) => {
+    // Rank by actual hours first, then planned hours
+    if (a.totalActualHours === 0 && b.totalActualHours > 0) return 1;
+    if (b.totalActualHours === 0 && a.totalActualHours > 0) return -1;
+    if (a.totalActualHours === b.totalActualHours) {
+        return b.plannedHours - a.plannedHours;
+    }
+    return b.totalActualHours - a.totalActualHours;
+  });
+
+  const totalActualToday = subjects.reduce((acc, s) => acc + s.totalActualHours, 0);
+  const totalPlannedToday = subjects.reduce((acc, s) => acc + s.plannedHours, 0);
+  
+  // Center value is always completion time
+  const centerValue = totalActualToday;
 
   return (
-    <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
-      <h3 className="text-sm font-semibold text-[#F0F0F0] mb-1">
-        Subject Distribution
-      </h3>
-      <p className="text-xs text-[#606060] mb-4">
-        Time spent per subject this week
-      </p>
-
-      <div style={{ width: '100%', height: 200 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={subjects}
-              dataKey="plannedHours"
-              nameKey="subject"
-              cx="50%"
-              cy="50%"
-              innerRadius={chartTheme.pie.innerRadius}
-              outerRadius={chartTheme.pie.outerRadius}
-              paddingAngle={chartTheme.pie.paddingAngle}
-              cornerRadius={chartTheme.pie.cornerRadius}
-              stroke="none"
-            >
-              {subjects.map((entry: any, index: number) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={entry.color}
-                />
-              ))}
-            </Pie>
-            <Tooltip
-              contentStyle={chartTheme.tooltip.contentStyle}
-              labelStyle={chartTheme.tooltip.labelStyle}
-              itemStyle={chartTheme.tooltip.itemStyle}
-              formatter={(value) => [`${Number(value).toFixed(1)}h`, 'Study time']}
-            />
-          </PieChart>
-        </ResponsiveContainer>
+    <div className="bg-[#111111] border border-[#1E1E1E] rounded-xl p-5">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <h3 className="text-sm font-semibold text-[#F0F0F0]">Subject Distribution</h3>
+          <p className="text-xs text-[#505050] mt-0.5">
+            Actual time studied vs planned today
+          </p>
+        </div>
+        <div className="text-right">
+          <div className="text-xl font-black text-[#F0F0F0] tabular-nums">{totalActualToday.toFixed(1)}h</div>
+          <div className="text-[10px] text-[#505050] uppercase tracking-wider">studied</div>
+        </div>
       </div>
 
-      {/* Custom legend below chart */}
-      <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-4">
-        {subjects.map((entry: any) => (
-          <div key={entry.subject} className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                 style={{ backgroundColor: entry.color }} />
-            <span className="text-xs text-[#A0A0A0] truncate">{entry.subject}</span>
-            <span className="text-xs font-mono text-[#606060] ml-auto">{entry.plannedHours}h</span>
+      <div className="flex gap-5 items-start">
+        {/* Donut chart */}
+        <div className="shrink-0 relative" style={{ width: 130, height: 130 }}>
+          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+            <PieChart>
+              <Pie
+                data={sorted}
+                dataKey={pieDataKey}
+                nameKey="subject"
+                cx="50%"
+                cy="50%"
+                innerRadius={38}
+                outerRadius={58}
+                paddingAngle={2}
+                cornerRadius={3}
+                stroke="none"
+              >
+                {sorted.map((entry, index) => {
+                  const val = Number(entry[pieDataKey]) || 0;
+                  return (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={entry.color}
+                      opacity={val === 0 ? 0.2 : 1}
+                    />
+                  );
+                })}
+              </Pie>
+              <Tooltip
+                contentStyle={chartTheme.tooltip.contentStyle}
+                labelStyle={chartTheme.tooltip.labelStyle}
+                itemStyle={chartTheme.tooltip.itemStyle}
+                formatter={(_value, _name, props) => {
+                  const s = props.payload as SubjectEntry;
+                  const actual = s.totalActualHours;
+                  const planned = s.plannedHours;
+                  const pct = planned > 0 ? Math.round((actual / planned) * 100) : (actual > 0 ? 100 : 0);
+                  const label = `${actual.toFixed(1)}h / ${planned.toFixed(1)}h planned (${pct}%)`;
+                  return [label, s.subject];
+                }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+          {/* Center label overlay */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <span className="text-[17px] font-black text-[#F0F0F0] leading-none tabular-nums">
+              {centerValue.toFixed(1)}
+            </span>
+            <span className="text-[9px] text-[#505050] uppercase tracking-wider mt-0.5">
+              done
+            </span>
           </div>
-        ))}
+        </div>
+
+        {/* Legend — single column, ranked */}
+        <div className="flex-1 min-w-0 flex flex-col gap-3 justify-center">
+          {sorted.map((s) => {
+            const actual = s.totalActualHours;
+            const planned = s.plannedHours;
+            const pct = planned > 0 ? (actual / planned) * 100 : (actual > 0 ? 100 : 0);
+            const isZero = actual === 0 && planned === 0;
+
+            return (
+              <div key={s.subject} className={`transition-opacity duration-200 ${isZero ? 'opacity-30' : 'opacity-100'}`}>
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <div
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ backgroundColor: s.color, boxShadow: isZero ? 'none' : `0 0 4px ${s.color}60` }}
+                    />
+                    <span className="text-[12px] text-[#C0C0C0] font-medium truncate capitalize">{s.subject}</span>
+                  </div>
+                  <div className="text-[11px] font-mono shrink-0 tabular-nums">
+                    <span className="text-[#F0F0F0] font-medium">{actual.toFixed(1)}h</span>
+                    <span className="text-[#606060]"> / {planned.toFixed(1)}h</span>
+                  </div>
+                </div>
+                {/* Mini progress bar */}
+                <div className="h-[3px] bg-[#1E1E1E] rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-700 ease-out"
+                    style={{
+                      width: `${Math.min(pct, 100)}%`,
+                      backgroundColor: s.color,
+                      opacity: isZero ? 0.3 : 1
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
 }
+
+

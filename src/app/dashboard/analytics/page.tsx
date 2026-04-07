@@ -168,12 +168,6 @@ export default function AnalyticsPage() {
   if (!stats || subscriptionLoading) {
     return (
       <div className="p-6 space-y-4 max-w-7xl mx-auto mt-6">
-        {/* Streak row */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <SkeletonCard key={i} />
-          ))}
-        </div>
 
         {/* Heatmap skeleton */}
         <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
@@ -306,68 +300,6 @@ export default function AnalyticsPage() {
         </div>
       )}
 
-      {/* ── Stats Strip ── */}
-      {stats && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {/* Streak */}
-          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-4 flex items-center gap-3 hover:border-[#F97316]/20 transition-all duration-150-colors">
-            <div className="w-9 h-9 rounded-lg bg-[rgba(249,115,22,0.1)] flex items-center justify-center shrink-0">
-              <Flame className="w-4 h-4 text-orange-400" />
-            </div>
-            <div>
-              <p className="text-[10px] text-[#606060] font-semibold uppercase tracking-wider">Streak</p>
-              <p 
-                key={stats.streakDays}
-                className="text-2xl font-black text-[#F0F0F0] leading-none mt-0.5 animate-[forge-scale-in_0.3s_ease-out_forwards]"
-              >
-                {stats.streakDays}<span className="text-[13px] text-[#606060] font-medium ml-0.5">days</span>
-              </p>
-            </div>
-          </div>
-
-          {/* Weekly Completion Rate */}
-          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-4 flex items-center gap-3 hover:border-[#3B82F6]/20 transition-all duration-150-colors">
-            <div className="w-9 h-9 rounded-lg bg-[rgba(59,130,246,0.1)] flex items-center justify-center shrink-0">
-              <Target className="w-4 h-4 text-[#3B82F6]" />
-            </div>
-            <div>
-              <p className="text-[10px] text-[#606060] font-semibold uppercase tracking-wider">This Week</p>
-              <p 
-                className="text-2xl font-black text-[#F0F0F0] leading-none mt-0.5 transition-all duration-700 ease-out tabular-nums font-mono"
-                style={{ fontVariantNumeric: 'tabular-nums' }}
-              >
-                {Math.round(stats.overallCompletionRate)}<span className="text-[13px] text-[#606060] font-medium ml-0.5">%</span>
-              </p>
-            </div>
-          </div>
-
-          {/* Hours Completed */}
-          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-4 flex items-center gap-3 hover:border-[#10B981]/20 transition-all duration-150-colors">
-            <div className="w-9 h-9 rounded-lg bg-[rgba(16,185,129,0.1)] flex items-center justify-center shrink-0">
-              <TrendingUp className="w-4 h-4 text-[#10B981]" />
-            </div>
-            <div>
-              <p className="text-[10px] text-[#606060] font-semibold uppercase tracking-wider">Hours Done</p>
-              <p className="text-xl font-black text-[#F0F0F0] leading-none mt-0.5">
-                {stats.totalCompleted.toFixed(1)}<span className="text-[13px] text-[#606060] font-medium ml-0.5">h</span>
-              </p>
-            </div>
-          </div>
-
-          {/* Most Skipped */}
-          <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-4 flex items-center gap-3 hover:border-[#EF4444]/20 transition-all duration-150-colors">
-            <div className="w-9 h-9 rounded-lg bg-[rgba(239,68,68,0.1)] flex items-center justify-center shrink-0">
-              <TrendingDown className="w-4 h-4 text-[#EF4444]" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] text-[#606060] font-semibold uppercase tracking-wider">Needs Focus</p>
-              <p className="text-[15px] font-black text-[#F0F0F0] leading-none mt-0.5 truncate">
-                {stats.mostSkippedSubject === 'None' ? '—' : stats.mostSkippedSubject}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
@@ -390,63 +322,74 @@ export default function AnalyticsPage() {
               <span className="ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded bg-[rgba(16,185,129,0.12)] text-[#10B981] border border-[#10B981]/20 uppercase tracking-wider">Gemini</span>
             </div>
           </div>
-          <div className="p-5 space-y-3">
-            {stats ? (
-              <>
-                {/* Primary insight */}
-                <div className="bg-[rgba(16,185,129,0.05)] border border-[#10B981]/15 rounded-lg p-3">
-                  <p className="text-sm text-[#A0A0A0] leading-relaxed">
-                    {stats.overallCompletionRate >= 80
-                      ? `🔥 Outstanding week! You completed ${Math.round(stats.overallCompletionRate)}% of scheduled study. Keep this momentum going!`
-                      : stats.overallCompletionRate >= 50
-                      ? `📈 Solid progress at ${Math.round(stats.overallCompletionRate)}% completion. Focus on consistency to break the 80% mark.`
-                      : stats.totalCompleted === 0
-                      ? `🚀 Your analytics are ready. Start marking blocks complete in your timetable to see insights here!`
-                      : `💡 At ${Math.round(stats.overallCompletionRate)}% this week — small wins add up. Try completing one extra block each day.`
-                    }
-                  </p>
-                </div>
-
-                {/* Secondary insights */}
-                <div className="space-y-2">
-                  {stats.mostCompletedSubject !== 'None' && (
-                    <div className="flex items-start gap-2 text-xs">
-                      <span className="w-4 h-4 rounded-full bg-[rgba(16,185,129,0.15)] flex items-center justify-center shrink-0 mt-0.5">
-                        <span className="text-[#10B981] text-[9px]">✓</span>
-                      </span>
-                      <span className="text-[#606060]">
-                        <span className="text-[#10B981] font-semibold">{stats.mostCompletedSubject}</span> is your strongest subject this week.
-                      </span>
-                    </div>
-                  )}
-                  {stats.mostSkippedSubject !== 'None' && (
-                    <div className="flex items-start gap-2 text-xs">
-                      <span className="w-4 h-4 rounded-full bg-[rgba(239,68,68,0.15)] flex items-center justify-center shrink-0 mt-0.5">
-                        <span className="text-[#EF4444] text-[9px]">!</span>
-                      </span>
-                      <span className="text-[#606060]">
-                        <span className="text-[#EF4444] font-semibold">{stats.mostSkippedSubject}</span> has the most skips — try splitting it into shorter 30-min sessions.
-                      </span>
-                    </div>
-                  )}
-                  {stats.bestDay && stats.bestDay !== 'None' && (
-                    <div className="flex items-start gap-2 text-xs">
-                      <span className="w-4 h-4 rounded-full bg-[rgba(59,130,246,0.15)] flex items-center justify-center shrink-0 mt-0.5">
-                        <span className="text-[#3B82F6] text-[9px]">★</span>
-                      </span>
-                      <span className="text-[#606060]">
-                        Your best study day was <span className="text-[#3B82F6] font-semibold">{new Date(stats.bestDay + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'long' })}</span>. Try to replicate that schedule.
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-[140px] gap-2 text-center">
-                <Sparkles className="w-8 h-8 text-[#606060]" />
-                <p className="text-[#606060] text-sm">Start tracking blocks to unlock AI insights.</p>
+          <div className="relative p-5">
+            {/* Blur Overlay - Locks out the AI Insights */}
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#1A1A1A]/40 backdrop-blur-[4px] rounded-b-xl border-t border-[#2A2A2A]/50">
+              <div className="w-10 h-10 rounded-full bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center mb-3 shadow-[0_4px_16px_rgba(0,0,0,0.5)]">
+                <Lock className="w-4 h-4 text-[#A0A0A0]" />
               </div>
-            )}
+              <p className="text-[#F0F0F0] font-bold text-sm tracking-wide">AI Insights Locked</p>
+              <p className="text-[#808080] text-xs mt-1">Upgrade your plan to see this analytics</p>
+            </div>
+
+            <div className="space-y-3 opacity-40 pointer-events-none select-none filter blur-[2px]">
+              {stats ? (
+                <>
+                  {/* Primary insight */}
+                  <div className="bg-[rgba(16,185,129,0.05)] border border-[#10B981]/15 rounded-lg p-3">
+                    <p className="text-sm text-[#A0A0A0] leading-relaxed">
+                      {stats.overallCompletionRate >= 80
+                        ? `🔥 Outstanding week! You completed ${Math.round(stats.overallCompletionRate)}% of scheduled study. Keep this momentum going!`
+                        : stats.overallCompletionRate >= 50
+                        ? `📈 Solid progress at ${Math.round(stats.overallCompletionRate)}% completion. Focus on consistency to break the 80% mark.`
+                        : stats.totalCompleted === 0
+                        ? `🚀 Your analytics are ready. Start marking blocks complete in your timetable to see insights here!`
+                        : `💡 At ${Math.round(stats.overallCompletionRate)}% this week — small wins add up. Try completing one extra block each day.`
+                      }
+                    </p>
+                  </div>
+
+                  {/* Secondary insights */}
+                  <div className="space-y-2">
+                    {stats.mostCompletedSubject !== 'None' && (
+                      <div className="flex items-start gap-2 text-xs">
+                        <span className="w-4 h-4 rounded-full bg-[rgba(16,185,129,0.15)] flex items-center justify-center shrink-0 mt-0.5">
+                          <span className="text-[#10B981] text-[9px]">✓</span>
+                        </span>
+                        <span className="text-[#606060]">
+                          <span className="text-[#10B981] font-semibold">{stats.mostCompletedSubject}</span> is your strongest subject this week.
+                        </span>
+                      </div>
+                    )}
+                    {stats.mostSkippedSubject !== 'None' && (
+                      <div className="flex items-start gap-2 text-xs">
+                        <span className="w-4 h-4 rounded-full bg-[rgba(239,68,68,0.15)] flex items-center justify-center shrink-0 mt-0.5">
+                          <span className="text-[#EF4444] text-[9px]">!</span>
+                        </span>
+                        <span className="text-[#606060]">
+                          <span className="text-[#EF4444] font-semibold">{stats.mostSkippedSubject}</span> has the most skips — try splitting it into shorter 30-min sessions.
+                        </span>
+                      </div>
+                    )}
+                    {stats.bestDay && stats.bestDay !== 'None' && (
+                      <div className="flex items-start gap-2 text-xs">
+                        <span className="w-4 h-4 rounded-full bg-[rgba(59,130,246,0.15)] flex items-center justify-center shrink-0 mt-0.5">
+                          <span className="text-[#3B82F6] text-[9px]">★</span>
+                        </span>
+                        <span className="text-[#606060]">
+                          Your best study day was <span className="text-[#3B82F6] font-semibold">{new Date(stats.bestDay + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'long' })}</span>. Try to replicate that schedule.
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-[140px] gap-2 text-center border border-dashed border-[#2A2A2A] rounded-lg">
+                  <Sparkles className="w-6 h-6 text-[#404040]" />
+                  <p className="text-[#606060] text-xs">Waiting for block data...</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

@@ -74,18 +74,29 @@ export async function recalculateDailySummary(
   //    Partial/skip actions from the Today page insert logs with null timetable_id
   //    (the tracking-store doesn't send timetableId for those calls). If we filter
   //    by timetable_id, those logs become invisible and partial_hours stays 0.
-  const { data: logs, error: logsError } = await supabaseClient
+  const { data: rawLogs, error: logsError } = await supabaseClient
     .from('block_logs')
     .select('*')
     .eq('user_id', userId)
-    .eq('scheduled_date', date) as any;
+    .eq('scheduled_date', date)
+    .order('marked_at', { ascending: false }) as any; // newest first for dedup
 
   if (logsError) {
     console.error('Error fetching logs for summary:', logsError);
     return;
   }
 
-  const safeLogs = (logs as any[]) || [];
+  // Deduplicate: keep only the most recent log per block_id
+  // (a block may have been marked partial then complete → two rows)
+  const seenBlocks = new Set<string>();
+  const safeLogs: any[] = [];
+  for (const log of (rawLogs as any[]) || []) {
+    const key = log.block_id || `${log.subject}__${log.scheduled_date}__${log.scheduled_start}`;
+    if (!seenBlocks.has(key)) {
+      seenBlocks.add(key);
+      safeLogs.push(log);
+    }
+  }
 
   // 2. Cross-reference with timetable's grid_data (only if timetableId is available)
   let totalScheduledFromGrid = 0;
@@ -116,7 +127,14 @@ export async function recalculateDailySummary(
   const skippedLogs = safeLogs.filter(l => l.status === 'skipped');
 
   const completedHours = completedLogs.reduce((sum, l) => sum + (Number(l.scheduled_hours) || 0), 0);
-  const partialHours = partialLogs.reduce((sum, l) => sum + (Number(l.actual_hours) || 0), 0);
+  // For partial: use actual_hours if > 0, else compute from percentage (handles legacy rows)
+  const partialHours = partialLogs.reduce((sum, l) => {
+    const actualHrs = Number(l.actual_hours || 0);
+    const pct = Number(l.partial_percentage || 0);
+    const scheduled = Number(l.scheduled_hours || 0);
+    const hrs = actualHrs > 0 ? actualHrs : (pct / 100) * scheduled;
+    return sum + hrs;
+  }, 0);
 
   const totalBlocks = Math.max(totalScheduledFromGrid, safeLogs.length);
   const scheduledHours = Math.max(
@@ -137,11 +155,21 @@ export async function recalculateDailySummary(
   const subjects = Array.from(new Set(safeLogs.map(l => l.subject)));
   const subjectBreakdown = subjects.map(subject => {
     const subLogs = safeLogs.filter(l => l.subject === subject);
-    const completed = subLogs.filter(l => l.status === 'completed');
+    const subjectCompletedHours = subLogs.reduce((s, l) => {
+      if (l.status === 'completed') return s + (Number(l.scheduled_hours) || 0);
+      if (l.status === 'partial') {
+        const actualHrs = Number(l.actual_hours || 0);
+        const pct = Number(l.partial_percentage || 0);
+        const scheduled = Number(l.scheduled_hours || 0);
+        return s + (actualHrs > 0 ? actualHrs : (pct / 100) * scheduled);
+      }
+      return s;
+    }, 0);
+
     return {
       subject,
       scheduled: subLogs.reduce((s, l) => s + (Number(l.scheduled_hours) || 0), 0),
-      completed: completed.reduce((s, l) => s + (Number(l.scheduled_hours) || 0), 0),
+      completed: Number(subjectCompletedHours.toFixed(2)),
       status: subLogs.length > 0 ? subLogs[subLogs.length - 1].status : 'pending',
     };
   });

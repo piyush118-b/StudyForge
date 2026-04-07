@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { CategorizedCombobox } from '@/components/ui/categorized-combobox';
 import { INDIAN_COLLEGES, BRANCHES, SEMESTERS } from '@/lib/constants';
-import { ArrowRight, X, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, X, Loader2, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth-context';
 
@@ -21,40 +21,51 @@ export default function ProfilePage() {
   const [showCustomCollege, setShowCustomCollege] = useState(false);
   const [showCustomBranch, setShowCustomBranch] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [isExistingUser, setIsExistingUser] = useState(false);
+
+  const [hasPrefilled, setHasPrefilled] = useState(false);
+  const [hasPrefilledGuest, setHasPrefilledGuest] = useState(false);
 
   // Pre-fill from Supabase profile once loaded
   useEffect(() => {
-    if (!loading && profile) {
-      // If profile is already fully complete, skip to dashboard
+    if (!loading && profile && !hasPrefilled) {
       if (profile.full_name && profile.college && profile.semester && profile.branch) {
-        router.push('/dashboard');
-        return;
+        setIsExistingUser(true);
       }
-      // Otherwise pre-fill what we have
+      
       setName(profile.full_name || '');
       setCollege(profile.college || '');
       setSemester(profile.semester || '');
       setBranch(profile.branch || '');
+      
+      if (profile.college && !INDIAN_COLLEGES.includes(profile.college)) {
+         setShowCustomCollege(true);
+      }
+      setHasPrefilled(true);
     }
-  }, [profile, loading, router]);
+  }, [profile, loading, hasPrefilled]);
 
   // Guest (no user) — use localStorage
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !user && !hasPrefilledGuest) {
       try {
         const raw = localStorage.getItem('sf_guest_profile');
         if (raw) {
           const data = JSON.parse(raw);
           if (data.name && data.college && data.semester && data.branch) {
-            router.push('/dashboard');
-            return;
+            setIsExistingUser(true);
           }
           setName(data.name || '');
           setCollege(data.college || '');
           setSemester(data.semester || '');
           setBranch(data.branch || '');
+
+          if (data.college && !INDIAN_COLLEGES.includes(data.college)) {
+             setShowCustomCollege(true);
+          }
         }
       } catch { /* ignore */ }
+      setHasPrefilledGuest(true);
     }
   }, [user, loading, router]);
 
@@ -76,8 +87,13 @@ export default function ProfilePage() {
         // Guest — save to localStorage only
         localStorage.setItem('sf_guest_profile', JSON.stringify({ name, college, semester, branch }));
       }
-      toast.success(`Welcome to StudyForge, ${name}! 🎉`);
-      router.push('/dashboard');
+      
+      if (isExistingUser) {
+        toast.success("Profile updated successfully!");
+      } else {
+        toast.success(`Welcome to StudyForge, ${name}! 🎉`);
+        router.push('/dashboard');
+      }
     } catch {
       toast.error('Failed to save profile. Please try again.');
     } finally {
@@ -96,6 +112,17 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center px-4 py-16 relative overflow-hidden">
 
+      {/* Back Button for Existing Users */}
+      {isExistingUser && (
+        <button 
+          onClick={() => router.push('/dashboard')}
+          className="absolute top-6 left-6 md:top-10 md:left-10 flex items-center gap-2 text-[#606060] hover:text-[#A0A0A0] transition-colors bg-[#111111] border border-[#222222] px-3 py-2 rounded-lg z-20 shadow-[0_4px_12px_rgba(0,0,0,0.4)] hover:bg-[#1A1A1A] group"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+          <span className="text-sm font-medium">Dashboard</span>
+        </button>
+      )}
+
       {/* Subtle top glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-[#10B981]/5 blur-[100px] rounded-full pointer-events-none" />
 
@@ -103,7 +130,9 @@ export default function ProfilePage() {
 
         {/* Logo mark */}
         <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#10B981] to-[#059669] shadow-[0_0_12px_rgba(16,185,129,0.4)]" />
+          <div className="w-8 h-8 rounded-lg bg-[#F0F0F0] flex items-center justify-center shadow-[0_0_15px_rgba(240,240,240,0.1)]">
+            <BookOpen className="w-4 h-4 text-[#0A0A0A]" />
+          </div>
           <span className="font-bold text-[#F0F0F0] tracking-tight">StudyForge</span>
         </div>
 
@@ -112,19 +141,19 @@ export default function ProfilePage() {
 
           <div className="p-8">
             {/* Header */}
-            <div className="mb-8">
+            <div className="mb-8 text-center sm:text-left">
               <p className="text-xs font-semibold uppercase tracking-widest text-[#10B981] mb-2">
-                Profile Setup
+                {isExistingUser ? 'Account Settings' : 'Profile Setup'}
               </p>
               <h2 className="text-2xl font-bold text-[#F0F0F0] tracking-tight mb-1">
-                Let&apos;s get to know you 👋
+                {isExistingUser ? 'Your Profile' : 'Let\'s get to know you 👋'}
               </h2>
               <p className="text-sm text-[#A0A0A0]">
-                Help us tweak the AI to match your academic level.
+                {isExistingUser ? 'Manage your academic details to personalize the AI.' : 'Help us tweak the AI to match your academic level.'}
               </p>
             </div>
 
-            <div className="border-t border-[#2A2A2A] mb-6" />
+            <div className="border-t border-[#2A2A2A] mb-8" />
 
             {/* Form */}
             <div className="space-y-5">
@@ -149,12 +178,19 @@ export default function ProfilePage() {
                 </label>
                 {!showCustomCollege ? (
                   <CategorizedCombobox
-                    categories={INDIAN_COLLEGES}
+                    categories={[{ category: '', options: INDIAN_COLLEGES }]}
                     value={college}
-                    onChange={setCollege}
+                    onChange={(val) => {
+                      if (val === 'Other') {
+                        setShowCustomCollege(true);
+                        setCollege('');
+                      } else {
+                        setCollege(val);
+                      }
+                    }}
                     placeholder="Search your college..."
                     emptyText="College not listed."
-                    customAddText="+ Add my college"
+                    customAddText="+ Add my college manually"
                     onCustomAdd={() => { setShowCustomCollege(true); setCollege(''); }}
                   />
                 ) : (
@@ -163,7 +199,6 @@ export default function ProfilePage() {
                       placeholder="Type your college name"
                       className="h-10 w-full pr-12 bg-[#222222] border-[#2A2A2A] text-[#F0F0F0] placeholder:text-[#606060] rounded-lg hover:border-[#333333] focus-visible:ring-[#10B981]/70 focus-visible:border-[#10B981]/50 transition-all duration-150-all"
                       value={college}
-                      autoFocus
                       onChange={e => setCollege(e.target.value)}
                     />
                     <button
@@ -246,8 +281,8 @@ export default function ProfilePage() {
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <>
-                  Continue to Dashboard
-                  <ArrowRight className="w-4 h-4" />
+                  {isExistingUser ? 'Save Changes' : 'Continue to Dashboard'}
+                  {!isExistingUser && <ArrowRight className="w-4 h-4" />}
                 </>
               )}
             </button>

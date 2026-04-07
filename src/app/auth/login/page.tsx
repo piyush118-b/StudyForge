@@ -39,11 +39,27 @@ export default function LoginPage() {
           setIsLoading(false);
           return;
         }
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data: authData, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Welcome back!");
-        const savedProfile = localStorage.getItem('sf_guest_profile');
-        router.push(savedProfile ? '/dashboard' : '/profile');
+        
+        if (authData?.user) {
+          const { data } = await supabase
+            .from('profiles')
+            .select('full_name, college, semester, branch')
+            .eq('id', authData.user.id)
+            .single();
+          
+          const prof = data as any;
+            
+          if (prof && prof.full_name && prof.college && prof.semester && prof.branch) {
+            router.push('/dashboard');
+          } else {
+            router.push('/profile');
+          }
+        } else {
+          router.push('/profile');
+        }
       }
     } catch (err: unknown) {
       toast.error((err as Error).message || "Failed to sign in. Please try again.");

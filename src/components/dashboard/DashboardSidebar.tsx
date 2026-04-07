@@ -6,13 +6,14 @@ import { motion } from 'framer-motion'
 import {
   LayoutDashboard, Calendar, BarChart3,
   CheckSquare, Camera, Trophy,
-  Settings, Gift, Zap,
+  Settings, Gift, Zap, User, LogOut, MessageSquare,
   BookOpen, Plus, PanelLeftClose
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { useSubscriptionStore } from '@/store/subscription-store'
 import { useEffect, useRef } from 'react'
 import { cn } from '@/lib/utils'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 function NavItem({
   href,
@@ -86,7 +87,7 @@ interface DashboardSidebarProps {
 }
 
 export function DashboardSidebar({ collapsed, onToggleCollapse, activePath }: DashboardSidebarProps) {
-  const { user, profile } = useAuth()
+  const { user, profile, signOut } = useAuth()
   const { isPro } = useSubscriptionStore()
 
   const userEmail = user?.email || 'guest@studyforge.ai'
@@ -209,29 +210,65 @@ export function DashboardSidebar({ collapsed, onToggleCollapse, activePath }: Da
             <Zap className={cn("relative z-10 flex-shrink-0 transition-colors", collapsed ? "w-[18px] h-[18px]" : "w-4 h-4")} />
             {!collapsed && <span className="relative z-10 text-sm font-medium truncate flex-1 leading-5">Upgrade</span>}
           </Link>
-          <NavItem href="/dashboard/settings" icon={Settings} label="Settings" isCollapsed={collapsed} />
           <NavItem href="/dashboard/referrals" icon={Gift} label="Referrals" isCollapsed={collapsed} />
         </nav>
 
-        {/* User Footer */}
-        <div className={cn("flex-shrink-0 py-3", collapsed ? "px-2" : "px-4")}>
-          {collapsed ? (
-            <div className="w-8 h-8 rounded-full mx-auto bg-[#222222] border border-[#333333] flex items-center justify-center text-[10px] font-medium text-[#F0F0F0]">
-              {userInitial}
-            </div>
-          ) : (
-            <Link href="/profile" className="flex items-center gap-3 w-full rounded-lg hover:bg-[#1A1A1A] px-2 py-1.5 -ml-2 transition-all duration-150">
-              <div className="w-8 h-8 rounded-full flex-shrink-0 bg-[#222222] border border-[#333333] flex items-center justify-center text-xs font-medium text-[#F0F0F0]">
-                {userInitial}
+        {/* User Footer Account Popover */}
+        <div className={cn("flex-shrink-0 py-3", collapsed ? "px-2" : "px-3")}>
+          <Popover>
+            <PopoverTrigger className="w-full focus:outline-none">
+              {collapsed ? (
+                <div className="w-8 h-8 rounded-full mx-auto bg-[#222222] border border-[#333333] flex items-center justify-center text-[10px] font-medium text-[#F0F0F0] hover:bg-[#2A2A2A] transition-colors">
+                  {userInitial}
+                </div>
+              ) : (
+                <div className="flex items-center gap-3 w-full rounded-lg hover:bg-[#1A1A1A] px-2 py-1.5 transition-all duration-150 text-left">
+                  <div className="w-8 h-8 rounded-full flex-shrink-0 bg-[#222222] border border-[#333333] flex items-center justify-center text-xs font-medium text-[#F0F0F0]">
+                    {userInitial}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-[#F0F0F0] truncate leading-tight">{userName}</p>
+                    <p className="text-xs text-[#8A8A8A] truncate leading-tight mt-0.5">{isPro ? 'Pro Member' : 'Free Plan'}</p>
+                  </div>
+                </div>
+              )}
+            </PopoverTrigger>
+            <PopoverContent side="right" align="end" sideOffset={15} className="w-[240px] bg-[#111111] border border-[#2A2A2A] rounded-xl p-1 shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
+              <div className="px-3 py-2.5 mb-1 bg-[#1A1A1A] rounded-lg border border-[#222222]">
+                <p className="text-sm font-semibold text-[#F0F0F0] truncate">{profile?.full_name || 'Guest User'}</p>
+                <p className="text-xs text-[#8A8A8A] truncate mt-0.5">{userEmail}</p>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-[#F0F0F0] truncate leading-tight">{userName}</p>
-                <p className="text-xs text-[#8A8A8A] truncate leading-tight mt-0.5">{isPro ? 'Pro Member' : 'Free Plan'}</p>
+              
+              <div className="flex flex-col space-y-0.5 px-0.5 pt-1">
+                <Link href="/profile">
+                  <div className="flex items-center gap-2.5 px-2.5 py-2 text-sm text-[#A0A0A0] hover:text-[#F0F0F0] hover:bg-[#1A1A1A] rounded-md transition-colors cursor-pointer">
+                    <User size={15} /> Profile
+                  </div>
+                </Link>
+                <Link href="/pricing">
+                  <div className="flex items-center gap-2.5 px-2.5 py-2 text-sm text-[#A0A0A0] hover:text-[#F0F0F0] hover:bg-[#1A1A1A] rounded-md transition-colors cursor-pointer">
+                    <Zap size={15} /> Upgrade to Pro
+                  </div>
+                </Link>
+                <Link href="/dashboard/support">
+                  <div className="flex items-center gap-2.5 px-2.5 py-2 text-sm text-[#A0A0A0] hover:text-[#F0F0F0] hover:bg-[#1A1A1A] rounded-md transition-colors cursor-pointer">
+                    <MessageSquare size={15} /> Help & Feedback
+                  </div>
+                </Link>
               </div>
-            </Link>
-          )}
+
+              <div className="h-px bg-[#2A2A2A] my-1.5 mx-1" />
+              
+              <div className="px-0.5 pb-0.5">
+                <button onClick={signOut} className="w-full text-left flex items-center gap-2.5 px-2.5 py-2 text-sm text-[#EF4444] hover:bg-[rgba(239,68,68,0.1)] rounded-md transition-colors cursor-pointer outline-none">
+                  <LogOut size={15} /> Log out
+                </button>
+              </div>
+            </PopoverContent>
+          </Popover>
+          
           {!collapsed && (
-            <p className="text-[10px] text-[#505050] mt-3 font-mono">
+            <p className="text-[10px] text-[#505050] mt-3 font-mono text-center">
               Press ? for shortcuts
             </p>
           )}

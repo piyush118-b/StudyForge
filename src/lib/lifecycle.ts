@@ -30,13 +30,32 @@ if (typeof window !== 'undefined') {
   }
 }
 
+// Optimization: Cache User ID and coalesce session lookups to prevent lock contention
+let cachedUserId: string | null = null;
+let pendingSessionTask: Promise<string | null> | null = null;
+
+async function getUserId() {
+  if (cachedUserId) return cachedUserId;
+  if (pendingSessionTask) return pendingSessionTask;
+
+  pendingSessionTask = supabase.auth.getSession().then(({ data: { session } }) => {
+    cachedUserId = session?.user?.id || null;
+    pendingSessionTask = null;
+    return cachedUserId;
+  }).catch(() => {
+    pendingSessionTask = null;
+    return null;
+  });
+
+  return pendingSessionTask;
+}
+
 export const trackEvent = async (
   eventType: LifecycleEventType, 
   eventData: LifecycleEventPayload = {}
 ) => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    const userId = user?.id || null;
+    const userId = await getUserId();
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase as any).from('lifecycle_events').insert({
@@ -52,6 +71,8 @@ export const trackEvent = async (
       if (error && process.env.NODE_ENV === 'development') {
         console.warn('Telemetry error:', error);
       }
+    }).catch(() => {
+      // Prevent unhandled promise rejection in background telemetry
     });
 
     // Determine if we need to promote lifecycle stage
@@ -99,7 +120,7 @@ async function checkLifecycleStage(userId: string, eventType: LifecycleEventType
       badge_emoji: '🔥',
     }, { onConflict: 'user_id,achievement_key', ignoreDuplicates: true }).then(({ error }: any) => {
       if (!error) notifyIfNew('engaged_user', 'Getting Serious', 'Marked your first blocks or saved your timetable.', '🔥');
-    });
+    }).catch(() => {});
   }
 
   // Trigger 'Power User' if they dive deep into AI or Pomodoro
@@ -113,6 +134,6 @@ async function checkLifecycleStage(userId: string, eventType: LifecycleEventType
       badge_emoji: '⚡',
     }, { onConflict: 'user_id,achievement_key', ignoreDuplicates: true }).then(({ error }: any) => {
       if (!error) notifyIfNew('power_user', 'Power User', 'Using advanced productivity features.', '⚡');
-    });
+    }).catch(() => {});
   }
 }

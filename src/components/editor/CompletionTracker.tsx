@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useGridStore } from "@/store/grid-store";
 import { useAnalyticsStore } from "@/store/analytics-store";
 import { X } from "lucide-react";
-import { timeDiffMinutes, getLocalDateStr } from "@/lib/time-utils";
+import { getLocalDateStr } from "@/lib/time-utils";
+import { calculateHours } from "@/lib/analytics-utils";
 
 
 const REASON_CHIPS = [
@@ -25,12 +26,19 @@ export function CompletionTrackerModal() {
 
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
   const [customReason, setCustomReason] = useState("");
-  const [partialPercentage, setPartialPercentage] = useState<number>(0);
+  const [partialPercentage, setPartialPercentage] = useState<number>(50);
 
   if (!isSkipModalOpen || !block) {
     if (isSkipModalOpen) closeSkipModal();
     return null;
   }
+
+  const handleClose = () => {
+    setSelectedReason(null);
+    setCustomReason("");
+    setPartialPercentage(50);
+    closeSkipModal();
+  };
 
   const handleSkip = () => {
     const finalReason = selectedReason === 'Write my own reason...' ? customReason : selectedReason;
@@ -39,7 +47,7 @@ export function CompletionTrackerModal() {
     let status: 'skipped' | 'partial' = 'skipped';
     let partialHours = 0;
 
-    const maxSubjectHours = timeDiffMinutes(block.startTime, block.endTime) / 60; // simple scalar conversion for analytics heuristic
+    const maxSubjectHours = calculateHours(block.startTime, block.endTime);
     if (partialPercentage > 0 && partialPercentage < 100) {
       status = 'partial';
       partialHours = (partialPercentage / 100) * maxSubjectHours;
@@ -87,15 +95,17 @@ export function CompletionTrackerModal() {
         completedAt: new Date().toISOString()
       });
       syncEvents();
-      closeSkipModal();
+      handleClose();
       return;
+
     }
 
     updateBlock(block.id, {
       status,
       skippedAt: new Date().toISOString(),
       skipReason: finalReason,
-      partialHours: status === 'partial' ? partialHours : null
+      partialHours: status === 'partial' ? partialHours : null,
+      completionPercentage: status === 'partial' ? partialPercentage : null
     });
 
     const timetableId = useGridStore.getState().id;
@@ -141,8 +151,9 @@ export function CompletionTrackerModal() {
     });
 
     syncEvents();
-    closeSkipModal();
+    handleClose();
   };
+
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4">
@@ -150,7 +161,8 @@ export function CompletionTrackerModal() {
 
         <div className="p-4 border-b border-white/5 flex justify-between items-center bg-[#1A1A1A]/50">
           <h3 className="font-bold text-slate-100 text-[15px] tracking-tight">Why are you skipping this? 😅</h3>
-          <button onClick={closeSkipModal} className="text-[#A0A0A0] hover:text-[#F0F0F0] transition-all duration-150-colors active:scale-[0.97]">
+          <button onClick={handleClose} className="text-[#A0A0A0] hover:text-[#F0F0F0] transition-all duration-150-colors active:scale-[0.97]">
+
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -185,30 +197,36 @@ export function CompletionTrackerModal() {
           )}
 
           <div className="p-4 bg-slate-950/60 rounded-xl border border-white/5 space-y-3">
-            <label className="text-[11px] font-bold text-[#A0A0A0] uppercase tracking-wider block">How much did you actually study?</label>
+            <div className="flex justify-between items-center">
+              <label className="text-[11px] font-bold text-[#A0A0A0] uppercase tracking-wider block">How much did you actually study?</label>
+              <span className="text-[13px] font-bold text-orange-400">{partialPercentage}%</span>
+            </div>
             <input
               type="range"
               min="0" max="100" step="25"
               value={partialPercentage}
               onChange={e => setPartialPercentage(parseInt(e.target.value))}
-              className="w-full h-1.5 bg-slate-700 rounded-full appearance-none flex cursor-pointer"
+              className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+              style={{
+                background: `linear-gradient(to right, #f97316 0%, #f97316 ${partialPercentage}%, #334155 ${partialPercentage}%, #334155 100%)`
+              }}
             />
             <div className="flex justify-between text-[10px] text-[#606060] font-mono">
               <span>0%</span>
               <span>25%</span>
-              <span>50%</span>
-              <span>75%</span>
+              <span className={partialPercentage === 50 ? 'text-orange-400 font-bold' : ''}>50%</span>
+              <span className={partialPercentage === 75 ? 'text-orange-400 font-bold' : ''}>75%</span>
               <span>100%</span>
             </div>
           </div>
         </div>
 
         <div className="p-4 bg-[#1A1A1A]/30 border-t border-white/5 flex gap-3">
-          <Button variant="ghost" onClick={closeSkipModal} className="flex-1 text-[#A0A0A0] hover:text-[#F0F0F0] hover:bg-white/5 h-9 text-xs">
+          <Button variant="ghost" onClick={handleClose} className="flex-1 text-[#A0A0A0] hover:text-[#F0F0F0] hover:bg-white/5 h-9 text-xs">
             Cancel
           </Button>
           <Button onClick={handleSkip} className="flex-1 bg-orange-600 hover:bg-orange-500 text-[#F0F0F0] shadow-lg shadow-orange-900/20 font-bold h-9 text-xs border border-orange-500/20">
-            {partialPercentage > 0 ? 'Mark Partial' : 'Mark Skipped'}
+            {partialPercentage === 0 ? 'Mark Skipped' : 'Mark Partial'}
           </Button>
         </div>
 

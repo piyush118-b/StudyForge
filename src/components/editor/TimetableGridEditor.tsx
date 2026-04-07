@@ -34,6 +34,7 @@ export function TimetableGridEditor({ timetableId, initialData, mode = 'editor',
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isBalanceOpen, setIsBalanceOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Track latest blocks for closures
   useEffect(() => {
@@ -80,13 +81,16 @@ export function TimetableGridEditor({ timetableId, initialData, mode = 'editor',
       handleGridData(initialData.grid_data);
     } else if (timetableId && timetableId !== 'draft') {
       // Fallback fetch if initialData for some reason isn't passed
-      import('@/lib/supabase').then(({ supabase }) => {
-        supabase.from('timetables').select('grid_data').eq('id', timetableId).single().then(({ data }) => {
+      import('@/lib/supabase').then(async ({ supabase }) => {
+        try {
+          const { data } = await supabase.from('timetables').select('grid_data').eq('id', timetableId).single();
           const row = data as any;
           if (row && row.grid_data) {
             handleGridData(row.grid_data);
           }
-        });
+        } catch (err) {
+          console.error('Fallback fetch failed', err);
+        }
       });
     } else {
       // New draft: check if empty
@@ -109,12 +113,19 @@ export function TimetableGridEditor({ timetableId, initialData, mode = 'editor',
   const saveToSupabase = useCallback(async () => {
     if (!timetableId || timetableId === 'draft') return;
 
+    // Abort previous in-flight request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+
     setSaveStatus('saving');
     try {
       const currentBlocks = latestBlocksRef.current;
       const res = await fetch(`/api/timetables/${timetableId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
+        signal: abortControllerRef.current.signal,
         body: JSON.stringify({
           grid_data: {
             ...currentBlocks,
@@ -133,7 +144,8 @@ export function TimetableGridEditor({ timetableId, initialData, mode = 'editor',
       trackEvent('timetable_saved', { blockCount: Object.keys(currentBlocks).length });
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2000);
-    } catch (e) {
+    } catch (e: any) {
+      if (e.name === 'AbortError') return;
       console.error('Auto-save failed', e);
       setSaveStatus('error');
     }

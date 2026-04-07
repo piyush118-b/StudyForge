@@ -41,9 +41,16 @@ export function Step0BasicProfile({ onNext }: { onNext: () => void }) {
           <Label className="text-[#F0F0F0]/70">College / University</Label>
           {!showCustomCollege ? (
             <CategorizedCombobox 
-              categories={INDIAN_COLLEGES}
+              categories={[{ category: '', options: INDIAN_COLLEGES }]}
               value={userData.college}
-              onChange={(val) => updateField("college", val)}
+              onChange={(val) => {
+                if (val === 'Other') {
+                  setShowCustomCollege(true);
+                  updateField("college", "");
+                } else {
+                  updateField("college", val);
+                }
+              }}
               placeholder="Search your college..."
               emptyText="College not listed."
               customAddText="+ Add my college"
@@ -58,7 +65,6 @@ export function Step0BasicProfile({ onNext }: { onNext: () => void }) {
                 placeholder="Type your college name" 
                 className="bg-[#111111] border-teal-500/50 text-[#F0F0F0] rounded-xl h-12 w-full pr-12"
                 value={userData.college}
-                autoFocus
                 onChange={e => updateField("college", e.target.value)}
               />
               <Button variant="ghost" size="icon" className="absolute right-2 top-2 text-[#A0A0A0] hover:text-[#F0F0F0] hover:bg-white/10" onClick={() => setShowCustomCollege(false)}>

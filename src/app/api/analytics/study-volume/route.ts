@@ -27,121 +27,86 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const range = searchParams.get('range') || '7d';
 
-    // 1. Calculate Date Range
+    // 1. Date range
     const today = new Date();
-    // Use local end of day
     today.setHours(23, 59, 59, 999);
 
     let startDate = new Date(today);
-    if (range === '30d') {
-      startDate.setDate(today.getDate() - 29);
-    } else if (range === 'all') {
-      startDate.setFullYear(today.getFullYear() - 1); // Max 1 year for performance
-    } else {
-      // Default 7 days including today
-      startDate.setDate(today.getDate() - 6);
-    }
+    if (range === '30d')      startDate.setDate(today.getDate() - 29);
+    else if (range === 'all') startDate.setFullYear(today.getFullYear() - 1);
+    else                      startDate.setDate(today.getDate() - 6);
     startDate.setHours(0, 0, 0, 0);
 
     const startStr = startDate.toLocaleDateString('en-CA');
-    const endStr = today.toLocaleDateString('en-CA');
+    const endStr   = today.toLocaleDateString('en-CA');
+    const todayStr = endStr;
 
-    // 2. Query daily_summaries (Primary Source)
-    const { data: summaries, error: summaryError } = await supabase
-      .from('daily_summaries')
-      .select('date, scheduled_hours, completed_hours, partial_hours, completion_rate, total_blocks, completed_blocks')
+    // 2. Pull ALL block_logs for the range — bypass daily_summaries entirely.
+    //    daily_summaries was populated before the formula fixes and contains stale
+    //    partial_hours = 0 rows. Computing from raw block_logs guarantees accuracy.
+    const { data: rawLogs } = await supabase
+      .from('block_logs')
+      .select('block_id, subject, scheduled_date, scheduled_start, scheduled_hours, actual_hours, partial_percentage, status')
       .eq('user_id', user.id)
-      .gte('date', startStr)
-      .lte('date', endStr)
-      .order('date', { ascending: true }) as any;
+      .gte('scheduled_date', startStr)
+      .lte('scheduled_date', endStr)
+      .order('marked_at', { ascending: false }) as any;
 
-    // 3. Fallback to block_logs if no summaries found or error
-    let chartData: any[] = [];
-
-    if (!summaryError && summaries && summaries.length > 0) {
-      chartData = summaries.map((s: any) => ({
-        date: s.date,
-        day: new Date(s.date + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'short' }),
-        completedHrs: Number(s.completed_hours || 0) + Number(s.partial_hours || 0),
-        scheduledHrs: Number(s.scheduled_hours || 0),
-        completionRate: Number(s.completion_rate || 0),
-        blocksCompleted: s.completed_blocks || 0,
-        blocksTotal: s.total_blocks || 0
-      }));
-    } else {
-      // Direct aggregation from raw logs
-      const { data: logs } = await supabase
-        .from('block_logs')
-        .select('scheduled_date, scheduled_hours, actual_hours, status')
-        .eq('user_id', user.id)
-        .gte('scheduled_date', startStr)
-        .lte('scheduled_date', endStr) as any;
-
-      const grouped = (logs || []).reduce((acc: any, log: any) => {
-        const d = log.scheduled_date;
-        if (!acc[d]) acc[d] = { completed: 0, scheduled: 0, blocks: 0, compBlocks: 0 };
-
-        acc[d].scheduled += Number(log.scheduled_hours) || 0;
-        acc[d].blocks += 1;
-
-        if (log.status === 'completed') {
-          acc[d].completed += Number(log.scheduled_hours) || 0;
-          acc[d].compBlocks += 1;
-        } else if (log.status === 'partial') {
-          acc[d].completed += Number(log.actual_hours) || 0;
-          acc[d].compBlocks += 0.5;
-        }
-        return acc;
-      }, {});
-
-      chartData = Object.entries(grouped).map(([date, val]: [string, any]) => ({
-        date,
-        day: new Date(date + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'short' }),
-        completedHrs: Number(val.completed.toFixed(2)),
-        scheduledHrs: Number(val.scheduled.toFixed(2)),
-        completionRate: val.blocks > 0 ? (val.compBlocks / val.blocks) * 100 : 0,
-        blocksCompleted: val.compBlocks,
-        blocksTotal: val.blocks
-      }));
+    // 3. Deduplicate: keep only the MOST RECENT log per (block_id x date)
+    const seenKeys = new Set<string>();
+    const logs: any[] = [];
+    for (const l of (rawLogs || [])) {
+      const key = `${l.block_id || `${l.subject}__${l.scheduled_start}`}__${l.scheduled_date}`;
+      if (!seenKeys.has(key)) { seenKeys.add(key); logs.push(l); }
     }
 
-    // 4. Fill in missing gaps (ensure every date has a record for the chart)
-    const filledData = [];
-    let current = new Date(startDate);
-    const endDate = new Date(today);
+    // 4. Aggregate into a per-date map using the canonical formula:
+    //    completed -> scheduled_hours (100%)
+    //    partial   -> actual_hours if > 0, else (pct/100) * scheduled_hours
+    //    skipped / pending -> 0h
+    const dateMap: Record<string, { completedHrs: number; scheduledHrs: number; blocksCompleted: number; blocksTotal: number }> = {};
 
-    while (current <= endDate) {
-      const dStr = current.toLocaleDateString('en-CA');
-      const existing = chartData.find(d => d.date === dStr);
+    for (const log of logs) {
+      const d = log.scheduled_date as string;
+      if (!dateMap[d]) dateMap[d] = { completedHrs: 0, scheduledHrs: 0, blocksCompleted: 0, blocksTotal: 0 };
+      const entry = dateMap[d];
+      const sched = Number(log.scheduled_hours || 0);
+      entry.scheduledHrs += sched;
+      entry.blocksTotal  += 1;
 
-      if (existing) {
-        filledData.push(existing);
-      } else {
-        filledData.push({
-          date: dStr,
-          day: new Date(dStr + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'short' }),
-          completedHrs: 0,
-          scheduledHrs: 0,
-          completionRate: 0,
-          blocksCompleted: 0,
-          blocksTotal: 0
-        });
+      if (log.status === 'completed') {
+        entry.completedHrs    += sched;
+        entry.blocksCompleted += 1;
+      } else if (log.status === 'partial') {
+        const actual    = Number(log.actual_hours || 0);
+        const pct       = Number(log.partial_percentage || 0);
+        const effective = actual > 0 ? actual : (pct / 100) * sched;
+        entry.completedHrs    += Number(effective.toFixed(2));
+        entry.blocksCompleted += 0.5;
       }
+    }
+
+    // 5. Fill every date in range (0-pad missing days for the chart)
+    const filledData: any[] = [];
+    let current = new Date(startDate);
+    while (current <= today) {
+      const dStr = current.toLocaleDateString('en-CA');
+      const agg  = dateMap[dStr];
+      filledData.push({
+        date:           dStr,
+        day:            new Date(dStr + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'short' }),
+        completedHrs:   agg ? Number(agg.completedHrs.toFixed(2))  : 0,
+        scheduledHrs:   agg ? Number(agg.scheduledHrs.toFixed(2))  : 0,
+        completionRate: agg && agg.blocksTotal > 0 ? Number(((agg.blocksCompleted / agg.blocksTotal) * 100).toFixed(1)) : 0,
+        blocksCompleted: agg?.blocksCompleted ?? 0,
+        blocksTotal:     agg?.blocksTotal     ?? 0,
+      });
       current.setDate(current.getDate() + 1);
     }
 
-    // ── 5. Override today's bars with live data ────────────────────────────────
-    //
-    // daily_summaries is only written when a block is *marked* — so it can be
-    // stale if the user just marked a block and the recalculation hasn't run yet,
-    // or if there are timetable_id mismatches (partial/skip logs inserted with null).
-    //
-    // Fix: for TODAY only, read both grid_data (scheduled) and block_logs (actual)
-    // directly — bypassing daily_summaries entirely.
-    //
-    const todayStr = today.toLocaleDateString('en-CA');
-    try {
-      // ── 5a. Scheduled hours from live grid_data ───────────────────────────
+    // 6. Override TODAY with live grid_data for scheduled hours + reconcile missing logs
+    const todayEntry = filledData.find(d => d.date === todayStr);
+    if (todayEntry) {
       const { data: activeTT } = await supabase
         .from('timetables')
         .select('grid_data')
@@ -149,83 +114,91 @@ export async function GET(request: Request) {
         .eq('is_active', true)
         .maybeSingle() as any;
 
-      const todayEntry = filledData.find(d => d.date === todayStr);
-
-      if (activeTT?.grid_data && todayEntry) {
-        const dayName = new Date(todayStr + 'T12:00:00Z')
-          .toLocaleDateString('en-US', { weekday: 'long' });
+      if (activeTT?.grid_data) {
+        const dayName      = new Date(todayStr + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'long' });
         const dayNameLower = dayName.toLowerCase();
-        const colId = `col_${dayNameLower}`;
+        const colId        = `col_${dayNameLower}`;
 
-        const todayGridBlocks = Object.values(activeTT.grid_data as Record<string, any>)
-          .filter((b: any) => {
-            const bId = (b.dayId || '').toLowerCase();
-            const bDay = (b.day || '').toLowerCase();
-            return bId === colId || bId === dayNameLower || bDay === dayNameLower || bDay === colId;
+        const todayGridBlocks = (Object.values(activeTT.grid_data as Record<string, any>) as any[])
+          .filter(b => {
+            const _id  = (b.dayId || '').toLowerCase();
+            const _day = (b.day   || '').toLowerCase();
+            return _id === colId || _id === dayNameLower || _day === dayNameLower || _day === colId;
           });
 
+        // Use grid_data for scheduled hours — includes ALL planned blocks, not just logged ones
         let liveScheduledHrs = 0;
         for (const b of todayGridBlocks) {
           if (b.startTime && b.endTime) {
             const [sh, sm] = (b.startTime as string).split(':').map(Number);
-            const [eh, em] = (b.endTime as string).split(':').map(Number);
-            liveScheduledHrs += Math.max(0, (eh * 60 + em - (sh * 60 + sm)) / 60);
+            const [eh, em] = (b.endTime   as string).split(':').map(Number);
+            let diffMin = (eh * 60 + em) - (sh * 60 + sm);
+            if (diffMin < 0) diffMin += 24 * 60;
+            liveScheduledHrs += diffMin / 60;
           }
         }
         todayEntry.scheduledHrs = Number(liveScheduledHrs.toFixed(2));
-        todayEntry.blocksTotal = Math.max(todayEntry.blocksTotal, todayGridBlocks.length);
-      }
+        todayEntry.blocksTotal  = todayGridBlocks.length;
 
-      // ── 5b. Completed + partial hours from live block_logs ────────────────
-      // Query ALL logs for the user today (no timetable_id filter — same as
-      // the fixed recalculateDailySummary so partial logs with null timetable_id
-      // are always included).
-      const { data: todayLogs } = await supabase
-        .from('block_logs')
-        .select('status, scheduled_hours, actual_hours')
-        .eq('user_id', user.id)
-        .eq('scheduled_date', todayStr) as any;
-
-      if (todayLogs && todayLogs.length > 0 && todayEntry) {
-        let liveCompletedHrs = 0;
-        let liveCompletedBlocks = 0;
-        let liveDoneBlocks = 0;      // full completions (integer)
-        let livePartialBlocks = 0;  // partial completions (integer)
-
+        // For any today grid block that has a status set but no valid block_log (or actual_hours=0),
+        // synthesize completed hours from grid_data.completionPercentage.
+        // This exactly mirrors the Subject Distribution reconciliation logic.
+        const todayLogs = logs.filter((l: any) => l.scheduled_date === todayStr);
+        const goodBlockIds = new Set<string>(todayLogs.map(l => l.block_id).filter(Boolean));
+        
+        // Track logged hours per block_id (from logs)
+        const loggedBlockHours: Record<string, number> = {};
         for (const log of todayLogs) {
-          if (log.status === 'completed') {
-            liveCompletedHrs += Number(log.scheduled_hours) || 0;
-            liveCompletedBlocks += 1;
-            liveDoneBlocks += 1;
-          } else if (log.status === 'partial') {
-            liveCompletedHrs += Number(log.actual_hours) || 0;
-            liveCompletedBlocks += 0.5;
-            livePartialBlocks += 1;
+          if (log.block_id) {
+             const hrs = (log.status === 'completed') 
+                ? Number(log.scheduled_hours || 0) 
+                : Number(log.actual_hours || 0);
+             loggedBlockHours[log.block_id] = (loggedBlockHours[log.block_id] || 0) + hrs;
           }
         }
 
-        todayEntry.completedHrs = Number(liveCompletedHrs.toFixed(2));
-        todayEntry.blocksCompleted = liveCompletedBlocks;  // float, used for rate
-        todayEntry.doneBlocks = liveDoneBlocks;            // integer, for tooltip
-        todayEntry.partialBlocks = livePartialBlocks;      // integer, for tooltip
-        todayEntry.completionRate = todayEntry.blocksTotal > 0
-          ? Number(((liveCompletedBlocks / todayEntry.blocksTotal) * 100).toFixed(1))
-          : 0;
-// blocksTotal: use max of grid blocks and logged blocks
-todayEntry.blocksTotal = Math.max(todayEntry.blocksTotal, todayLogs.length);
+        let syntheticCompletedHrs = 0;
+
+        for (const b of todayGridBlocks) {
+          if (!b.id || !b.status || b.status === 'pending') continue;
+
+          // Compute max possible hours for this block
+          let blockHrs = 0;
+          if (b.startTime && b.endTime) {
+            const [sh, sm] = b.startTime.split(':').map(Number);
+            const [eh, em] = b.endTime.split(':').map(Number);
+            let diffMin = (eh * 60 + em) - (sh * 60 + sm);
+            if (diffMin < 0) diffMin += 24 * 60;
+            blockHrs = diffMin / 60;
+          }
+
+          const hasGoodLog = goodBlockIds.has(b.id);
+          const loggedHrs = loggedBlockHours[b.id] || 0;
+
+          // If there's no log at all OR the logged actual hours are 0, use grid_data as source of truth
+          if (!hasGoodLog || loggedHrs === 0) {
+            const pct = typeof b.completionPercentage === 'number'
+              ? b.completionPercentage
+              : (b.status === 'completed' ? 100 : 0);
+            
+            syntheticCompletedHrs += (pct / 100) * blockHrs;
+          }
+        }
+
+        // Add the synthetic hours (for blocks missing raw logs) to the baseline completedHrs (from valid raw logs)
+        todayEntry.completedHrs = Number((todayEntry.completedHrs + syntheticCompletedHrs).toFixed(2));
       }
-    } catch {
-  // Non-critical — keep values from daily_summaries on error
-}
+    }
 
-
-return NextResponse.json({
-  data: filledData,
-  dateRange: { start: startStr, end: endStr }
-});
+    return NextResponse.json({
+      data: filledData,
+      dateRange: { start: startStr, end: endStr }
+    });
 
   } catch (err: any) {
-  console.error('Analytics API Error:', err);
-  return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('Analytics API Error:', err);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
 }
-}
+
+

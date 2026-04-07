@@ -70,8 +70,9 @@ export function StudyVolumeChart({ range = '7d', refreshKey = 0 }: StudyVolumeCh
         Scheduled vs. Completed hours this week
       </p>
 
-      <ResponsiveContainer width="100%" height={200}>
-        <BarChart
+      <div className="min-w-0" style={{ width: '100%', height: 200 }}>
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+          <BarChart
           data={data}
           barGap={4}
           barCategoryGap="25%"
@@ -109,7 +110,7 @@ export function StudyVolumeChart({ range = '7d', refreshKey = 0 }: StudyVolumeCh
             cursor={chartTheme.tooltip.cursor}
             formatter={(value, name) => [
               `${value}h`,
-              name === 'completedHrs' ? 'Completed' : 'Scheduled'
+              name
             ]}
           />
           <Legend wrapperStyle={chartTheme.legend.wrapperStyle} />
@@ -131,6 +132,7 @@ export function StudyVolumeChart({ range = '7d', refreshKey = 0 }: StudyVolumeCh
           />
         </BarChart>
       </ResponsiveContainer>
+      </div>
     </div>
   );
 }

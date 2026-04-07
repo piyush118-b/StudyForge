@@ -205,7 +205,10 @@ export function TimetableGrid() {
       ))}
 
       {/* Axis Headers - Times / Left Rail (Y) */}
-      <div className="absolute z-20 sticky left-0 w-[72px] bg-[#0A0A0A] h-full" style={{ top: DAY_HEADER_HEIGHT, height: totalGridHeight }} />
+      <div 
+        className="absolute z-20 w-[72px] bg-[#0A0A0A] h-full border-r border-[#1F1F1F]" 
+        style={{ left: 0, top: DAY_HEADER_HEIGHT, height: totalGridHeight }} 
+      />
       {labels.map((lbl, i) => {
         const showMinor = zoom > 0.8;
         if (!lbl.isHour && !showMinor) return null;
@@ -213,10 +216,14 @@ export function TimetableGrid() {
         return (
           <div
             key={i}
-            className="absolute z-25 w-[72px] flex items-start justify-end pr-3 pt-0.5 sticky left-0 bg-[#0A0A0A]"
-            style={{ top: DAY_HEADER_HEIGHT + lbl.y }}
+            className="absolute z-25 w-[72px] flex items-center justify-end pr-3"
+            style={{ 
+               left: 0, 
+               top: DAY_HEADER_HEIGHT + lbl.y - 12, // Offset by half the height to perfectly center text aligned to the line
+               height: 24 
+            }}
           >
-            <span className={`font-mono tabular-nums ${lbl.isHour ? 'text-[10px] font-medium text-[#3A3A3A]' : 'text-[9px] font-medium text-[#2A2A2A]'}`}>
+            <span className={`font-mono tabular-nums leading-none ${lbl.isHour ? 'text-[10px] font-medium text-[#707070]' : 'text-[9px] font-medium text-[#404040]'}`}>
               {lbl.label}
             </span>
           </div>
@@ -327,13 +334,34 @@ function CurrentTimeIndicator({ dayColumns, columnLefts, gridStartTime, pxPerHou
   
   if (totalGridHeight && (y < 0 || y > totalGridHeight)) return null;
   
+  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const todayStr = daysOfWeek[now.getDay()];
+  const todayIndex = (dayColumns || []).findIndex((c: any) => c.id === todayStr || c.label === todayStr || c.id === `col_${todayStr.toLowerCase()}`);
+  
   return (
     <div
-      className="absolute left-0 right-0 z-20 pointer-events-none"
+      className="absolute left-0 right-0 z-40 pointer-events-none"
       style={{ top: `${y + DAY_HEADER_HEIGHT}px` }}
     >
-      <div className="h-px bg-[#10B981] opacity-70" />
-      <div className="absolute left-[72px] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#10B981] shadow-[0_0_6px_rgba(16,185,129,0.8)] -translate-x-1/2" />
+      {/* Faint ambient line across the whole screen */}
+      <div className="absolute left-[72px] right-0 h-px bg-[#EA4335] opacity-20" />
+      
+      {/* Google Calendar Strong Red Line specifically locked to Today's Column */}
+      {todayIndex !== -1 ? (
+        <>
+          <div 
+             className="absolute h-[2px] bg-[#EA4335] shadow-[0_0_8px_rgba(234,67,53,0.4)]" 
+             style={{ left: columnLefts[todayIndex], width: dayColumns[todayIndex].widthPx, top: '-0.5px' }} 
+          />
+          <div 
+             className="absolute top-1/2 -translate-y-1/2 w-[11px] h-[11px] rounded-full bg-[#EA4335] shadow-[0_0_8px_rgba(234,67,53,0.6)] -translate-x-1/2" 
+             style={{ left: columnLefts[todayIndex] }} 
+          />
+        </>
+      ) : (
+        /* Fallback dot if today is hidden from the view (e.g. only showing weekend) */
+        <div className="absolute left-[72px] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#EA4335] opacity-50 -translate-x-1/2" />
+      )}
     </div>
   );
 }

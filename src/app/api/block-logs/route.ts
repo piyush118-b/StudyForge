@@ -27,12 +27,27 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { 
+    let { 
         blockId, timetableId, subject, blockType, 
         dayOfWeek, scheduledDate, scheduledStart, scheduledEnd, 
         scheduledHours, status, actualHours, partialPercentage,
         skipReason, skipNote, focusRating, energyLevel, notes
     } = body
+
+    // Defense-in-depth: if scheduledHours is 0 or missing but we have start+end times,
+    // compute it server-side. Prevents the percentage fallback from always returning 0.
+    if ((!scheduledHours || scheduledHours === 0) && scheduledStart && scheduledEnd) {
+      const [sh, sm] = scheduledStart.split(':').map(Number);
+      const [eh, em] = scheduledEnd.split(':').map(Number);
+      let diffMin = (eh * 60 + em) - (sh * 60 + sm);
+      if (diffMin <= 0) diffMin += 24 * 60; // cross-midnight
+      scheduledHours = Math.max(0, diffMin / 60);
+    }
+
+    // Similarly, if actualHours is missing for a partial, derive it from percentage
+    if ((actualHours === undefined || actualHours === 0) && status === 'partial' && partialPercentage && scheduledHours) {
+      actualHours = Number(((partialPercentage / 100) * scheduledHours).toFixed(2));
+    }
 
     // We do an UPSERT based on unique(user_id, block_id, scheduled_date)
     // Supabase JS doesn't seamlessly do UPSERT on non-primary keys unless we specify ON CONFLICT.
