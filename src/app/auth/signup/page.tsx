@@ -41,7 +41,7 @@ export default function SignupPage() {
           data: {
             full_name: name,
           },
-          emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/callback`,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         }
       });
       
