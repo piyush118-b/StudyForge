@@ -73,15 +73,15 @@ export async function DELETE(request: Request, context: any) {
            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        // 1. Preserve analytics history — null out timetable_id in block_logs and daily_summaries
-        // This keeps the user's study history intact even after the timetable is deleted.
+        // 1. Delete associated analytics history — we cannot null out timetable_id 
+        // due to database NOT NULL constraints on block_logs and daily_summaries.
         await supabase.from('block_logs')
-            .update({ timetable_id: null })
+            .delete()
             .eq('timetable_id', id)
             .eq('user_id', user.id)
 
         await supabase.from('daily_summaries')
-            .update({ timetable_id: null })
+            .delete()
             .eq('timetable_id', id)
             .eq('user_id', user.id)
 
