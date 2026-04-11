@@ -1,8 +1,10 @@
 # 🛡️ StudyForge AI — The Ultimate Academic OS
 
-![StudyForge Banner](./public/banner.png)
+
 
 ### **Stop planning. Start achieving.**
+
+**🌍 Live Demo:** [study-forge-lake.vercel.app](https://study-forge-lake.vercel.app)
 
 StudyForge AI is not just another calendar. It's a premium, AI-powered study suite designed for students who are tired of "planning to plan." By combining intelligent scheduling, real-time tracking, and deep data analytics, StudyForge turns your academic goals into a concrete, executable roadmap.
 
