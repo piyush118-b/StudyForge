@@ -1,88 +1,86 @@
 # 🛡️ StudyForge AI
 
-### *Finally, a study plan that sticks with you.*
+### *The study companion that doesn't judge you.*
 
 **🌍 Live Demo:** [study-forge-lake.vercel.app](https://study-forge-lake.vercel.app)
 
 ---
 
-We've all been there.
+### We've all been there. 🕯️
 
-It's Sunday night. You've spent 3 hours building the *perfect* color-coded timetable. You feel productive. Accomplished, even.
+It’s Sunday night. You’ve spent three hours building the *perfect* color-coded timetable. You’ve got the highlighters out, the Notion template is glowing, and you feel like a scholar. Accomplished, even.
 
-Then Monday arrives... and by Tuesday, it's already fallen apart.
+Then Monday arrives. A lecture runs late. You miss a bus. You’re tired. By Tuesday, that perfect schedule is already gathering dust. By Wednesday, you’ve given up entirely.
 
-**StudyForge AI was built to break that cycle.** It's not another rigid calendar you'll abandon by Wednesday. It's an AI-powered study companion that understands your schedule, your energy levels, and your very human tendency to procrastinate — and meets you exactly where you are.
+**StudyForge AI was built to break that cycle.** 
 
-> *"It's like having a friend who knows exactly what you should do next."*
+It’s not just another rigid calendar that makes you feel guilty for being human. It’s an AI-powered academic "OS" that understands your energy levels, your commitments, and your very human tendency to procrastinate. We meet you exactly where you are — whether that's a productive morning or a 2 AM "the-exam-is-tomorrow" panic.
+
+> *"It's like having a senior who actually wants you to pass, without the lecture."*
 
 ---
 
-## ✨ Before & After
+## ✨ The Upgrade
 
-| **Before StudyForge** | **After StudyForge** |
+| **Typical Student Life** | **The StudyForge Life** |
 |---|---|
-| 😩 "I don't know where to start." | ✅ "I open the app. It tells me exactly what to do." |
-| 📅 "My timetable lasted one day." | 🗓️ "My week is planned. I just have to show up." |
-| 😰 "I only realized the deadline was today." | 🔔 "I got nudged 2 hours before the deadline." |
-| 📚 "I spent 2 hours organizing, not studying." | 📈 "I can see myself actually improving, week by week." |
+| 😩 Staring at a pile of books, not knowing where to start. | ✅ Open the app. AI tells you exactly what’s next. |
+| 📅 Making a timetable that lasts precisely one day. | 🗓️ A flexible plan that moves with your life. |
+| 😰 Realizing the deadline was *today* at 4 PM. | 🔔 Gentle nudges before the panic sets in. |
+| 📚 2 hours of "organizing" and 0 hours of studying. | 📈 Focus mode on. Real progress, visible in the charts. |
 
 ---
 
-## 🚀 What's Inside
+## 🚀 Built for the Grind
 
-### 📅 A timetable that gets you.
-Input your subjects, energy patterns, even how much sleep you get. **Gemini 2.5 Flash** builds a realistic, clash-free weekly plan in 60 seconds — not a fantasy schedule you'll abandon.
-*No more Sunday night panic.*
+### 📅 A Plan That Actually Gets You
+Input your subjects, credit hours, and even whether you're a "Morning Owl" or a "Night Bird." **Gemini 1.5 Flash** crunches the numbers to build a realistic, clash-free weekly plan in seconds. 
+*No more Sunday night anxiety.*
 
-### 💼 Your chaos, finally organized.
-A live dashboard where you can tap any study block, log notes, track sub-tasks, and be real — mark it **Done**, **Partial**, or **Failed**. No filters. No pretending.
-*Clarity you can actually feel.*
+### 💼 From Chaos to Clarity
+Your daily command center. Tap any study block to mark it **Done**, **Partial**, or **Failed**. We don’t judge — we just help you log notes, track sub-tasks, and keep moving forward. 
+*Total control over your day.*
 
-### 📊 See yourself actually improving.
-A GitHub-style heatmap shows your consistency across months. Weekly charts reveal which subjects need love. Streaks keep the momentum alive.
-*Progress you can feel proud of.*
+### 📊 See Your Momentum
+Visual proof of your hard work. A GitHub-style heatmap tracks your consistency across the semester, while weekly charts show you which subjects need a little more love. 
+*Progress you can actually feel proud of.*
 
-### 📝 Snap a syllabus. Get a plan.
-Point your camera at any whiteboard, printout, or handwritten note. Gemini Vision reads it and turns it into structured, actionable tasks — instantly.
-*From messy to managed in seconds.*
+### 📝 Snap a Syllabus. Get a Plan.
+Point your camera at a whiteboard, a printed handout, or a messy handwritten syllabus. Gemini Vision reads the chaos and turns it into structured, actionable tasks instantly. 
+*From "What is this?" to "I've got this."*
 
-### ⏳ Deep work, without the guilt.
-Full-screen Pomodoro mode with built-in Lo-Fi, rain sounds, and white noise. Everything logs automatically into your analytics, so every focused minute counts.
-*You'll actually look forward to studying.*
-
-### 🔔 The gentle push you actually need.
-Smart reminders that know your schedule and nudge you *before* deadlines hit — not after. Not spammy. Just thoughtful.
-*Like a friend who won't let you forget.*
+### ⏳ Deep Work, Minus the Guilt
+Step into the "Forge." Full-screen Pomodoro mode with a curated library of Lo-Fi, rain sounds, and white noise. Your focus time is automatically logged, making every minute count. 
+*You might actually start liking study sessions.*
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Under the Hood (For the Builders)
 
-For the developers and the curious minds:
+StudyForge is a premium, full-stack application designed with **Visual Excellence** in mind.
 
-| Layer | Stack |
+| Component | Tech |
 |---|---|
-| **Frontend** | Next.js (App Router) + TypeScript |
-| **Design** | Tailwind CSS + Shadcn UI |
-| **Backend & Auth** | Supabase (PostgreSQL + RLS) |
-| **AI Brain** | Google Gemini API (Flash & Vision) |
-| **State** | Zustand |
-| **Animations** | Framer Motion |
+| **Frontend** | [Next.js 14](https://nextjs.org/) (App Router) + TypeScript |
+| **Styling** | [Tailwind CSS](https://tailwindcss.com/) + [Shadcn UI](https://ui.shadcn.com/) |
+| **Database & Auth** | [Supabase](https://supabase.com/) (PostgreSQL + RLS) |
+| **AI Brain** | [Google Gemini API](https://ai.google.dev/) (Flash & Vision) |
+| **State** | [Zustand](https://zustand-demo.pmnd.rs/) (Persisted) |
+| **Animations** | [Framer Motion](https://www.framer.com/motion/) |
 
 ---
 
-## 🏁 Run It Locally
+## 🏁 Join the Forge (Local Setup)
 
-### 1. Clone & Install
+### 1. Clone the Source
 ```bash
 git clone https://github.com/piyush118-b/StudyForge.git
 cd StudyForge
 npm install
 ```
 
-### 2. Set Up Your Environment
-Create a `.env.local` file and add your keys:
+### 2. Configure the Brain
+Create a `.env.local` file and drop in your keys:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -90,31 +88,30 @@ GOOGLE_GEMINI_API_KEY=your_gemini_api_key
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-### 3. Start the Dev Server
+### 3. Ignition
 ```bash
 npm run dev
 ```
-Open `http://localhost:3000` and start your journey. 🚀
+Head over to `http://localhost:3000` and start dominating your semester. 🚀
 
 ---
 
-## 🛤️ What's Coming
+## 🛤️ What’s in the Forge?
 
 - [ ] **AI Tutor Chat** — Ask questions directly from your task board. Context-aware, syllabus-powered.
-- [ ] **Study Tribes** — Sync timetables with friends. Accountability, but make it social.
-- [ ] **Mobile PWA** — Offline support and native notifications for life on campus.
+- [ ] **Study Tribes** — Accountability is easier with friends. Sync plans and compete on consistency.
+- [ ] **Mobile Power** — Optimized PWA with offline support for studying on the go.
 
 ---
 
-## 💡 Why It Feels Different
+## 💡 Why it feels different.
 
-Most productivity apps make you feel like you're failing them.
+Most "productivity" apps are designed to make you fit into their boxes. StudyForge was built for the messy reality of being a student. For the backlogs, the internal exams, the internship applications, and the 3 AM realizations. 
 
-StudyForge doesn't judge you. Missed a session? That's fine — it adjusts and moves forward *with* you. Built specifically for Indian college students who know what semester pressure, backlog panic, and internship anxiety actually feel like.
-
-Not just productivity. **Clarity. Control. Peace of mind.**
+We’re not here to make you a robot. We’re here to give you **Clarity, Control, and Peace of Mind.**
 
 ---
 
-*Made with far too much caffeine and a genuine belief that students deserve better tools.*
-*Built for students who want to stop planning — and start achieving.* ✨
+*Made with ☕ far too much caffeine and a genuine belief that students deserve better tools.*
+*Built for the students who want to stop planning—and start achieving.* ✨
+
