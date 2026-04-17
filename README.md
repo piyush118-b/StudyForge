@@ -1,12 +1,12 @@
-# 🛡️ StudyForge AI
+# StudyForge AI
 
 ### *The study companion that doesn't judge you.*
 
-**🌍 Live Demo:** [study-forge-lake.vercel.app](https://study-forge-lake.vercel.app)
+**Live Demo:** [study-forge-lake.vercel.app](https://study-forge-lake.vercel.app)
 
 ---
 
-### We've all been there. 🕯️
+### We've all been there.
 
 It’s Sunday night. You’ve spent three hours building the *perfect* color-coded timetable. You’ve got the highlighters out, the Notion template is glowing, and you feel like a scholar. Accomplished, even.
 
@@ -20,42 +20,42 @@ It’s not just another rigid calendar that makes you feel guilty for being huma
 
 ---
 
-## ✨ The Upgrade
+## The Upgrade
 
 | **Typical Student Life** | **The StudyForge Life** |
 |---|---|
-| 😩 Staring at a pile of books, not knowing where to start. | ✅ Open the app. AI tells you exactly what’s next. |
-| 📅 Making a timetable that lasts precisely one day. | 🗓️ A flexible plan that moves with your life. |
-| 😰 Realizing the deadline was *today* at 4 PM. | 🔔 Gentle nudges before the panic sets in. |
-| 📚 2 hours of "organizing" and 0 hours of studying. | 📈 Focus mode on. Real progress, visible in the charts. |
+| Staring at a pile of books, not knowing where to start. | Open the app. AI tells you exactly what’s next. |
+| Making a timetable that lasts precisely one day. | A flexible plan that moves with your life. |
+| Realizing the deadline was *today* at 4 PM. | Gentle nudges before the panic sets in. |
+| 2 hours of "organizing" and 0 hours of studying. | Focus mode on. Real progress, visible in the charts. |
 
 ---
 
-## 🚀 Built for the Grind
+## Built for the Grind
 
-### 📅 A Plan That Actually Gets You
+### A Plan That Actually Gets You
 Input your subjects, credit hours, and even whether you're a "Morning Owl" or a "Night Bird." **Gemini 1.5 Flash** crunches the numbers to build a realistic, clash-free weekly plan in seconds. 
 *No more Sunday night anxiety.*
 
-### 💼 From Chaos to Clarity
+### From Chaos to Clarity
 Your daily command center. Tap any study block to mark it **Done**, **Partial**, or **Failed**. We don’t judge — we just help you log notes, track sub-tasks, and keep moving forward. 
 *Total control over your day.*
 
-### 📊 See Your Momentum
+### See Your Momentum
 Visual proof of your hard work. A GitHub-style heatmap tracks your consistency across the semester, while weekly charts show you which subjects need a little more love. 
 *Progress you can actually feel proud of.*
 
-### 📝 Snap a Syllabus. Get a Plan.
+### Snap a Syllabus. Get a Plan.
 Point your camera at a whiteboard, a printed handout, or a messy handwritten syllabus. Gemini Vision reads the chaos and turns it into structured, actionable tasks instantly. 
 *From "What is this?" to "I've got this."*
 
-### ⏳ Deep Work, Minus the Guilt
+### Deep Work, Minus the Guilt
 Step into the "Forge." Full-screen Pomodoro mode with a curated library of Lo-Fi, rain sounds, and white noise. Your focus time is automatically logged, making every minute count. 
 *You might actually start liking study sessions.*
 
 ---
 
-## 🛠️ Under the Hood (For the Builders)
+## Under the Hood (For the Builders)
 
 StudyForge is a premium, full-stack application designed with **Visual Excellence** in mind.
 
@@ -70,7 +70,7 @@ StudyForge is a premium, full-stack application designed with **Visual Excellenc
 
 ---
 
-## 🏁 Join the Forge (Local Setup)
+## Join the Forge (Local Setup)
 
 ### 1. Clone the Source
 ```bash
@@ -92,11 +92,11 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```bash
 npm run dev
 ```
-Head over to `http://localhost:3000` and start dominating your semester. 🚀
+Head over to `http://localhost:3000` and start dominating your semester.
 
 ---
 
-## 🛤️ What’s in the Forge?
+## What’s in the Forge?
 
 - [ ] **AI Tutor Chat** — Ask questions directly from your task board. Context-aware, syllabus-powered.
 - [ ] **Study Tribes** — Accountability is easier with friends. Sync plans and compete on consistency.
@@ -104,7 +104,7 @@ Head over to `http://localhost:3000` and start dominating your semester. 🚀
 
 ---
 
-## 💡 Why it feels different.
+## Why it feels different.
 
 Most "productivity" apps are designed to make you fit into their boxes. StudyForge was built for the messy reality of being a student. For the backlogs, the internal exams, the internship applications, and the 3 AM realizations. 
 
@@ -112,6 +112,6 @@ We’re not here to make you a robot. We’re here to give you **Clarity, Contro
 
 ---
 
-*Made with ☕ far too much caffeine and a genuine belief that students deserve better tools.*
-*Built for the students who want to stop planning—and start achieving.* ✨
+*Made with far too much caffeine and a genuine belief that students deserve better tools.*
+*Built for the students who want to stop planning—and start achieving.*
 
