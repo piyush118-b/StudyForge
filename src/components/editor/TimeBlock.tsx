@@ -29,7 +29,9 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
     pxPerHour,
     currentSnapInterval,
     zoom,
-    activeTool
+    activeTool,
+    contextMenu,
+    setContextMenu
   } = useGridStore();
 
   const { user } = useAuth();
@@ -50,6 +52,7 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
   const isCompleted = block.status === 'completed';
   const isSkipped = block.status === 'skipped';
   const isPartial = block.status === 'partial';
+  const isSmallBlock = displayHeight < 50;
 
   // --- Hover Portal Mechanics ---
   const blockRef = useRef<HTMLDivElement>(null);
@@ -65,8 +68,15 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
     };
   }, []);
 
+  // Sync: Hide popover if a context menu is opened anywhere
+  useEffect(() => {
+    if (contextMenu) {
+       setShowPopover(false);
+    }
+  }, [contextMenu]);
+
   const handleMouseEnter = () => {
-    if (activeTool === 'pan' || isResizingTop || isResizingBottom) return;
+    if (activeTool === 'pan' || isResizingTop || isResizingBottom || contextMenu) return;
     if (hideTimeout.current) clearTimeout(hideTimeout.current);
 
     if (blockRef.current) {
@@ -294,8 +304,12 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
   };
 
   const handleContextMenu = (e: ReactMouseEvent) => {
+    // Hide popover immediately on right click to avoid overlap with menu
+    setShowPopover(false);
+    if (hideTimeout.current) clearTimeout(hideTimeout.current);
+    
     // Bubble up to TimetableGridEditor contextual listener!
-    e.preventDefault();
+    // We don't call preventDefault here because TimetableGridEditor needs to catch it
   };
 
   // Preview time calculations for tooltips
@@ -370,7 +384,7 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
       </div>
 
       {/* 2. Content Matrix */}
-      <div className="flex-1 px-3 pb-1.5 flex flex-col min-h-0 relative pointer-events-none overflow-hidden mt-0">
+      <div className={`flex-1 px-3 pb-1.5 flex flex-col min-h-0 relative pointer-events-none overflow-hidden mt-0 ${isSmallBlock ? 'justify-center' : ''}`}>
         <div className="flex justify-between items-start gap-1">
           <div className="font-bold text-[14px] tracking-tight leading-snug truncate drop-shadow-md flex items-center gap-2">
             {block.sticker}
@@ -380,18 +394,22 @@ export function TimeBlockComponent({ block, x, w, h }: TimeBlockComponentProps) 
           {isSkipped && <div className="shrink-0 bg-orange-600/90 text-[#F0F0F0] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center shadow-lg"><ChevronRight className="w-3.5 h-3.5" /></div>}
         </div>
 
-        <div className="flex items-center justify-between mt-2">
-          <div className="text-[10px] font-bold opacity-100 uppercase tracking-widest truncate bg-black/20 px-2.5 py-1 rounded shadow-inner">
-            {block.subjectType}
+        {!isSmallBlock && (
+          <div className="flex items-center justify-between mt-2">
+            <div className="text-[10px] font-bold opacity-100 uppercase tracking-widest truncate bg-black/20 px-2.5 py-1 rounded shadow-inner">
+              {block.subjectType}
+            </div>
+            {block.priority && (
+              <span className={`w-2 h-2 rounded-full shadow-[0_0_8px_currentColor] ${block.priority === "High" ? 'bg-red-400 text-red-400' : block.priority === "Medium" ? 'bg-orange-400 text-orange-400' : 'bg-emerald-400 text-emerald-400'}`} />
+            )}
           </div>
-          {block.priority && (
-            <span className={`w-2 h-2 rounded-full shadow-[0_0_8px_currentColor] ${block.priority === "High" ? 'bg-red-400 text-red-400' : block.priority === "Medium" ? 'bg-orange-400 text-orange-400' : 'bg-emerald-400 text-emerald-400'}`} />
-          )}
-        </div>
+        )}
       </div>
 
       {/* 3. Bottom Action Strip */}
-      <div className="h-8 w-full border-t border-black/10 bg-black/20 shrink-0 flex items-center justify-between px-3 backdrop-blur-md pointer-events-auto rounded-b-2xl">
+      <div className={`h-8 w-full border-t border-black/10 bg-black/20 shrink-0 flex items-center justify-between px-3 backdrop-blur-md pointer-events-auto rounded-b-2xl transition-all duration-200
+        ${isSmallBlock ? 'absolute bottom-0 left-0 right-0 z-30 opacity-0 group-hover:opacity-100 border-t-0 bg-black/40' : 'relative opacity-100'}
+      `}>
         <div className="flex items-center gap-1.5">
           <button onClick={handleToggleComplete} className={`p-0.5 rounded-full transition-all duration-150-colors ${isCompleted ? 'bg-green-500 text-white' : 'text-white/60 hover:bg-white/20 hover:text-white'}`} title="Mark Completed">
             <CheckCircle2 className="w-3.5 h-3.5" />

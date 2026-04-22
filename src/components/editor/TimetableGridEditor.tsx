@@ -23,11 +23,10 @@ interface TimetableGridEditorProps {
 }
 
 export function TimetableGridEditor({ timetableId, initialData, mode = 'editor', onBlockSelect, className }: TimetableGridEditorProps) {
-  const { initGrid, dayColumns, blocks, gridStartTime, gridEndTime, currentSnapInterval, setSnapInterval, deleteBlock, openBlockModal, openSkipModal, shiftBlock, duplicateBlock, activeTool, setActiveTool } = useGridStore();
+  const { initGrid, dayColumns, blocks, gridStartTime, gridEndTime, currentSnapInterval, setSnapInterval, deleteBlock, openBlockModal, openSkipModal, shiftBlock, duplicateBlock, activeTool, setActiveTool, contextMenu, setContextMenu } = useGridStore();
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestBlocksRef = useRef(blocks);
   const isFirstLoadRef = useRef(true);
-  const [contextMenu, setContextMenu] = useState<{ x: number, y: number, blockId: string } | null>(null);
   const [duplicateModalBlockId, setDuplicateModalBlockId] = useState<string | null>(null);
   const [deleteModalBlockId, setDeleteModalBlockId] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');

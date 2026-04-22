@@ -43,6 +43,9 @@ interface GridStore extends GridState {
   skipModalBlockId: string | null;
   openSkipModal: (blockId: string) => void;
   closeSkipModal: () => void;
+
+  contextMenu: { x: number; y: number; blockId: string } | null;
+  setContextMenu: (menu: { x: number; y: number; blockId: string } | null) => void;
 }
 
 export const useGridStore = create<GridStore>((set, get) => ({
@@ -65,6 +68,7 @@ export const useGridStore = create<GridStore>((set, get) => ({
   blockModalData: null,
   isSkipModalOpen: false,
   skipModalBlockId: null,
+  contextMenu: null,
 
   initGrid: (id, cols, start = '07:00', end = '23:00') => set({
     id,
@@ -81,12 +85,14 @@ export const useGridStore = create<GridStore>((set, get) => ({
     isBlockModalOpen: false,
     blockModalData: null,
     isSkipModalOpen: false,
-    skipModalBlockId: null
+    skipModalBlockId: null,
+    contextMenu: null
   }),
 
   setSnapInterval: (snap) => set({ currentSnapInterval: snap }),
   setActiveTool: (tool) => set({ activeTool: tool }),
   setGridBounds: (start, end) => set({ gridStartTime: start, gridEndTime: end }),
+  setContextMenu: (menu) => set({ contextMenu: menu }),
 
   openBlockModal: (dayId, startTime, endTime, blockId) => set({ isBlockModalOpen: true, blockModalData: { dayId, startTime, endTime, blockId } }),
   closeBlockModal: () => set({ isBlockModalOpen: false, blockModalData: null }),
