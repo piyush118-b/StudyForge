@@ -44,6 +44,15 @@ interface GridStore extends GridState {
   openSkipModal: (blockId: string) => void;
   closeSkipModal: () => void;
 
+  isDuplicateModalOpen: boolean;
+  isDeleteModalOpen: boolean;
+  duplicateModalBlockId: string | null;
+  deleteModalBlockId: string | null;
+  openDuplicateModal: (blockId: string) => void;
+  closeDuplicateModal: () => void;
+  openDeleteModal: (blockId: string) => void;
+  closeDeleteModal: () => void;
+
   contextMenu: { x: number; y: number; blockId: string } | null;
   setContextMenu: (menu: { x: number; y: number; blockId: string } | null) => void;
 }
@@ -68,31 +77,59 @@ export const useGridStore = create<GridStore>((set, get) => ({
   blockModalData: null,
   isSkipModalOpen: false,
   skipModalBlockId: null,
+  isDuplicateModalOpen: false,
+  isDeleteModalOpen: false,
+  duplicateModalBlockId: null,
+  deleteModalBlockId: null,
   contextMenu: null,
 
-  initGrid: (id, cols, start = '07:00', end = '23:00') => set({
-    id,
-    dayColumns: cols,
-    gridStartTime: start,
-    gridEndTime: end,
-    blocks: {},
-    past: [],
-    future: [],
-    isDirty: false,
-    zoom: 1.0,
-    panX: 0,
-    panY: 0,
-    isBlockModalOpen: false,
-    blockModalData: null,
-    isSkipModalOpen: false,
-    skipModalBlockId: null,
-    contextMenu: null
-  }),
+  initGrid: (id, cols, start = '07:00', end = '23:00') => {
+    // Only reset viewport if ID changed OR no saved state exists
+    const currentId = get().id;
+    const isNewTimetable = currentId !== id;
+    
+    let savedViewport = { panX: 0, panY: 0, zoom: 1.0 };
+    if (typeof window !== 'undefined') {
+      const stored = sessionStorage.getItem(`forge_viewport_${id}`);
+      if (stored) {
+        try { savedViewport = JSON.parse(stored); } catch(e) {}
+      }
+    }
+
+    set({
+      id,
+      dayColumns: cols,
+      gridStartTime: start,
+      gridEndTime: end,
+      blocks: {},
+      past: [],
+      future: [],
+      isDirty: false,
+      zoom: savedViewport.zoom,
+      panX: savedViewport.panX,
+      panY: savedViewport.panY,
+      isBlockModalOpen: false,
+      blockModalData: null,
+      isSkipModalOpen: false,
+      skipModalBlockId: null,
+      isDuplicateModalOpen: false,
+      isDeleteModalOpen: false,
+      duplicateModalBlockId: null,
+      deleteModalBlockId: null,
+      contextMenu: null
+    });
+  },
 
   setSnapInterval: (snap) => set({ currentSnapInterval: snap }),
   setActiveTool: (tool) => set({ activeTool: tool }),
   setGridBounds: (start, end) => set({ gridStartTime: start, gridEndTime: end }),
   setContextMenu: (menu) => set({ contextMenu: menu }),
+
+  openDuplicateModal: (blockId) => set({ isDuplicateModalOpen: true, duplicateModalBlockId: blockId }),
+  closeDuplicateModal: () => set({ isDuplicateModalOpen: false, duplicateModalBlockId: null }),
+
+  openDeleteModal: (blockId) => set({ isDeleteModalOpen: true, deleteModalBlockId: blockId }),
+  closeDeleteModal: () => set({ isDeleteModalOpen: false, deleteModalBlockId: null }),
 
   openBlockModal: (dayId, startTime, endTime, blockId) => set({ isBlockModalOpen: true, blockModalData: { dayId, startTime, endTime, blockId } }),
   closeBlockModal: () => set({ isBlockModalOpen: false, blockModalData: null }),
@@ -100,8 +137,20 @@ export const useGridStore = create<GridStore>((set, get) => ({
   openSkipModal: (blockId) => set({ isSkipModalOpen: true, skipModalBlockId: blockId }),
   closeSkipModal: () => set({ isSkipModalOpen: false, skipModalBlockId: null }),
 
-  setZoom: (zoom) => set({ zoom }),
-  setPan: (panX, panY) => set({ panX, panY }),
+  setZoom: (zoom) => {
+    set({ zoom });
+    const { id, panX, panY } = get();
+    if (typeof window !== 'undefined' && id) {
+      sessionStorage.setItem(`forge_viewport_${id}`, JSON.stringify({ zoom, panX, panY }));
+    }
+  },
+  setPan: (panX, panY) => {
+    set({ panX, panY });
+    const { id, zoom } = get();
+    if (typeof window !== 'undefined' && id) {
+      sessionStorage.setItem(`forge_viewport_${id}`, JSON.stringify({ zoom, panX, panY }));
+    }
+  },
 
   pushState: () => {
     set((state) => {

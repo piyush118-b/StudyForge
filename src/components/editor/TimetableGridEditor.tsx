@@ -23,12 +23,15 @@ interface TimetableGridEditorProps {
 }
 
 export function TimetableGridEditor({ timetableId, initialData, mode = 'editor', onBlockSelect, className }: TimetableGridEditorProps) {
-  const { initGrid, dayColumns, blocks, gridStartTime, gridEndTime, currentSnapInterval, setSnapInterval, deleteBlock, openBlockModal, openSkipModal, shiftBlock, duplicateBlock, activeTool, setActiveTool, contextMenu, setContextMenu } = useGridStore();
+  const { 
+    initGrid, dayColumns, blocks, gridStartTime, gridEndTime, currentSnapInterval, setSnapInterval, 
+    deleteBlock, openBlockModal, openSkipModal, shiftBlock, duplicateBlock, activeTool, setActiveTool, 
+    contextMenu, setContextMenu, isBlockModalOpen, isSkipModalOpen, isDuplicateModalOpen, isDeleteModalOpen,
+    duplicateModalBlockId, deleteModalBlockId, openDuplicateModal, closeDuplicateModal, openDeleteModal, closeDeleteModal 
+  } = useGridStore();
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestBlocksRef = useRef(blocks);
   const isFirstLoadRef = useRef(true);
-  const [duplicateModalBlockId, setDuplicateModalBlockId] = useState<string | null>(null);
-  const [deleteModalBlockId, setDeleteModalBlockId] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isBalanceOpen, setIsBalanceOpen] = useState(false);
@@ -58,7 +61,11 @@ export function TimetableGridEditor({ timetableId, initialData, mode = 'editor',
     const savedEnd: string   = savedMeta?.gridEndTime   || '23:00';
 
     // Initialize with saved bounds (not hardcoded defaults)
-    initGrid(timetableId || 'draft', cols, savedStart, savedEnd);
+    // Prevents destructive reset if same timetable is re-loading (e.g. on focus)
+    const currentIdInStore = useGridStore.getState().id;
+    if (currentIdInStore !== (timetableId || 'draft')) {
+      initGrid(timetableId || 'draft', cols, savedStart, savedEnd);
+    }
 
     const handleGridData = (rawGridData: any) => {
       if (!rawGridData) return;
@@ -217,11 +224,21 @@ export function TimetableGridEditor({ timetableId, initialData, mode = 'editor',
       }
     };
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Tab became visible again. 
+        // We can do a silent refresh here if needed, but NOT a full initGrid.
+        console.log("Welcome back! Viewport preserved.");
+      }
+    };
+
     window.addEventListener("click", handleGlobalClick);
     window.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
       window.removeEventListener("click", handleGlobalClick);
       window.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 
@@ -233,6 +250,11 @@ export function TimetableGridEditor({ timetableId, initialData, mode = 'editor',
       <div
         className="flex flex-1 overflow-hidden pointer-events-auto relative"
         onContextMenu={(e) => {
+          // If any modal is open, let the default behavior or modal handle it (ignore grid context menu)
+          if (isBlockModalOpen || isSkipModalOpen || isDuplicateModalOpen || isDeleteModalOpen) {
+            return; 
+          }
+
           // Identify if we right clicked a block natively looking recursively
           const blockEl = (e.target as HTMLElement).closest('[data-block-id]');
           if (blockEl) {
@@ -392,60 +414,60 @@ export function TimetableGridEditor({ timetableId, initialData, mode = 'editor',
         >
           <button
             className="w-full text-left px-4 py-2 hover:bg-white/5 hover:text-[#F0F0F0] flex items-center gap-2 active:scale-[0.97]"
-            onClick={() => { shiftBlock(contextMenu.blockId, 'up'); }}
+            onClick={() => { shiftBlock(contextMenu.blockId, 'up'); setContextMenu(null); }}
           >
             <span>⬆️</span> Shift Up
           </button>
           <button
             className="w-full text-left px-4 py-2 hover:bg-white/5 hover:text-[#F0F0F0] flex items-center gap-2 active:scale-[0.97]"
-            onClick={() => { shiftBlock(contextMenu.blockId, 'down'); }}
+            onClick={() => { shiftBlock(contextMenu.blockId, 'down'); setContextMenu(null); }}
           >
             <span>⬇️</span> Shift Down
           </button>
           <button
             className="w-full text-left px-4 py-2 hover:bg-white/5 hover:text-[#F0F0F0] flex items-center gap-2 border-t border-white/5 active:scale-[0.97]"
-            onClick={() => { setDuplicateModalBlockId(contextMenu.blockId); }}
+            onClick={() => { openDuplicateModal(contextMenu.blockId); setContextMenu(null); }}
           >
             <span>📋</span> Duplicate to...
           </button>
 
           <button
             className="w-full text-left px-4 py-2 hover:bg-white/5 hover:text-[#F0F0F0] flex items-center gap-2 border-t border-white/5 active:scale-[0.97]"
-            onClick={() => { const b = useGridStore.getState().blocks[contextMenu.blockId]; openSkipModal(b.id); }}
+            onClick={() => { const b = useGridStore.getState().blocks[contextMenu.blockId]; openSkipModal(b.id); setContextMenu(null); }}
           >
             <span>⏭</span> Skip / Missed
           </button>
           <button
             className="w-full text-left px-4 py-2 hover:bg-white/5 hover:text-[#F0F0F0] flex items-center gap-2 active:scale-[0.97]"
-            onClick={() => { const b = useGridStore.getState().blocks[contextMenu.blockId]; openBlockModal(b.day, b.startTime, b.endTime, b.id); }}
+            onClick={() => { const b = useGridStore.getState().blocks[contextMenu.blockId]; openBlockModal(b.dayId || b.day || 'Monday', b.startTime, b.endTime, b.id); setContextMenu(null); }}
           >
             <span>✏️</span> Edit Block
           </button>
           <button
             className="w-full text-left px-4 py-2 hover:bg-red-500/20 text-red-400 hover:text-red-300 flex items-center gap-2 transition-all duration-150-colors border-t border-red-500/10 active:scale-[0.97]"
-            onClick={() => setDeleteModalBlockId(contextMenu.blockId)}
+            onClick={() => { openDeleteModal(contextMenu.blockId); setContextMenu(null); }}
           >
             <span>🗑️</span> Delete Block
           </button>
         </div>
       )}
 
-      {duplicateModalBlockId && (
+      {isDuplicateModalOpen && duplicateModalBlockId && (
         <DuplicateModal
           blockId={duplicateModalBlockId}
-          onClose={() => setDuplicateModalBlockId(null)}
+          onClose={closeDuplicateModal}
           dayColumns={dayColumns}
           duplicateBlock={duplicateBlock}
         />
       )}
 
-      {deleteModalBlockId && (
+      {isDeleteModalOpen && deleteModalBlockId && (
         <DeleteConfirmModal
           blockId={deleteModalBlockId}
-          onClose={() => setDeleteModalBlockId(null)}
+          onClose={closeDeleteModal}
           onConfirm={() => {
             deleteBlock(deleteModalBlockId);
-            setDeleteModalBlockId(null);
+            closeDeleteModal();
           }}
         />
       )}

@@ -134,7 +134,10 @@ export function BlockFormModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+    <div 
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+      onContextMenu={(e) => e.stopPropagation()}
+    >
       <div className="w-full max-w-md bg-[#1A1A1A]/98 backdrop-blur-3xl border border-[#2A2A2A] rounded-3xl shadow-[0_24px_64px_rgba(0,0,0,0.6)] relative flex flex-col font-sans max-h-[90vh] ring-1 ring-[#2A2A2A]/50">
         
         {/* Header */}

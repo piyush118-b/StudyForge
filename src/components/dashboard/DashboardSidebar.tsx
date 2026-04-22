@@ -130,16 +130,16 @@ export function DashboardSidebar({ collapsed, onToggleCollapse, activePath }: Da
         <div className="h-14 flex items-center px-4 flex-shrink-0 justify-between">
           {!collapsed ? (
             <Link href="/dashboard" className="flex items-center gap-2.5 min-w-0 group cursor-pointer">
-              <div className="w-6 h-6 rounded flex-shrink-0 bg-[#F0F0F0] flex items-center justify-center">
-                <BookOpen className="w-3.5 h-3.5 text-[#0A0A0A]" />
+              <div className="w-6 h-6 rounded flex-shrink-0 bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center shadow-[0_0_12px_rgba(16,185,129,0.4)]">
+                <BookOpen className="w-3.5 h-3.5 text-[#F0F0F0]" />
               </div>
               <span className="font-semibold text-[#F0F0F0] text-[15px] tracking-tight truncate">
                 StudyForge
               </span>
             </Link>
           ) : (
-            <Link href="/dashboard" className="w-8 h-8 rounded shrink-0 bg-[#F0F0F0] flex items-center justify-center mx-auto cursor-pointer">
-               <BookOpen className="w-4 h-4 text-[#0A0A0A]" />
+            <Link href="/dashboard" className="w-8 h-8 rounded shrink-0 bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center shadow-[0_0_12px_rgba(16,185,129,0.4)] mx-auto cursor-pointer">
+               <BookOpen className="w-4 h-4 text-[#F0F0F0]" />
             </Link>
           )}
 

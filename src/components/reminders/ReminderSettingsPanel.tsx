@@ -3,7 +3,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Switch } from '@/components/ui/switch'
 import { Slider } from '@/components/ui/slider'
 import { Label } from '@/components/ui/label'
-import { Bell, Volume2, Mic, Clock } from 'lucide-react'
+import { Bell, Volume2, Mic, Clock, Settings2 } from 'lucide-react'
 import { useReminderStore } from '@/store/reminder-store'
 import { useBlockReminder } from '@/hooks/useBlockReminder'
 import { generateReminderMessage } from '@/lib/reminder-messages'
@@ -34,159 +34,182 @@ export function ReminderSettingsPanel({ open, onClose, blocks, studentName }: Pr
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent
         side="right"
-        className="w-[380px] bg-slate-950/95 border-white/10 
-          backdrop-blur-xl overflow-y-auto"
+        className="w-[400px] bg-[#111111] border-l border-[#2A2A2A] 
+          overflow-y-auto px-6 py-8 shadow-2xl"
       >
-        <SheetHeader className="mb-6">
-          <SheetTitle className="flex items-center gap-2 text-[#F0F0F0]">
-            <Bell size={16} className="text-[#10B981]" />
-            Reminder Settings
-          </SheetTitle>
+        <SheetHeader className="mb-10">
+          <div className="flex items-center gap-3">
+             <div className="w-10 h-10 rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center">
+                <Settings2 size={18} className="text-[#F0F0F0]" />
+             </div>
+             <div>
+                <SheetTitle className="text-[#F0F0F0] text-xl font-bold tracking-tight">
+                  Reminders
+                </SheetTitle>
+                <p className="text-[11px] text-[#8A8A8A] font-semibold uppercase tracking-widest mt-0.5">Preferences</p>
+             </div>
+          </div>
         </SheetHeader>
         
-        <div className="space-y-6">
+        <div className="space-y-10">
           
           {permission !== 'granted' && (
-            <ReminderPermissionCard compact />
+            <div className="mb-2 scale-95 origin-left">
+              <ReminderPermissionCard compact />
+            </div>
           )}
           
           <SettingsSection title="Notification Channels" icon={Bell}>
-            <ToggleRow
-              label="In-App Toasts"
-              description="Premium notifications inside the app"
-              checked={settings.inAppToasts}
-              onChange={v => updateSettings({ inAppToasts: v })}
-            />
-            <ToggleRow
-              label="Browser Notifications"
-              description="Even when app is minimized"
-              checked={settings.browserNotifications && permission === 'granted'}
-              onChange={v => {
-                if (v && permission !== 'granted') {
-                  requestPermission()
-                } else {
-                  updateSettings({ browserNotifications: v })
-                }
-              }}
-            />
-            <ToggleRow
-              label="Voice Reminders"
-              description="Browser speech synthesis"
-              checked={settings.voiceReminders}
-              onChange={v => updateSettings({ voiceReminders: v })}
-            />
+            <div className="space-y-5">
+              <ToggleRow
+                label="In-App Toasts"
+                description="Premium notifications inside the app"
+                checked={settings.inAppToasts}
+                onChange={v => updateSettings({ inAppToasts: v })}
+              />
+              <ToggleRow
+                label="Browser Notifications"
+                description="Even when app is minimized"
+                checked={settings.browserNotifications && permission === 'granted'}
+                onChange={v => {
+                  if (v && permission !== 'granted') {
+                    requestPermission()
+                  } else {
+                    updateSettings({ browserNotifications: v })
+                  }
+                }}
+              />
+              <ToggleRow
+                label="Voice Reminders"
+                description="Browser speech synthesis"
+                checked={settings.voiceReminders}
+                onChange={v => updateSettings({ voiceReminders: v })}
+              />
+            </div>
           </SettingsSection>
           
           <SettingsSection title="Timing" icon={Clock}>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <Label className="text-[13px] text-[#F0F0F0]/60">
-                  Remind me before
-                </Label>
-                <span className="text-[13px] font-semibold text-[#F0F0F0]">
-                  {settings.reminderBeforeMinutes} min
-                </span>
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center px-1">
+                  <Label className="text-[12px] text-[#A0A0A0] font-semibold">
+                    Buffer Time
+                  </Label>
+                  <div className="px-2.5 py-0.5 rounded-md bg-[#1A1A1A] border border-[#2A2A2A]">
+                    <span className="text-[12px] font-bold text-[#10B981] tabular-nums">
+                      {settings.reminderBeforeMinutes}m
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="px-2">
+                  <Slider
+                    min={1}
+                    max={15}
+                    step={1}
+                    value={[settings.reminderBeforeMinutes]}
+                    onValueChange={(val) => updateSettings({ reminderBeforeMinutes: Array.isArray(val) ? val[0] : (val as any)[0] || 5 })}
+                    className="reminder-slider"
+                  />
+                  <div className="flex justify-between text-[10px] text-[#606060] font-semibold mt-3">
+                    <span>1 MIN</span>
+                    <span>15 MIN</span>
+                  </div>
+                </div>
               </div>
-              <Slider
-                min={1}
-                max={15}
-                step={1}
-                value={[settings.reminderBeforeMinutes]}
-                onValueChange={(val) => updateSettings({ reminderBeforeMinutes: Array.isArray(val) ? val[0] : (val as any)[0] || 5 })}
-                className="reminder-slider"
+              
+              <ToggleRow
+                label="Final 1-min warning"
+                description="Second reminder right before block starts"
+                checked={settings.enableSecondReminder}
+                onChange={v => updateSettings({ enableSecondReminder: v })}
               />
-              <div className="flex justify-between text-[10px] text-[#F0F0F0]/20">
-                <span>1 min</span>
-                <span>15 min</span>
-              </div>
             </div>
-            
-            <ToggleRow
-              label="Final 1-min warning"
-              description="Second reminder right before block starts"
-              checked={settings.enableSecondReminder}
-              onChange={v => updateSettings({ enableSecondReminder: v })}
-            />
           </SettingsSection>
           
           <SettingsSection title="Message Tone" icon={Volume2}>
-            <div className="grid grid-cols-2 gap-2">
-              {(['motivational','professional','friendly','strict'] as const).map(tone => (
-                <button
-                  key={tone}
-                  onClick={() => updateSettings({ toneStyle: tone })}
-                  className={`
-                    p-2.5 rounded-xl text-[12px] font-medium capitalize
-                    border transition-all duration-150-all duration-150
-                    ${settings.toneStyle === tone
-                      ? 'bg-[#10B981]/20 border-[#10B981]/50 text-indigo-300'
-                      : 'bg-white/5 border-white/10 text-[#F0F0F0]/40 hover:bg-white/8'
-                    }
-                  `}
-                >
-                  {tone}
-                </button>
-              ))}
-            </div>
-            
-            <div className="p-3 rounded-xl bg-white/5 border border-white/8 mt-2">
-              <p className="text-[10px] text-[#F0F0F0]/30 uppercase tracking-wider mb-1">
-                Preview
-              </p>
-              <p className="text-[12px] text-[#F0F0F0]/60 italic leading-relaxed">
-                "{previewMessage}"
-              </p>
+            <div className="space-y-5">
+              <div className="grid grid-cols-2 gap-2">
+                {(['motivational','professional','friendly','strict'] as const).map(tone => (
+                  <button
+                    key={tone}
+                    onClick={() => updateSettings({ toneStyle: tone })}
+                    className={`
+                      py-2.5 rounded-lg text-[12px] font-medium capitalize
+                      border transition-all duration-200
+                      ${settings.toneStyle === tone
+                        ? 'bg-[rgba(16,185,129,0.08)] border-[#10B981]/30 text-[#10B981]'
+                        : 'bg-[#1A1A1A] border-[#2A2A2A] text-[#8A8A8A] hover:bg-[#222222] hover:text-[#F0F0F0]'
+                      }
+                    `}
+                  >
+                    {tone}
+                  </button>
+                ))}
+              </div>
+              
+              <div className="p-4 rounded-xl bg-[#1A1A1A] border border-[#222222]">
+                <p className="text-[10px] text-[#606060] font-semibold tracking-widest uppercase mb-2">
+                  Live Preview
+                </p>
+                <p className="text-[13px] text-[#A0A0A0] leading-relaxed">
+                  "{previewMessage}"
+                </p>
+              </div>
             </div>
           </SettingsSection>
           
           <SettingsSection title="Quiet Hours" icon={Clock}>
-            <ToggleRow
-              label="Enable quiet hours"
-              description="No reminders during these hours"
-              checked={settings.quietHoursEnabled}
-              onChange={v => updateSettings({ quietHoursEnabled: v })}
-            />
-            {settings.quietHoursEnabled && (
-              <div className="grid grid-cols-2 gap-3 mt-2">
-                <div>
-                  <Label className="text-[11px] text-[#F0F0F0]/40 mb-1 block">
-                    Start
-                  </Label>
-                  <input
-                    type="time"
-                    value={settings.quietHoursStart}
-                    onChange={e => updateSettings({ quietHoursStart: e.target.value })}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg
-                      px-3 py-2 text-[13px] text-[#F0F0F0]/70
-                      focus:outline-none focus:border-[#10B981]/50"
-                  />
+            <div className="space-y-5">
+              <ToggleRow
+                label="Enable quiet hours"
+                description="No reminders during these hours"
+                checked={settings.quietHoursEnabled}
+                onChange={v => updateSettings({ quietHoursEnabled: v })}
+              />
+              {settings.quietHoursEnabled && (
+                <div className="grid grid-cols-2 gap-3 mt-1 animate-in fade-in duration-200">
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] text-[#606060] font-semibold uppercase tracking-widest ml-0.5">
+                      Start
+                    </Label>
+                    <input
+                      type="time"
+                      value={settings.quietHoursStart}
+                      onChange={e => updateSettings({ quietHoursStart: e.target.value })}
+                      className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg
+                        px-3 py-2 text-[13px] text-[#F0F0F0]
+                        focus:outline-none focus:border-[#10B981]/50 transition-colors"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] text-[#606060] font-semibold uppercase tracking-widest ml-0.5">
+                      End
+                    </Label>
+                    <input
+                      type="time"
+                      value={settings.quietHoursEnd}
+                      onChange={e => updateSettings({ quietHoursEnd: e.target.value })}
+                      className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg
+                        px-3 py-2 text-[13px] text-[#F0F0F0]
+                        focus:outline-none focus:border-[#10B981]/50 transition-colors"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label className="text-[11px] text-[#F0F0F0]/40 mb-1 block">
-                    End
-                  </Label>
-                  <input
-                    type="time"
-                    value={settings.quietHoursEnd}
-                    onChange={e => updateSettings({ quietHoursEnd: e.target.value })}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg
-                      px-3 py-2 text-[13px] text-[#F0F0F0]/70
-                      focus:outline-none focus:border-[#10B981]/50"
-                  />
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </SettingsSection>
           
-          <div className="pt-2">
+          <div className="pt-4 pb-2">
             <button
               onClick={() => testReminder()}
-              className="w-full py-3 rounded-xl border border-dashed 
-                border-white/15 text-[#F0F0F0]/40 hover:border-[#10B981]/40
-                hover:text-indigo-300 text-[13px] transition-all duration-150-all duration-200
-                hover:bg-[#10B981]/5"
+              className="w-full py-3 rounded-lg border border-[#2A2A2A] 
+                bg-[#1A1A1A] text-[#F0F0F0] hover:bg-[#222222] hover:border-[#333333]
+                text-[13px] font-medium transition-all duration-200
+                flex items-center justify-center gap-2 active:scale-[0.98]"
             >
-              🔔 Test Reminder Now
+              <Bell size={14} className="text-[#A0A0A0]" />
+              Send Test Reminder
             </button>
           </div>
           
@@ -204,14 +227,15 @@ function SettingsSection({
   icon: React.ElementType
 }) {
   return (
-    <div>
-      <div className="flex items-center gap-2 mb-3">
-        <Icon size={13} className="text-[#F0F0F0]/30" />
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-[#F0F0F0]/30">
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <Icon size={14} className="text-[#8A8A8A]" />
+        <span className="text-xs font-semibold text-[#8A8A8A] tracking-wide">
           {title}
         </span>
+        <div className="flex-1 h-px bg-[#2A2A2A] ml-2" />
       </div>
-      <div className="space-y-3 pl-5">
+      <div className="pl-1">
         {children}
       </div>
     </div>
@@ -228,18 +252,18 @@ function ToggleRow({
   disabled?: boolean
 }) {
   return (
-    <div className={`flex items-center justify-between gap-4 
+    <div className={`flex items-center justify-between gap-6 
       ${disabled ? 'opacity-40 pointer-events-none' : ''}`}>
-      <div>
-        <p className="text-[13px] text-[#F0F0F0]/70 font-medium">{label}</p>
+      <div className="flex-1">
+        <p className="text-[14px] text-[#F0F0F0] font-medium mb-0.5">{label}</p>
         {description && (
-          <p className="text-[11px] text-[#F0F0F0]/30 mt-0.5">{description}</p>
+          <p className="text-[12px] text-[#8A8A8A] leading-relaxed">{description}</p>
         )}
       </div>
       <Switch
         checked={checked}
         onCheckedChange={onChange}
-        className="data-[state=checked]:bg-[#10B981]"
+        className="data-[state=checked]:bg-[#10B981] scale-[0.85]"
       />
     </div>
   )
