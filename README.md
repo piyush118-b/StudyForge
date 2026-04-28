@@ -6,7 +6,7 @@
 StudyForge AI is an adaptive academic OS that builds flexible schedules, tracks tasks, and provides deep-work tools using AI.
 
 ## ✨ Features
-- **AI Planning:** Automated, clash-free schedules via Gemini 1.5 Flash.
+- **AI Planning:** Automated, clash-free schedules via Gemini 2.5 Flash.
 - **Task Tracking:** Manage assignments with performance logging (Done/Partial/Failed).
 - **OCR Scanner:** Convert syllabus photos to tasks via Gemini Vision.
 - **Analytics:** GitHub-style heatmaps and weekly progress metrics.
