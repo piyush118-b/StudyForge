@@ -3,7 +3,7 @@
 **The intelligent study companion.**
 [Live Demo](https://study-forge-lake.vercel.app)
 
-StudyForge AI is an adaptive academic OS that builds flexible schedules, tracks tasks, and provides deep-work tools using AI.
+StudyForge AI is an Adaptive academic OS that builds flexible schedules, tracks tasks, and provides deep-work tools using AI.
 
 ## ✨ Features
 - **AI Planning:** Automated, clash-free schedules via Gemini 2.5 Flash.
