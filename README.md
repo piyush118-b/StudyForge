@@ -4,7 +4,7 @@
 
 [Explore the Live Demo](https://study-forge-lake.vercel.app)
 
-StudyForge AI is not just another calendar app—it's an **Adaptive Academic OS**. We built it for the students who are tired of clunky planners and rigid schedules. By combining intelligent AI with premium design, StudyForge transforms your chaotic syllabus into a clear, actionable path to success.
+StudyForge AI is not just another calendar app—it's an **Adaptive Academic OS**. We built it for the students who are tired of clunky planners and rigid schedules. By combining intelligent Artificial intelligence with premium design, StudyForge transforms your chaotic syllabus into a clear, actionable path to success.
 
 ---
 
