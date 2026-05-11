@@ -22,7 +22,7 @@ Traditional tools expect you to adapt to them. StudyForge adapts to *you*.
 
 ## 🛠️ The Engine Room
 
-StudyForge is built with a modern, high-performance stack designed for speed and reliability:
+StudyForge is built with a futuristic, high-performance stack designed for speed and reliability:
 
 - **Frontend:** [Next.js 14](https://nextjs.org/) (App Router) for a lightning-fast, SEO-friendly experience.
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/) & [Shadcn UI](https://ui.shadcn.com/) for that premium, responsive look.
