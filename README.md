@@ -16,7 +16,7 @@ Traditional tools expect you to adapt to them. StudyForge adapts to *you*.
 *   **📸 Lens to Logic:** Snap a photo of your syllabus or a messy whiteboard. Our OCR scanner automatically extracts tasks, saving you hours of manual data entry.
 *   **📊 Insight, Not Just Data:** See your growth with GitHub-style consistency heatmaps and deep-dive analytics. Know exactly where your time goes and celebrate your wins.
 *   **🔥 The Forge Mode:** Enter a state of deep work with integrated Pomodoro timers and curated ambient soundscapes. It’s your distraction-free zone for peak performance.
-*   **🎨 Visual Excellence:** A premium, dark-mode first interface with glassmorphism and smooth micro-animations. Because your workspace should be as inspiring as your goals.
+
 
 ---
 
