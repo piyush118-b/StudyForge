@@ -1,4 +1,4 @@
-# StudyForge Ai
+# StudyForge 
 
 **Stop planning. Start achieving. Dominate your semester.**
 
